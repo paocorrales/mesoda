@@ -1,0 +1,145 @@
+---
+title: "Coeficientes para la corrección de bias"
+output: bookdown::html_document2
+bibliography: mesoda_ref.bib
+---
+
+```{r setup, echo = FALSE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	fig.path = "../figures/",
+	message = FALSE,
+	warning = FALSE,
+	collapse = TRUE,
+	comment = "#>",
+	dpi = 300
+)
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(data.table)
+library(here)
+library(knitr)
+library(kableExtra)
+
+map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+sensores <- c("amsua_n15",
+              "amsua_n18",
+              "amsua_n19",
+              "amsua_metop-b",
+              "amsua_aqua",
+              "airs_aqua",
+              "iasi_metop-a",
+              "iasi_metop-b", 
+              "hirs4_n19",
+              "hirs4_metop-a",
+              "hirs4_metop-b",
+              "mhs_metop-a",
+              "mhs_metop-b",
+              "mhs_n18",
+              "mhs_n19",
+              "mhs_metop-a",
+              "atms_npp",
+              "atms_n20",
+              "cris-fsr_npp",
+              "cris-fsr_n20"
+)
+```
+
+La correcta asimilación de observaciones de satélite, en particular radianzas, depende en gran medida de la estimación y corrección del bias asociado a cada observación. Si el bias no es corregido podría afectar el análisis y los pronósticos generados generando impactos negativos. 
+
+Uno de los desafíos en la corrección de bias para asimilación regional es la cantidad de observaciones disponibles en cada ciclo de asimilación lo que depende a su vez de la ubicación y orbitas de los distintos satélites. En la región de Sudamérica los distintos satélites polares pasan una o dos veces por día y el dominio escaneado es variable. A esta restricción se suma la disminución de observaciones disponibles debido al límite superior de los modelos regionales.
+
+El sistema GSI-LETKF incorpora un metodo de corrección de bias que estima y actualiza coeficientes $\beta_i$ que se aplican a una regresón lineal previo a la estimación del estado final o análisis [@miyoshi2010]. Esta estimación se calcula aplicando la ecuación:
+
+$$ \delta\beta = (B_{\beta}^{-1} + PR^{-1})^{-1}PR^{-1}[y-H(x)-P^{T}\beta]$$
+
+Esta formulación es equivalente a la utilizada por la versión variacional de GSI y análoga a la ecuación del cálculo del análisis con la inclusión de la corrección de bias. En la ecuación $\delta\beta$ se asume diagonal y sus elementos se inicializan con el valor 0.1 y luego de su estimación que se calcula de manera iterativa, los coeficientes son actualizados:
+
+$$\beta = \beta_b+\delta \beta$$
+
+La corrección del bias se calcula utilizanod una regresión lineal con $N$ predictores independientes $P_i(x)$ y sus correspondientes coeficientes $\beta_i$.
+
+$$BC = \sum_{i=1}^{N} \beta_i P_i(x) $$
+
+La corrección del bias luego es aplicada directamente sobre la innovación $y - H(x)$.
+
+Los predictores utilizados para la corrección asociada al estado de la atmósferea en este sistema corresponden a:
+
+* Global offset
+* Zenit angle
+* Cloud liquid water (CLW)
+* Temperature lapse rate (TLR)
+* Temperature lapse rate al cuadrado
+
+Mientras que la corrección asociada al ángulo de observación utiliza un polinomio de grado N. 
+
+El cálculo de CLW y TLR depende de cada sensor y se realiza como parte de las rutinas de GSI. 
+
+De acuerdo a @zhu2019 los coeficientes utilizados en la corrección del bias deben ser entrenados durante un periodo largo de tiempo y muestra que este tiempo es variable para cada canal de cada sensor. Con esto en mente se propone el siguiente experimento para el entrenamiento de los coeficientes. 
+
+### Diseño experimental
+
+Para obtener coeficientes que permitan la correcta asimilación de observaciones de radianzas durante el periodo 18 UTC 20/11/2018 - 12 UTC 23/11/2018 se realizará asimilación continua entre las 18 UTC 11/11/2018 y las 12 UTC del 20/11/2018. 
+
+En este periodo de entrenamiento se observaron distintos fenómenos de tiempo severo asociados a sistemas convectivos de mesoescala y periodos de menor actividad por lo que se espera que la variedad de condiciones atmósfericas favorescan el entrenamiento de coeficientes pese al corto periodo de tiempo (9 días). Para garantizar esto y siguiendo a @zhu2019 este entrenamiento se realizará dos veces. Para el primer ciclo de asimilación se utilizaron los coeficientes de corrección de bias utilizados por GFS para la misma hora con la intención de acelerar el entramiento en comparación con una inicialización desde "0". Al finalizar el primer período de asimilación (experimento pre-RAD1) los coeficientes resultantes del último ciclo son utilizados al comenzar el segundo periodo de asimilación en las mismas fechas (pre-RAD2). 
+
+El experimento de asimilación se realizará en el dominio que se muestra en la Figura \@ref(fig:dominio) realizando ciclos contínuos a cada hora. El dominio tiene una reticula horizontal de 10 km y el tope del modelo en 50 hPa. En cada ciclo se incluyen las observaciones disponibles en la ventana de asimilación de 1 hora centrada en la hora del análisis incluyendo observaciones convencionales en el prepBUFR, observaciones de estaciones automáticas en el dominio, vientos derivados de satélite y radianzas de sensores en satélites polares listados en la Tabla \@ref(tab:sensores).
+
+```{r dominio, fig.cap="Dominio horizontal del modelo"}
+fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
+                    breaks = seq(0, 6000, 500)) +
+  # geom_point(aes(color = hgt), size = 5) +
+  scale_fill_distiller(name = NULL,
+                       type = "seq",
+                       palette = "RdYlGn",
+                       direction = -1,
+                       breaks = seq(0, 6000, 500),
+                       guide = guide_colorstrip(barwidth = 20,
+                                                barheight = 0.8)) +
+  geom_sf(data = map, inherit.aes = FALSE, fill = NA, size = 0.5) +
+  coord_sf(ylim = c(-41, -20), xlim = c(-75, -52.5)) +
+  labs(
+    x = "Longitude", 
+    y = "Latitude") +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+```
+
+```{r sensores}
+fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>%
+  setnames("!sensor/instr/sat", "sensor_plataforma") %>% 
+  .[iuse == 1 & sensor_plataforma %in% sensores, .N, by = .(sensor_plataforma)] %>% 
+  separate(col = sensor_plataforma, into = c("sensor", "plataforma"), sep = "_") %>% 
+  arrange(sensor) %>% 
+  kable(col.names = c("Sensor", "Plataforma", "N° de canales asimilables"),
+        caption = "Lista de sensores con la cantidad de canales aceptados por GSI") %>% 
+  collapse_rows(columns = 1, valign = "top")  %>% 
+  kable_classic_2()
+```
+
+#### Radianzas
+
+Ver cantidad de observaciones asimiladas en cada canal y la altura de cada una ¿En todo el periodo?
+
+
+### Colophon
+
+This report was generated on `r Sys.time()` using the following computational environment and dependencies: 
+
+```{r colophon, cache = FALSE}
+# which R packages and versions?
+if ("devtools" %in% installed.packages()) devtools::session_info()
+```
+
+The current Git commit details are:
+
+```{r}
+# what commit is this file at? 
+if ("git2r" %in% installed.packages() & git2r::in_repository(path = ".")) git2r::repository(here::here())  
+```
