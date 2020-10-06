@@ -1,0 +1,22 @@
+Package: mesoda
+Title: Mesoscale Data Assimilation - PhD Thesis
+Version: 0.0.0.9000
+Authors@R:
+    person(given = "Paola",
+           family = "Corrales",
+           role = c("aut", "cre"),
+           email = "paola.corrales@cima.fcen.uba.ar")
+Description: En el futuro: mi tesis de doctorado. Por ahora será un compendio de análisis ordenados.
+License: MIT + file LICENSE
+ByteCompile: true
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
+Imports: 
+    bookdown,
+    here,
+    proj4
+Suggests: 
+    devtools,
+    git2r
