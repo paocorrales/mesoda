@@ -16,7 +16,10 @@ RoxygenNote: 7.1.1
 Imports: 
     bookdown,
     here,
-    proj4
+    proj4,
+    data.table,
+    unglue,
+    lubridate
 Suggests: 
     devtools,
     git2r
