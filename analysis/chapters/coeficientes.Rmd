@@ -19,6 +19,7 @@ library(metR)
 library(tidyverse)
 library(data.table)
 library(here)
+library(patchwork)
 library(knitr)
 library(kableExtra)
 
@@ -125,7 +126,72 @@ fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>%
 
 #### Radianzas
 
+La información de radianzas provienen de los sensores AMSU-A, AIRS, MHS, AIRS, IASI, HIRS todos en satélites de orbita polar. Estas observaciones son parte del sistema de transferencia de datos que utiliza GFS disponibles cada 6 horas pero asimiladas en ciclos horarios utilizando las observaciones correspondientes a una ventana centrada en la hora del análisis.
+
+Se utilizaron observaciones en aire claro (ver métodos para detectar nubles usado por GSI) y se aplicó un control de calidad específico para cada sensor a fin de rechazar observaciones erroneas. A si mismo para tener en cuenta la resolución de cada observación se aplicó un thining de 60 km. Este valor fue definido siguiendo la metodología de otros trabajos en el área (@zhu2016, @jones2020, @lin2017a, and @singh2016qms)
+
 Ver cantidad de observaciones asimiladas en cada canal y la altura de cada una ¿En todo el periodo?
+
+```{r n_rad, fig.cap="Cantidad de observaciones potencialmene asimilables en cada ciclo de asimilación para el experimento pre-RAD1"}
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+                    pattern = "asim.", recursive = TRUE, 
+                    full.names = TRUE)
+files <- files[!str_detect(files, pattern = "conv")]
+
+diag_rad <- purrr::map(files, function(f) {
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/diagfiles/{file}" )
+  read_diag_rad(f, exp = meta[[1]][["exp"]]) %>%
+    .[press > 50 & qc == 0] %>% 
+    .[]
+  
+}) %>%
+  rbindlist()
+
+diag_rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[sensor %in% c("airs", "iasi")] %>% 
+  .[, .N, by = .(date, channel, sensor)] %>% 
+  ggplot(aes(channel, N)) +
+  geom_boxplot(aes(group = factor(channel))) +
+  facet_wrap(~sensor, scales = "free") +
+  labs(x = "Canal", y = "Observaciones por ciclo") +
+  theme_minimal() +
+
+diag_rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[!(sensor %in% c("airs", "iasi"))] %>% 
+  .[, .N, by = .(date, channel, sensor)] %>% 
+  ggplot(aes(channel, N)) +
+  geom_boxplot(aes(group = factor(channel))) +
+  facet_wrap(~sensor, scales = "free") +
+  labs(x = "Canal", y = "Observaciones por ciclo") +
+  theme_minimal() +
+  plot_layout(ncol = 1)
+
+```
+
+```{r level_rad}
+diag_rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[sensor %in% c("airs", "iasi")] %>% 
+  # .[, .N, by = .(date, channel, sensor)] %>% 
+  ggplot(aes(channel, press)) +
+  geom_boxplot(aes(group = factor(channel))) +
+  facet_wrap(~sensor, scales = "free") +
+  labs(x = "Canal", y = "Presión (hPa)") +
+  theme_minimal() 
+
+diag_rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[!(sensor %in% c("airs", "iasi"))] %>% 
+  # .[, .N, by = .(date, channel, sensor)] %>% 
+  ggplot(aes(channel, press)) +
+  geom_boxplot(aes(group = factor(channel))) +
+  facet_wrap(~sensor, scales = "free") +
+  labs(x = "Canal", y = "Presión (hPa)") +
+  theme_minimal() +
+  plot_layout(ncol = 1)
+```
 
 
 ### Colophon
