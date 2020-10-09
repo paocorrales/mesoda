@@ -1,6 +1,8 @@
 ---
 title: "Coeficientes para la corrección de bias"
-output: bookdown::html_document2
+output: 
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
 bibliography: mesoda_ref.bib
 ---
 
@@ -17,9 +19,11 @@ knitr::opts_chunk$set(
 library(mesoda)
 library(metR)
 library(tidyverse)
+library(lubridate)
 library(data.table)
 library(here)
 library(patchwork)
+library(unglue)
 library(knitr)
 library(kableExtra)
 
@@ -82,11 +86,14 @@ De acuerdo a @zhu2019 los coeficientes utilizados en la corrección del bias deb
 
 ### Diseño experimental
 
+Distintos trabajos abordan el entrenamiento de los coeficientes de corrección de bias en dominios regionales donde la cobertura de observaciones satélitales no es homogenea de manera similar. Por ejemplo @schwartz2012 utiliza un "spin up" de una semana para el entrenamiento de los coeficientes utilizando un método variacional con ciclos de asimilación cada 6 horas en un dominio regional mientras que @liu2012 utiliza un método "offline" durante 3 meses para obtener coeficientes de corrección estables. En particular @zhu2019 propone un periodo de entrenamiento de 9 días utilizando un método variacional determina que es necesario repetir este periodo una vez más para obtener coeficientes estables. 
+
 Para obtener coeficientes que permitan la correcta asimilación de observaciones de radianzas durante el periodo 18 UTC 20/11/2018 - 12 UTC 23/11/2018 se realizará asimilación continua entre las 18 UTC 11/11/2018 y las 12 UTC del 20/11/2018. 
 
 En este periodo de entrenamiento se observaron distintos fenómenos de tiempo severo asociados a sistemas convectivos de mesoescala y periodos de menor actividad por lo que se espera que la variedad de condiciones atmósfericas favorescan el entrenamiento de coeficientes pese al corto periodo de tiempo (9 días). Para garantizar esto y siguiendo a @zhu2019 este entrenamiento se realizará dos veces. Para el primer ciclo de asimilación se utilizaron los coeficientes de corrección de bias utilizados por GFS para la misma hora con la intención de acelerar el entramiento en comparación con una inicialización desde "0". Al finalizar el primer período de asimilación (experimento pre-RAD1) los coeficientes resultantes del último ciclo son utilizados al comenzar el segundo periodo de asimilación en las mismas fechas (pre-RAD2). 
 
 El experimento de asimilación se realizará en el dominio que se muestra en la Figura \@ref(fig:dominio) realizando ciclos contínuos a cada hora. El dominio tiene una reticula horizontal de 10 km y el tope del modelo en 50 hPa. En cada ciclo se incluyen las observaciones disponibles en la ventana de asimilación de 1 hora centrada en la hora del análisis incluyendo observaciones convencionales en el prepBUFR, observaciones de estaciones automáticas en el dominio, vientos derivados de satélite y radianzas de sensores en satélites polares listados en la Tabla \@ref(tab:sensores).
+
 
 ```{r dominio, fig.cap="Dominio horizontal del modelo"}
 fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
@@ -128,11 +135,11 @@ fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>%
 
 La información de radianzas provienen de los sensores AMSU-A, AIRS, MHS, AIRS, IASI, HIRS todos en satélites de orbita polar. Estas observaciones son parte del sistema de transferencia de datos que utiliza GFS disponibles cada 6 horas pero asimiladas en ciclos horarios utilizando las observaciones correspondientes a una ventana centrada en la hora del análisis.
 
-Se utilizaron observaciones en aire claro (ver métodos para detectar nubles usado por GSI) y se aplicó un control de calidad específico para cada sensor a fin de rechazar observaciones erroneas. A si mismo para tener en cuenta la resolución de cada observación se aplicó un thining de 60 km. Este valor fue definido siguiendo la metodología de otros trabajos en el área (@zhu2016, @jones2020, @lin2017a, and @singh2016qms)
+Se utilizaron observaciones en aire claro (ver métodos para detectar nubles usado por GSI) y se aplicó un control de calidad específico para cada sensor a fin de rechazar observaciones erroneas. A si mismo para tener en cuenta la resolución de cada observación se aplicó un thining de 60 km. Este valor fue definido siguiendo la metodología de otros trabajos en el área (@zhu2016, @jones2020, @lin2017a, and @singh2016qms). 
 
-Ver cantidad de observaciones asimiladas en cada canal y la altura de cada una ¿En todo el periodo?
+En la Figura \@ref(fig:n-rad) se muestra la cantidad de observaciones potencialmente asimilables, es decir, que pasan el control de calidad del operador de las observaciones, para cada canal en cada ciclo de asimilación. Dejando de lado IASI que no se ve nada porque tiene más de 600 canales, se puede ver que en todo los casos hay outliers. Esto tiene que ver con que en cada ciclo solo hay disponibles observaciones de algunos sensores y no siempre la pasada del sensor coincide completamente con el dominio. Los momenos donde la cantidad de observaciones aumenta considerablemente coinciden con los momentos donde la pasada del satélite estaba centrada en el dominio. En general hay más observaciones en el rango infrarrojo tanto por las observaciones de los sensores multiespectrales (AIRS e IASI) como por el sensor HIRS que en general para todos los canales aporta mayor cantidad de observaciones. 
 
-```{r n_rad, fig.cap="Cantidad de observaciones potencialmene asimilables en cada ciclo de asimilación para el experimento pre-RAD1"}
+```{r}
 files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
                     pattern = "asim.", recursive = TRUE, 
                     full.names = TRUE)
@@ -146,7 +153,10 @@ diag_rad <- purrr::map(files, function(f) {
   
 }) %>%
   rbindlist()
+```
 
+
+```{r n-rad, fig.cap="Cantidad de observaciones potencialmene asimilables en cada ciclo de asimilación para el experimento pre-RAD1"}
 diag_rad %>% 
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[sensor %in% c("airs", "iasi")] %>% 
@@ -154,7 +164,7 @@ diag_rad %>%
   ggplot(aes(channel, N)) +
   geom_boxplot(aes(group = factor(channel))) +
   facet_wrap(~sensor, scales = "free") +
-  labs(x = "Canal", y = "Observaciones por ciclo") +
+  labs(x = "", y = "Observaciones por ciclo") +
   theme_minimal() +
 
 diag_rad %>% 
@@ -170,28 +180,91 @@ diag_rad %>%
 
 ```
 
-```{r level_rad}
+En cuanto a la altura de las observaciones (Figura \@ref(fig:leve-rad)), determinada a partir del máximo de la función de peso, muchas observaciones de canales de todos los sensores menos MHS correspoenden a alturas por encima del tope del modelo (50 hPa). Respecto de observaciones en el rango de microondas el sensor ATMS aporta la mayor cantidad de observaciones en niveles medios y altos y lo mismo ocurre con AMSU-A. En cuanto a las observaciones en el infrarrojo AIRS aporta muchas observaciones entre superficie y 200 hPa mientras que los canales de HIRS4 con observaciones en niveles medios y bajos muestran un comportamiento más variane y aporta en general menos observaciones. 
+
+
+TODO: ¿Qué está pasando con el nivel de presión de IASI? Hay una franja negra en 300 hPa que tiene pinta sospechosa. 
+
+
+```{r level-rad, fig.cap="Nivel de presión asociado a las observaciones potencialmene asimilables en cada ciclo de asimilación para el experimento pre-RAD1"}
 diag_rad %>% 
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[sensor %in% c("airs", "iasi")] %>% 
-  # .[, .N, by = .(date, channel, sensor)] %>% 
-  ggplot(aes(channel, press)) +
+  ggplot(aes(channel, peakwt)) +
   geom_boxplot(aes(group = factor(channel))) +
+  scale_y_level(name = "Presión (hPa)") +
   facet_wrap(~sensor, scales = "free") +
-  labs(x = "Canal", y = "Presión (hPa)") +
-  theme_minimal() 
+  labs(x = "", y = "") +
+  theme_minimal() +
 
 diag_rad %>% 
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[!(sensor %in% c("airs", "iasi"))] %>% 
-  # .[, .N, by = .(date, channel, sensor)] %>% 
-  ggplot(aes(channel, press)) +
+  ggplot(aes(channel, peakwt)) +
   geom_boxplot(aes(group = factor(channel))) +
+  scale_x_continuous(breaks = seq) +
+  scale_y_level(name = "Presión (hPa)") +
   facet_wrap(~sensor, scales = "free") +
-  labs(x = "Canal", y = "Presión (hPa)") +
+  labs(x = "Canal") +
   theme_minimal() +
   plot_layout(ncol = 1)
 ```
+
+## Evolución de los coeficientes de corrección.
+
+
+El entrenamiento de los coeficientes varia sensor a sensor y canal a canal, de acuerdo a lo observado en la bibliografía el tiempo de entrenamiento necesario es variable en cada caso. A continuación se muestran algunos ejemplos. 
+
+Ver algunos ejemplos para cada sensor (solo alguna plataforma y algún canal), capaz incluyendo amsua n15 para cmparar con zhu 2019
+
+```{r}
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA",
+                    pattern = "satbias_2", 
+                    recursive = TRUE,
+                    full.names = TRUE)
+
+satbias <- map(files, function(f){
+
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/satbias_enkf/satbias_{date}")
+  read_satbias(f) %>% 
+    as.data.table() %>% 
+    .[, ":="(date = ymd_hms(meta[[1]][["date"]]),
+             exp = meta[[1]][["exp"]])] 
+  
+}) %>% 
+  rbindlist()
+
+satbias <- satbias[sensor %in% sensores]
+
+satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+
+satbias <- satinfo[satbias, on = c("sensor", "channel")]
+
+this_sensor <- sensores[1]
+
+satbias[sensor == this_sensor & iuse == 1] %>% 
+  .[channel %in% c(5:9)] %>%
+    melt(measure.vars = paste0("coeff", c(1, 3:5, 8))) %>% 
+    ggplot(aes(date, value)) +
+    geom_path(aes(color = variable, linetype = exp), size= 0.5) +
+    scale_color_brewer(type = "qual", palette = "Dark2",
+                       labels = c("coeff1" = "Offset",
+                                  "coeff3" = "CLW",
+                                  "coeff4" = "TLR^2",
+                                  "coeff5" = "TLR",
+                                  "coeff8" = "Emiss")) +
+    scale_linetype_discrete(name = "", labels = c("pre-RAD1", "pre-RAD2")) +
+    scale_x_datetime(date_labels = "%d") +
+    labs(title = paste("Coeficientes de", this_sensor),
+         color = "", x = "Fecha", y = "") +
+    facet_wrap(~channel, scales = "free_y", ncol = 5) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+```
+
+
 
 
 ### Colophon
