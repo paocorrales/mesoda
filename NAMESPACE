@@ -2,4 +2,5 @@
 
 export(norargentina_lambert)
 export(read_diag_rad)
+export(read_satbias)
 export(wrf_project)

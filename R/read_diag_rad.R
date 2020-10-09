@@ -26,7 +26,7 @@ read_diag_rad <- function(file_list, exp) {
   }) %>%
     rbindlist()
 
-  colnames(diag) <- c("sensor", "channel", "freq", "lat", "lon", "press", "elev_sup", "dhr", "tb_obs", "tbc", "tbcnob",
+  colnames(diag) <- c("sensor", "channel", "freq", "lat", "lon", "peakwt", "press", "dhr", "tb_obs", "tbc", "tbcnob",
                       "errinv", "qc", "emis", "tlapchn", "rzen", "razi", "rlnd", "rice", "rsnw", "rcld",
                       "rcldp", paste0("pred", seq(8)), "date", "mem", "exp")
   return(diag)

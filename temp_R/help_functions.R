@@ -178,39 +178,39 @@ read_diag_mean <- function(path, variable = c("uv", "p", "t", "q")) {
 
 # read satbias ------------------------------------------------------------
 
-read_satbias <- function(file) {
-
-  library(tidyverse)
-  library(data.table)
-
-  string <- read_lines(file)
-  split_chunks <- function(string) {
-    start <- seq(1, length(string), 3)
-    end <- c(start-1, length(string))[-1]
-
-    obs_type <- stringr::str_extract(string[start], "\\d+")
-
-    chunks <- purrr::map(seq_along(start), ~ string[(start[.x]):end[.x]])
-    chunks
-  }
-
-  string <- split_chunks(string)
-
-  parse_chunk <- function(chunk) {
-    str_split(chunk, " ") %>%
-      map( ~ str_subset(.x, "^$", negate = TRUE)) %>%
-      unlist(., recursive = FALSE)
-  }
-
-  satbias <- map(string, parse_chunk) %>%
-    do.call(rbind, .) %>%
-    as.data.frame() %>%
-    setNames(c("id", "sensor", "channel", "tlp1", "tlp2", "nc",
-               paste0("coeff", seq(12)))) %>%
-    mutate(across(channel:coeff12, ~as.numeric(as.character(.x))))
-
-  return(satbias)
-}
+# read_satbias <- function(file) {
+#
+#   library(tidyverse)
+#   library(data.table)
+#
+#   string <- read_lines(file)
+#   split_chunks <- function(string) {
+#     start <- seq(1, length(string), 3)
+#     end <- c(start-1, length(string))[-1]
+#
+#     obs_type <- stringr::str_extract(string[start], "\\d+")
+#
+#     chunks <- purrr::map(seq_along(start), ~ string[(start[.x]):end[.x]])
+#     chunks
+#   }
+#
+#   string <- split_chunks(string)
+#
+#   parse_chunk <- function(chunk) {
+#     str_split(chunk, " ") %>%
+#       map( ~ str_subset(.x, "^$", negate = TRUE)) %>%
+#       unlist(., recursive = FALSE)
+#   }
+#
+#   satbias <- map(string, parse_chunk) %>%
+#     do.call(rbind, .) %>%
+#     as.data.frame() %>%
+#     setNames(c("id", "sensor", "channel", "tlp1", "tlp2", "nc",
+#                paste0("coeff", seq(12)))) %>%
+#     mutate(across(channel:coeff12, ~as.numeric(as.character(.x))))
+#
+#   return(satbias)
+# }
 
 # input_obs_error ---------------------------------------------------------
 

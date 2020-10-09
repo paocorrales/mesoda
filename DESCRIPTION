@@ -19,7 +19,10 @@ Imports:
     proj4,
     data.table,
     unglue,
-    lubridate
+    lubridate,
+    dplyr,
+    purrr,
+    stringr
 Suggests: 
     devtools,
     git2r
