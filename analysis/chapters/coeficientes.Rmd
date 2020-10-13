@@ -10,6 +10,8 @@ bibliography: mesoda_ref.bib
 knitr::opts_chunk$set(
 	echo = FALSE,
 	fig.path = "../figures/",
+	fig.retina = TRUE,
+	fig.height = 5,
 	message = FALSE,
 	warning = FALSE,
 	collapse = TRUE,
@@ -50,6 +52,7 @@ sensores <- c("amsua_n15",
               "cris-fsr_npp",
               "cris-fsr_n20"
 )
+cyan <- rgb(0, 139, 139, maxColorValue = 255)
 ```
 
 La correcta asimilación de observaciones de satélite, en particular radianzas, depende en gran medida de la estimación y corrección del bias asociado a cada observación. Si el bias no es corregido podría afectar el análisis y los pronósticos generados generando impactos negativos. 
@@ -180,7 +183,7 @@ diag_rad %>%
 
 ```
 
-En cuanto a la altura de las observaciones (Figura \@ref(fig:leve-rad)), determinada a partir del máximo de la función de peso, muchas observaciones de canales de todos los sensores menos MHS correspoenden a alturas por encima del tope del modelo (50 hPa). Respecto de observaciones en el rango de microondas el sensor ATMS aporta la mayor cantidad de observaciones en niveles medios y altos y lo mismo ocurre con AMSU-A. En cuanto a las observaciones en el infrarrojo AIRS aporta muchas observaciones entre superficie y 200 hPa mientras que los canales de HIRS4 con observaciones en niveles medios y bajos muestran un comportamiento más variane y aporta en general menos observaciones. 
+En cuanto a la altura de las observaciones (Figura \@ref(fig:level-rad)), determinada a partir del máximo de la función de peso, muchas observaciones de canales de todos los sensores menos MHS correspoenden a alturas por encima del tope del modelo (50 hPa). Respecto de observaciones en el rango de microondas el sensor ATMS aporta la mayor cantidad de observaciones en niveles medios y altos y lo mismo ocurre con AMSU-A. En cuanto a las observaciones en el infrarrojo AIRS aporta muchas observaciones entre superficie y 200 hPa mientras que los canales de HIRS4 con observaciones en niveles medios y bajos muestran un comportamiento más variane y aporta en general menos observaciones. 
 
 
 TODO: ¿Qué está pasando con el nivel de presión de IASI? Hay una franja negra en 300 hPa que tiene pinta sospechosa. 
@@ -213,9 +216,8 @@ diag_rad %>%
 ## Evolución de los coeficientes de corrección.
 
 
-El entrenamiento de los coeficientes varia sensor a sensor y canal a canal, de acuerdo a lo observado en la bibliografía el tiempo de entrenamiento necesario es variable en cada caso. A continuación se muestran algunos ejemplos. 
+El entrenamiento de los coeficientes varia sensor a sensor y canal a canal, de acuerdo a lo observado en la bibliografía el tiempo de entrenamiento necesario es variable en cada caso. Al mismo tiempo al ser asimilación regional y horaria podría afectar el tiempo que demora la estabilización de los coeficientes de corrección.  
 
-Ver algunos ejemplos para cada sensor (solo alguna plataforma y algún canal), capaz incluyendo amsua n15 para cmparar con zhu 2019
 
 ```{r}
 files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA",
@@ -241,6 +243,15 @@ satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>%
 
 satbias <- satinfo[satbias, on = c("sensor", "channel")]
 
+```
+
+Por ejemplo en la Figura \@ref(fig:coef-amsua-n15) se muestra la evolución de algunos de los coeficientes de canales del AMSU-A en NOAA15 en linea llena para la primera semana de entrenamiento pre-RAD1 y en línea punteada para la segunda semana pre-RAD2. Al igual que @zhu2019 se observa que cada coeficiente se estabiliza a una velocidad distinta, por ejemplo el coeficiente de emisividad en el canal 8 si bien hacia el final de la semana 2 muestra un comportamiento similar a la semana 1, los valores no son tan cercanos mientras que el TLR tiene un comportamiento muy similar en casi todo el periodo. Lamentablemente @zhu2019 no muestra otros canales (solo canal 5) pero es esperable que cada uno muestre variaciones. 
+
+En general algunos coeficientes para algunos canales no requieren casi entrenamiento mientras que a otros capaz les vendría bien una semanita más. 
+
+[link a gráficos de todos los sensores y canales](https://www.dropbox.com/sh/a64be0ognp0js0a/AAC6r8AXAGZ45dNFdvF1r8AEa?dl=0)
+
+```{r coef-amsua-n15, fig.cap="Coeficientes de corrección de bias en cada ciclo de asimilación para los canales 5 a 9 del sensor AMSU-A de NOAA-15." }
 this_sensor <- sensores[1]
 
 satbias[sensor == this_sensor & iuse == 1] %>% 
@@ -261,10 +272,88 @@ satbias[sensor == this_sensor & iuse == 1] %>%
     facet_wrap(~channel, scales = "free_y", ncol = 5) +
     theme_minimal() +
     theme(legend.position = "bottom")
+```
+Otro ejemplo se observa en la Figura \@ref(fig:coef-mhs-metop-a) correspondiente a los coeficientes el sensor MHS a bordo del satelite METOP-A. En este caso por ejemplo para el canal 3 se observa como el Offset se mantuvo aprximadamente constante luego de 6 días de entrenamiento mientras que el TLR en el canal 5 continua variando aún luego de la segunda semana. 
 
+
+```{r coef-mhs-metop-a, fig.cap="Coeficientes de corrección de bias en cada ciclo de asimilación para los canales del sensor MHS en METOP-A." }
+this_sensor <- sensores[12]
+
+satbias[sensor == this_sensor & iuse == 1] %>% 
+  .[channel %in% c(1:5)] %>%
+    melt(measure.vars = paste0("coeff", c(1, 3:5, 8))) %>% 
+    ggplot(aes(date, value)) +
+    geom_path(aes(color = variable, linetype = exp), size= 0.5) +
+    scale_color_brewer(type = "qual", palette = "Dark2",
+                       labels = c("coeff1" = "Offset",
+                                  "coeff3" = "CLW",
+                                  "coeff4" = "TLR^2",
+                                  "coeff5" = "TLR",
+                                  "coeff8" = "Emiss")) +
+    scale_linetype_discrete(name = "", labels = c("pre-RAD1", "pre-RAD2")) +
+    scale_x_datetime(date_labels = "%d") +
+    labs(title = paste("Coeficientes de", this_sensor),
+         color = "", x = "Fecha", y = "") +
+    facet_wrap(~channel, scales = "free_y", ncol = 5) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
 ```
 
+Si observamos la corrección de bias para cada canal de la familia de sensores ANSU-A se ven diferencias interesantes entre los dos periodos pre-RAD1 y pre-RAD2. Para analizar estas diferencias en la Figura \@ref(fig:bias-amsua) hay que tener en cuenta que no todas las observaciones cumplen las condiciones para ser asimiladas y por lo tanto el BIAS no es corregido o si es corregido los coeficientes no son actualizados en cada ciclo.  En particular los canales 4 a 7 muestran una mejora en la mediana del bias (más cercana a cero) y/o en la dispersión (menor rango intercuartil y/o menos valores extremos). 
+```{r bias-amsua, fig.cap="Bias de las radianzas de AMSU-A en las distintas plataformas y para los dos periodos."}
 
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+                    pattern = "asim.", recursive = TRUE, 
+                    full.names = TRUE)
+files <- files[str_detect(files, pattern = "amsua")]
+
+diag_rad <- purrr::map(files, function(f) {
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/diagfiles/{file}" )
+  read_diag_rad(f, exp = meta[[1]][["exp"]]) %>%
+    .[]
+  
+}) %>%
+  rbindlist()
+
+diag_rad[sensor %in% sensores[1:5] & qc == 0] %>% 
+  ggplot(aes(factor(channel), tbc - tbcnob)) +
+  geom_hline(yintercept = 0, color = "darkgrey") +
+  geom_boxplot(aes(color = exp)) +
+  scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
+  labs(x = "Canal", y = "BIAS (K)",
+       color = "") +
+  facet_wrap(~sensor) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+La corrección del bias para el sensor MHS en cada periodo es menos clara que para AMSU-A (Figura \@ref(fig:bias-mhs)). Los cambios en pre-RAD2 son mínimos y en algunos casos negativos. Por ejemplo el canal 1 que tiene el máximo cerca de superficie es el que muestra mayor dispersión, esto mejora mucho para el sensor sobre METOP-A y B (aunque en este ultimo caso la mediana se aleja de cero) pero para NOAA19 la dispersión no cambia particularmente (pero la mediana está más cerca de cero). 
+
+```{r bias-mhs, fig.cap="Bias de las radianzas de MHS en las distintas plataformas y para los dos periodos."}
+
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+                    pattern = "asim.", recursive = TRUE, 
+                    full.names = TRUE)
+files <- files[str_detect(files, pattern = "mhs")]
+
+diag_rad <- purrr::map(files, function(f) {
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/diagfiles/{file}" )
+  read_diag_rad(f, exp = meta[[1]][["exp"]]) %>%
+    .[]
+  
+}) %>%
+  rbindlist()
+
+diag_rad[qc == 0] %>% 
+  ggplot(aes(factor(channel), tbc - tbcnob)) +
+  geom_hline(yintercept = 0, color = "darkgrey") +
+  geom_boxplot(aes(color = exp)) +
+  scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
+  labs(x = "Canal", y = "BIAS (K)",
+       color = "") +
+  facet_wrap(~sensor) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
 
 
 ### Colophon
@@ -282,3 +371,5 @@ The current Git commit details are:
 # what commit is this file at? 
 if ("git2r" %in% installed.packages() & git2r::in_repository(path = ".")) git2r::repository(here::here())  
 ```
+
+<script src="https://hypothes.is/embed.js" async></script>
