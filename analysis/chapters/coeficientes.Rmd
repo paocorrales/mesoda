@@ -325,6 +325,22 @@ diag_rad[sensor %in% sensores[1:5] & qc == 0] %>%
   facet_wrap(~sensor) +
   theme_minimal() +
   theme(legend.position = "bottom")
+
+diag_rad[sensor %in% sensores[1] & qc == 0 & channel %in% c(7:8)] %>% 
+  .[, .(mean_bias = mean(tbc - tbcnob, na.rm = TRUE),
+        mean_mag_bias = mean(abs(tbc - tbcnob), na.rm = TRUE),
+        n = .N), by = .(date, sensor, exp, channel)] %>% 
+  ggplot(aes(date, mean_bias)) +
+  geom_hline(yintercept = 0, color = "darkgrey") +
+  geom_line(aes(color = exp, group = interaction(exp, channel))) +
+  geom_point(aes(color = exp, size = n)) +
+  scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
+  scale_size_area(max_size = 4) +
+  labs(x = "Canal", y = "BIAS (K)",
+       color = "") +
+  facet_wrap(~channel) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 ```
 La corrección del bias para el sensor MHS en cada periodo es menos clara que para AMSU-A (Figura \@ref(fig:bias-mhs)). Los cambios en pre-RAD2 son mínimos y en algunos casos negativos. Por ejemplo el canal 1 que tiene el máximo cerca de superficie es el que muestra mayor dispersión, esto mejora mucho para el sensor sobre METOP-A y B (aunque en este ultimo caso la mediana se aleja de cero) pero para NOAA19 la dispersión no cambia particularmente (pero la mediana está más cerca de cero). 
 
