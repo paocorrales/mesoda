@@ -341,7 +341,7 @@ diag_rad[sensor %in% sensores[1:5] & qc == 0] %>%
 
 ```
 
-```{r bias-temp-amsua, fig.cap="Bias medio de las radianzas de AMSU-A en las distintas plataformas y para los dos periodos a lo largo del tiempo.", fig.height=4}
+```{r bias-temp-amsua, fig.cap="Bias medio de las radianzas de AMSU-A NOAA 15 en las distintas plataformas y para los dos periodos a lo largo del tiempo.", fig.height=4}
 
 diag_rad[sensor %in% sensores[1] & qc == 0 & channel %in% c(7:8)] %>% 
   .[, .(mean_bias = mean(tbc - tbcnob, na.rm = TRUE),
@@ -393,7 +393,7 @@ diag_rad %>%
 
 La distribución espacial de la corrección de bias aportada por distintos predictores para un tiempo particular se puede observar en la Figura \@ref(fig:pred-amsua). En este caso el TLR^2 muestra valores comparables con la literatura y en particular un máximo que ocupa gran parte del dominio. El predictor asociado a la emisividad presenta valores distinto de cero solo en la zona de topografía. 
 
-```{r pred-amsua, fig.cap="Contribución a la corrección del bias de dos predictores para el canal 3 de MHS NOAA19 a las 8 UTC del 17/11/2018"}
+```{r pred-amsua, fig.cap="Contribución a la corrección del bias de dos predictores para el canal 8 de AMSU-A NOAA19 a las 8 UTC del 17/11/2018"}
 
 diag_rad[sensor == "amsua_n19" & date == as_datetime("2018-11-17 08:00:00") & channel == 8] %>% 
   melt(measure.vars = paste0("pred", c(5))) %>% 
@@ -546,41 +546,258 @@ pp <- purrr::map(files, function(f) {
   
   meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/NPP/NPP_{date}_AN.nc")
   ReadNetCDF(f, vars = c("precipitacion" = "PP", 
-                                "XLAT", 
-                                "XLONG")) %>% 
-    .[, .(precipitacion = mean(precipitacion, na.rm = TRUE)), by = .(XLAT, XLONG)] %>% 
+                         "XLAT", 
+                         "XLONG")) %>% 
     .[, c("x", "y") := wrf_project(XLONG, XLAT, inverse = FALSE)] %>% 
     .[, exp := meta[[1]][[1]]] %>% 
     .[]
 }) %>%
-  rbindlist() 
+  rbindlist()
 
-pp %>% 
-  dcast(XLAT + XLONG + x + y ~ exp, value.var = "precipitacion") %>% 
-  .[, diff := week2 - week1] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = diff), proj = norargentina_lambert) +
-  scale_fill_divergent() +
-  # scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 25, 2.5)) +
-  geom_mapa() +
-  labs(fill = "", x = "", y = "") +
-  theme_minimal()
+imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
+
+files <- list.files(imerg_path, pattern = "20181113-S00", full.names = TRUE)
+
+pp_imerg <- purrr::map(files, function(f) {
+  meta <- unglue(basename(f), "3B-HHR-L.MS.MRG.3IMERG.{dia}-S{hora_ini}-E{hora_fin}.{algo}.V05B.RT-H5")
+  ReadNetCDF(f, 
+             vars = c(pp = "Grid/precipitationCal"), 
+             subset = list("Grid/lon" = -80:-50, 
+                           "Grid/lat" = -45:-15)) %>% 
+    .[, fecha := ymd_hms(paste0(meta[[1]][[1]], meta[[1]][[2]]))]
   
+}) %>% 
+  rbindlist() %>% 
+  setnames(c("Grid/lon", "Grid/lat"), c("lon", "lat")) %>% 
+  .[, .(pp_acum = sum(pp)), by = .(lon, lat)]
 
-pp %>% 
+```
+
+
+```{r caso1, fig.cap="Precipitación acumulada en 60 minutos para cada experimento (arriba), diferencia entre los experimentos (abajo, izquierda) y precipitación acumulada según IMERG (abajo, derecha)", fig.height=7}
+p1 <- pp[, .(precipitacion = mean(precipitacion, na.rm = TRUE)), by = .(x, y, exp)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = precipitacion), proj = norargentina_lambert,
                     breaks = seq(0, 25, 2.5)) +
   
-  scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 25, 2.5)) +
+  scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 25, 2.5),
+                       limits = c(2.5, NA),
+                       na.value = "white",
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
   geom_mapa() +
   labs(fill = "", x = "", y = "") +
-  facet_wrap(~exp) +
-theme_minimal()
+  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
 
+p2 <- pp[, .(precipitacion = mean(precipitacion, na.rm = TRUE)), by = .(x, y, exp)] %>% 
+  dcast(x + y ~ exp, value.var = "precipitacion") %>% 
+  .[, diff := week2 - week1] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = diff), proj = norargentina_lambert, 
+                    breaks = AnchorBreaks(anchor = 0, binwidth = 2, 
+                                          exclude = 0)) +
+  scale_fill_divergent(breaks = AnchorBreaks(anchor = 0, binwidth = 2, 
+                                             exclude = 0), 
+                       guide = guide_colorstrip(barwidth = 10,
+                                                barheight = 1)) +
+  # scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 25, 2.5)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+
+
+p3 <- pp_imerg %>% 
+  ggplot(aes(lon, lat)) +
+  geom_contour_fill(aes(z = pp_acum), #proj = norargentina_lambert,
+                    breaks = seq(0, 45, 5)) +
+  
+  scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 45, 5),
+                       limits = c(5, NA),
+                       na.value = "white",
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+
+(p1 / (p2 + p3)) + plot_layout(widths = 1) 
+# plot_layout(ncol = 2, widths = c(3, 1), heights = c(1, 1))
 
 ```
 
+```{r caso1-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento en el caso 1.", fig.height=7}
+pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
+                    breaks = seq(0, 100, 10)) +
+  scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
+                       limits = c(10, 100),
+                       na.value = "white",
+                       breaks = seq(0, 100, 10),
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  ggtitle("Probabilidad de precipitación acumulada > 5 mm") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  pp[, .(prop = mean(precipitacion > 25)*100), by = .(exp, x, y)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
+                    breaks = seq(0, 100, 10)) +
+  scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
+                       limits = c(10, 100),
+                       na.value = "white",
+                       breaks = seq(0, 100, 10),
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  ggtitle("Probabilidad de precipitación acumulada > 25 mm") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  plot_layout(ncol = 1, guides = "collect", widths = 0.5, heights = 2) &
+  theme(legend.position = "bottom") 
+```
+
+
+#### 2018-11-18 10:00Z
+
+```{r}
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+                    pattern = "NPP_2018-11-18_10", recursive = TRUE, 
+                    full.names = TRUE)
+
+pp <- purrr::map(files, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/NPP/NPP_{date}_AN.nc")
+  ReadNetCDF(f, vars = c("precipitacion" = "PP", 
+                         "XLAT", 
+                         "XLONG")) %>%
+    .[, c("x", "y") := wrf_project(XLONG, XLAT, inverse = FALSE)] %>% 
+    .[, exp := meta[[1]][[1]]] %>% 
+    .[]
+}) %>%
+  rbindlist()
+
+imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
+
+files <- list.files(imerg_path, pattern = "20181118-S09", full.names = TRUE)
+
+pp_imerg <- purrr::map(files, function(f) {
+  meta <- unglue(basename(f), "3B-HHR-L.MS.MRG.3IMERG.{dia}-S{hora_ini}-E{hora_fin}.{algo}.V05B.RT-H5")
+  ReadNetCDF(f, 
+             vars = c(pp = "Grid/precipitationCal"), 
+             subset = list("Grid/lon" = -80:-50, 
+                           "Grid/lat" = -45:-15)) %>% 
+    .[, fecha := ymd_hms(paste0(meta[[1]][[1]], meta[[1]][[2]]))]
+  
+}) %>% 
+  rbindlist() %>% 
+  setnames(c("Grid/lon", "Grid/lat"), c("lon", "lat")) %>% 
+  .[, .(pp_acum = sum(pp)), by = .(lon, lat)]
+
+```
+
+
+```{r caso2, fig.cap="Precipitación acumulada en 10 minutos para cada experimento (arriba), diferencia entre los experimentos (abajo, izquierda) y precipitación acumulada en 30 minutos según IMERG (abajo, derecha)", fig.height=7}
+p1 <- pp[, .(precipitacion = mean(precipitacion, na.rm = TRUE)), by = .(x, y, exp)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = precipitacion), proj = norargentina_lambert,
+                    breaks = seq(0, 25, 2.5)) +
+  
+  scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 25, 2.5),
+                       limits = c(2.5, NA),
+                       na.value = "white",
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+
+p2 <- pp[, .(precipitacion = mean(precipitacion, na.rm = TRUE)), by = .(x, y, exp)] %>% 
+  dcast(x + y ~ exp, value.var = "precipitacion") %>% 
+  .[, diff := week2 - week1] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = diff), proj = norargentina_lambert, 
+                    breaks = AnchorBreaks(anchor = 0, binwidth = 1, 
+                                          exclude = 0)) +
+  scale_fill_divergent(breaks = AnchorBreaks(anchor = 0, binwidth = 1, 
+                                             exclude = 0), 
+                       guide = guide_colorstrip(barwidth = 10,
+                                                barheight = 1)) +
+  # scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 25, 2.5)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+
+
+p3 <- pp_imerg %>% 
+  ggplot(aes(lon, lat)) +
+  geom_contour_fill(aes(z = pp_acum), #proj = norargentina_lambert,
+                    breaks = seq(0, 40, 5)) +
+  
+  scale_fill_distiller(palette = "YlGnBu", direction = 1, breaks = seq(0, 40, 5),
+                       limits = c(5, NA),
+                       na.value = "white",
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+
+(p1 / (p2 + p3)) + plot_layout(widths = 1) 
+
+```
+
+```{r caso2-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento correspondiente al caso 2", fig.height=7}
+pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
+                    breaks = seq(0, 100, 10)) +
+  scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
+                       limits = c(10, 100),
+                       na.value = "white",
+                       breaks = seq(0, 100, 10),
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  ggtitle("Probabilidad de precipitación acumulada > 5 mm") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  pp[, .(prop = mean(precipitacion > 25)*100), by = .(exp, x, y)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
+                    breaks = seq(0, 100, 10)) +
+  scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
+                       limits = c(10, 100),
+                       na.value = "white",
+                       breaks = seq(0, 100, 10),
+                       guide = guide_colorstrip(barwidth = 15,
+                                                barheight = 1)) +
+  geom_mapa() +
+  labs(fill = "", x = "", y = "") +
+  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  ggtitle("Probabilidad de precipitación acumulada > 25 mm") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  plot_layout(ncol = 1, guides = "collect", widths = 0.5, heights = 2) &
+  theme(legend.position = "bottom") 
+```
 
 ### Colophon
 
