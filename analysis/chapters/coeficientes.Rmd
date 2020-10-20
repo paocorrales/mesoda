@@ -149,13 +149,13 @@ Se utilizaron observaciones en aire claro (ver métodos para detectar nubles usa
 En la Figura \@ref(fig:n-rad) se muestra la cantidad de observaciones potencialmente asimilables, es decir, que pasan el control de calidad del operador de las observaciones, para cada canal en cada ciclo de asimilación. Dejando de lado IASI que no se ve nada porque tiene más de 600 canales, se puede ver que en todo los casos hay outliers. Esto tiene que ver con que en cada ciclo solo hay disponibles observaciones de algunos sensores y no siempre la pasada del sensor coincide completamente con el dominio. Los momenos donde la cantidad de observaciones aumenta considerablemente coinciden con los momentos donde la pasada del satélite estaba centrada en el dominio. En general hay más observaciones en el rango infrarrojo tanto por las observaciones de los sensores multiespectrales (AIRS e IASI) como por el sensor HIRS que en general para todos los canales aporta mayor cantidad de observaciones. 
 
 ```{r}
-files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
                     pattern = "asim.", recursive = TRUE, 
                     full.names = TRUE)
 files <- files[!str_detect(files, pattern = "conv")]
 
 diag_rad <- purrr::map(files, function(f) {
-  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/diagfiles/{file}" )
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7-training/ANA/{exp}/{date_ana}/diagfiles/{file}" )
   read_diag_rad(f, exp = meta[[1]][["exp"]]) %>%
     .[press > 50 & qc == 0] %>% 
     .[]
@@ -226,14 +226,14 @@ El entrenamiento de los coeficientes varia sensor a sensor y canal a canal, de a
 
 
 ```{r}
-files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA",
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA",
                     pattern = "satbias_2", 
                     recursive = TRUE,
                     full.names = TRUE)
 
 satbias <- map(files, function(f){
   
-  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/satbias_enkf/satbias_{date}")
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7-training/ANA/{exp}/{date_ana}/satbias_enkf/satbias_{date}")
   read_satbias(f) %>% 
     as.data.table() %>% 
     .[, ":="(date = ymd_hms(meta[[1]][["date"]]),
@@ -315,13 +315,13 @@ La evolución de bias a lo largo del tiempo para el sensor sobre NOAA15 (Figura 
 
 ```{r bias-amsua, fig.cap="Bias de las radianzas de AMSU-A en las distintas plataformas y para los dos periodos."}
 
-files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
                     pattern = "asim.", recursive = TRUE, 
                     full.names = TRUE)
 files <- files[str_detect(files, pattern = "amsua")]
 
 diag_rad <- purrr::map(files, function(f) {
-  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/diagfiles/{file}" )
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7-training/ANA/{exp}/{date_ana}/diagfiles/{file}" )
   read_diag_rad(f, exp = meta[[1]][["exp"]]) %>%
     .[]
   
@@ -366,7 +366,7 @@ Analizando específicamente los resultados de los experimentos, se ve que la con
 
 ```{r bias-pred-ansua, fig.cap="Evolución temporal del bias asociado a cada predictor para los sensores AMSU-A en las distintas plataformas", fig.height=3}
 
-diag_rad %>% 
+diag_rad[qc == 0] %>% 
   .[, bias_total := pred1 + pred2 + pred3 + pred4 + pred5 + pred6 + pred7 + pred8] %>% 
   melt(measure.vars = c("pred1", "pred2", "pred3", "pred4", 
                         "pred5", "pred6", "pred7", "pred8", "bias_total")) %>% 
@@ -429,13 +429,13 @@ La corrección del bias para el sensor MHS en cada periodo es menos clara que pa
 
 ```{r bias-mhs, fig.cap="Bias de las radianzas de MHS en las distintas plataformas y para los dos periodos."}
 
-files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
                     pattern = "asim.", recursive = TRUE, 
                     full.names = TRUE)
 files <- files[str_detect(files, pattern = "mhs")]
 
 diag_rad <- purrr::map(files, function(f) {
-  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/{date_ana}/diagfiles/{file}" )
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7-training/ANA/{exp}/{date_ana}/diagfiles/{file}" )
   read_diag_rad(f, exp = meta[[1]][["exp"]]) %>%
     .[]
   
@@ -480,7 +480,7 @@ En cuanto a la contribución para la corrección del bias por parte de los disti
 
 ```{r bias-pred-mhs, fig.cap="Evolución temporal del bias asociado a cada predictor para los sensores MSH en las distintas plataformas", fig.height=5}
 
-diag_rad %>% 
+diag_rad[qc == 0] %>% 
   .[, bias_total := pred1 + pred2 + pred3 + pred4 + pred5 + pred6 + pred7 + pred8] %>% 
   melt(measure.vars = c("pred1", "pred2", "pred3", "pred4", 
                         "pred5", "pred6", "pred7", "pred8", "bias_total")) %>% 
@@ -502,6 +502,29 @@ diag_rad %>%
   theme_minimal() +
   theme(legend.position = "bottom")
 
+
+```
+
+Para estos sensores en particular llama la atención las diferencias entre los dos periodos, por ejemplo en el canal 4 de METOP-B hay un cambio de magnitud del bias que ocurre alrededor de 16 de noviembre y que se mantiene luego en pre-RAD2. Para explorar la posibilidad de que este cambio se deba realmente al entrenamiento de los coeficiente y que a partir de esos momentos la corrección del bias esté mejorando, en la Figura \@ref(fig:mhs-bias-res) se muestra la media de la innovación. En primer lugar se ven las diferencias bastante marcadas entre la media de la innovación con y sin bias corregido y que en la mayoría de los casos el primer es más cercano a cero. En particular para el canal 4 de METOP-B se obsera que la media de la innovación corregida luego de 16 de noviembre se aleja de cero y esto se mantiene también durante el periodo pre-RAD2. 
+
+
+```{r mhs-bias-res, fig.cap="Valor medio de la diferencia entre las observaciones y el pronóstico (O - B) a lo largo del tiempo para cada periodo, sensor y canal"}
+diag_rad %>% 
+  .[qc == 0] %>% 
+  melt(measure.vars = c("tbc", "tbcnob")) %>% 
+  .[, .(ob_mean = mean(value, na.rm = TRUE),
+       ob_sd = sd(value, na.rm = TRUE)), by = .(date, sensor, channel, exp, variable)] %>% 
+  # melt(measure.vars = c("ob_mean", "ob_sd"),  variable.name = "estadistico", 
+  #      value.name = "valor") %>% 
+ggplot(aes(date, ob_mean)) +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(color = exp)) +
+  geom_line(aes(color = exp, linetype = variable)) +
+  scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
+  scale_linetype_discrete(labels = c("Bias corregido", "Sin corrección")) +
+  facet_grid(channel~sensor, scales = "free_y") +
+  labs(y = NULL, x = NULL, color = NULL, linetype = NULL) +
+  theme_minimal()
 
 ```
 
@@ -538,13 +561,13 @@ diag_rad[sensor == "mhs_n19" & date == as_datetime("2018-11-17 08:00:00") & chan
 #### 2018-11-13 01:00Z
 
 ```{r}
-files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
                     pattern = "NPP_2018-11-13_01", recursive = TRUE, 
                     full.names = TRUE)
 
 pp <- purrr::map(files, function(f) {
   
-  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/NPP/NPP_{date}_AN.nc")
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7-training/ANA/{exp}/NPP/NPP_{date}_AN.nc")
   ReadNetCDF(f, vars = c("precipitacion" = "PP", 
                          "XLAT", 
                          "XLONG")) %>% 
@@ -671,13 +694,13 @@ pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>%
 #### 2018-11-18 10:00Z
 
 ```{r}
-files <- list.files("/home/paola.corrales/datosmunin/EXP/E7/ANA", 
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
                     pattern = "NPP_2018-11-18_10", recursive = TRUE, 
                     full.names = TRUE)
 
 pp <- purrr::map(files, function(f) {
   
-  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7/ANA/{exp}/NPP/NPP_{date}_AN.nc")
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7-training/ANA/{exp}/NPP/NPP_{date}_AN.nc")
   ReadNetCDF(f, vars = c("precipitacion" = "PP", 
                          "XLAT", 
                          "XLONG")) %>%
