@@ -171,7 +171,8 @@ diag_rad %>%
   .[sensor %in% c("airs", "iasi")] %>% 
   .[, .N, by = .(date, channel, sensor)] %>% 
   ggplot(aes(channel, N)) +
-  geom_boxplot(aes(group = factor(channel)), color = "darkorange", size = 0.1) +
+  geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+               outlier.size = 0.5, size = 0.1) +
   facet_wrap(~sensor, scales = "free") +
   labs(x = "", y = "Observaciones por ciclo") +
   theme_minimal() +
@@ -181,7 +182,7 @@ diag_rad %>%
   .[!(sensor %in% c("airs", "iasi"))] %>% 
   .[, .N, by = .(date, channel, sensor)] %>% 
   ggplot(aes(channel, N)) +
-  geom_boxplot(aes(group = factor(channel)), color = "darkorange") +
+  geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange") +
   facet_wrap(~sensor, scales = "free") +
   labs(x = "Canal", y = "Observaciones por ciclo") +
   theme_minimal() +
@@ -200,7 +201,8 @@ diag_rad %>%
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[sensor %in% c("airs", "iasi")] %>% 
   ggplot(aes(channel, peakwt)) +
-  geom_boxplot(aes(group = factor(channel)), color = "darkorange", size = 0.1) +
+   geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+               outlier.size = 0.5, size = 0.1) +
   scale_y_level(name = "Presión (hPa)") +
   facet_wrap(~sensor, scales = "free") +
   labs(x = "", y = "") +
@@ -210,7 +212,7 @@ diag_rad %>%
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[!(sensor %in% c("airs", "iasi"))] %>% 
   ggplot(aes(channel, peakwt)) +
-  geom_boxplot(aes(group = factor(channel)), color = "darkorange") +
+  geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange") +
   scale_x_continuous() +
   scale_y_level(name = "Presión (hPa)") +
   facet_wrap(~sensor, scales = "free") +
@@ -343,7 +345,7 @@ diag_rad[sensor %in% sensores[1:5] & qc == 0] %>%
 
 ```{r bias-temp-amsua, fig.cap="Bias medio de las radianzas de AMSU-A NOAA 15 en las distintas plataformas y para los dos periodos a lo largo del tiempo. El tamaño de los puntos indica la cantidad de observaciones disponibles en cada momento.", fig.height=3, fig.width=6, fig.align="center"}
 
-diag_rad[sensor %in% sensores[1] & qc == 0 & channel %in% c(6:8)] %>% 
+diag_rad[sensor %in% sensores[1] & qc == 0 & channel %in% c(7:8)] %>% 
   .[, .(mean_bias = mean(tbc - tbcnob, na.rm = TRUE),
         mean_mag_bias = mean(abs(tbc - tbcnob), na.rm = TRUE),
         n = .N), by = .(date, sensor, exp, channel)] %>% 
@@ -665,7 +667,7 @@ p3 <- pp_imerg %>%
 En cuanto a la probabilidad de precipitación acumulada mayor a 5 mm (Figura \@ref(fig:caso1-prob)) las diferencias son importantes en la zona del sur de Santa Fe, Entre Rios y Buenos Aires principalmente. En pre-RAD1 la precipitación acumulda parece mucho más extendida en el dominio pero con mayor dispersión entre los miembros del ensable. En pre-RAD2 aparecen valores de probabilidad 
 de entre 30 y 50% sobre la provincia de Córodba y sobre Salta en la región donde se observa precipitación acumulada. Al mismo tiempo sobre Buenos Aires se observa una probabilidad de entre 10 y 20% al sur y mayor al 30% al este que no se observan en la realidad. 
 
-```{r caso1-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento en el caso 1.", fig.height=7}
+```{r caso1-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento en el caso 1.", fig.height=3}
 pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
@@ -804,7 +806,7 @@ p3 <- pp_imerg %>%
 Esto puede verse en la Figura \@ref(fig:caso2-prob) que muestra la probabilidad de precipitación acumulada mayor a 5 mm. En pre-RAD2 se ve mayor probabilidad de precipitación por encima de 50% extendida sobre gran parte de la provincia de Formosa mientras que la precipitación observada según IMERG se localiza más hacia el este. La precipitación que se observa sobre Misiones en los experimentos no debe ser considerada con mucha confianza ya que se encuentran en el borde del diminio de simulación. 
 
 
-```{r caso2-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento correspondiente al caso 2", fig.height=7}
+```{r caso2-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento correspondiente al caso 2", fig.height=3}
 pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
