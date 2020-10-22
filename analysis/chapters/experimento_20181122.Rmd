@@ -1,0 +1,366 @@
+---
+title: "Asimilación de distintas observaciones"
+output: 
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
+bibliography: mesoda_ref.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.path = "../figures/",
+  fig.retina = TRUE,
+  # fig.height = 3,
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 300
+)
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(here)
+library(patchwork)
+library(unglue)
+library(knitr)
+library(kableExtra)
+
+map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+
+square <- fread(here("analysis", "data", "derived_data", "dominio_square.csv"))
+square2 <- fread(here("analysis", "data", "derived_data", "dominio_square2.csv"))
+coord <- fread(here("analysis", "data", "derived_data", "coordenadas.csv"))
+
+
+geom_mapa <- function() {
+  list(geom_sf(data = map, fill = NA, color = "black", size = 0.2, inherit.aes = FALSE),
+       coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)))
+}
+
+fisica <- data.table(ens = 1:60, 
+                     fisica = rep(c("KF-YSU", 
+                                    "BMJ-YSU",
+                                    "GF-YSU",
+                                    "KF-MYJ",
+                                    "BMJ-MYJ",
+                                    "GF-MYJ",
+                                    "KF-MYNN2",
+                                    "BMJ-MYNN2",
+                                    "GF-MYNN2"), length.out = 60)) %>% setDT()
+derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
+
+```
+
+## Case Study: November 22th, 2020
+
+The experiments focus on a mesoscale convective system developed over central and north-eastern Argentina during November 22th, 2018. This MCS corresponds to IOP08 (Severe, Upscale Growth handoff) of the RELAMPAGO field campaign.
+
+This case stady was selected to focus on the RELAMPAGO period and to take advantage of the observations taken during the intensive observation periods. 
+
+
+```{r caso-gif, fig.cap="GOES-16 channel 13 (clean longwave-IR) during November, 22th.", out.height=450, out.width=600, fig.align="center"}
+knitr::include_graphics("https://github.com/paocorrales/Analisis_2018112022/blob/master/fig/caso_20181122.gif?raw=true")
+```
+
+
+### Model and ensemble configuration
+
+To run the simulations the WRF-ARW (V3.9) model with 10 km horizontal resolution and xx vertical levels was used. The GFS deterministic run (0.5° resolution) was used for the initial and boundary conditions. 
+
+The LETKF versión of the GSI system was choosen for the assimilation. A 60 member ensemble is initialized using random perturbations and a multi-physics squeme using 9 combinations of 3 Cumulus (Kain–Fritsch, Grell–Freitas, Betts–Miller–Janjic) and 3 PBL (Yonsei University Scheme, Mellor–Yamada–Janjic Scheme, Mellor–Yamada Nakanishi Niino) parameterizations as shown in Table \@ref(tab:fisicas).
+
+```{r fisicas}
+fisica[, .(mem = paste(ens, collapse = ", ")), by = .(fisica)] %>% 
+  kbl(col.names = c("Parameterizations", "# Member"),
+      caption = "Posible Cumulus and PBL combinations and the members in each group.") %>% 
+  kable_classic_2(full_width = F)
+```
+
+
+The domain shown in Figure \@ref(fig:dominio) covers the center and north of Argentina and part of Bolivia and Paraguay to capture the development of the MCS during the simulation period (up to 12UTC 2020/11/23).
+
+
+
+```{r dominio, fig.cap="Horizontal domain for all simulations and topography.", fig.height=4}
+fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
+                    breaks = seq(0, 6000, 500)) +
+  scale_fill_distiller(name = NULL,
+                       type = "seq",
+                       palette = "RdYlGn",
+                       direction = -1,
+                       breaks = seq(0, 6000, 1000),
+                       guide = guide_colorstrip(barwidth = 20,
+                                                barheight = 0.8)) +
+  geom_mapa() +
+  geom_point(data = square, aes(lon, lat), size = 0.2) +
+  geom_point(data = square2, aes(lon, lat), size = 0.2, color = "darkgrey") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(
+    x = "Longitude", 
+    y = "Latitude") +
+  theme_minimal() +
+  theme(legend.position = "bottom") 
+```
+
+### Experiments configuration
+
+#### Assimilation cycle
+
+Each simulation starts at 12 UTC on Nov 20th with 6 hours of spin up. The assimilation starts at 18 UTC and continue until 12 UTC Nov, 23th every houer. Two ensemble forecasts are initialized from de the analysis at 00 and 06 UTC Nov 22th and continue until 12 UTC Nov 23rd (Figure \@ref(fig:ciclo)). 
+
+The analysis is perform in one-hour cetered window using the Observation Operator from GSI to compare the available observations with the first guess at the closest time (FGAT - First Guess at Appropriate Time). Then the LETKF is run to apply the innovations to the analysis for each member. 
+
+```{r ciclo, fig.cap="Diagram of analysis cycles between Nov 20th, 18 UTC and Nov 23rd 12 UTC plus and spin up period of 6 hours. The zoomed figure shows assimilation in one-hour centered window and new boundary conditions from GFSD every 6 hours.", out.height=400, out.width=800, fig.align="center"}
+knitr::include_graphics(here("analysis", "figures", "analysis_cycle.svg"))
+```
+Four experiments were performed using an incremental set of observations each time (Table \@ref(tab:obs)). The CONV experiment uses conventional observations from the prepBUFR file that includes surface observations (land and sea) and profiles from soundings and aircrafts. On the Figure \@ref(fig:mapa-obs), the orange dots are the surface stations and ships locations included in this experiment. 
+
+The AUT experiment add to CONV the regional automatic stations networks from Argentina and near countries. The added stations are colored in green in Figure \@ref(fig:mapa-obs). This stations have greater spatial coverage and higher sampling frequency.
+
+SATWND add to AUT the satellite motion vectors from several satellites including GOES-16 and finally the RAD experiments also includes randiances observations from sensors over polar orbit satellites.
+
+```{r obs, eval=FALSE, include=FALSE}
+tribble(
+  ~obs_type, ~conv, ~aut, ~satwnd, ~rad,
+  "ADPSFC", "✔", "✔", "✔", "✔",
+  "ADPUPA", "✔", "✔", "✔", "✔",
+  "AIRCFT", "✔", "✔", "✔", "✔",
+  "AIRCAR", "✔", "✔", "✔", "✔",
+  "SFCSHP", "✔", "✔", "✔", "✔",
+  "ASCATW", "✔", "✔", "✔", "✔", 
+  "AUTSFC", " ", "✔", "✔", "✔",
+  "SATWND", " ", " ", "✔", "✔",
+  "RAD", " ", " ", " ", "✔",
+) %>% 
+  kbl(col.names = c("Obs type", "CONV", "AUT", "SATWND", "RAD"),
+      caption = "Observation types assimilated in each experiment.") %>% 
+  kable_classic_2(full_width = F)
+```
+
+```{r mapa-obs, fig.cap="Localization of meteorological stations and ships for official prep-BUFR (orange dots) and automatic statios (green dots).", fig.height=4}
+obsAUT <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_20181121120000.ensmean"), 
+                na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
+  .[, c("V2", "V4") := NULL] %>% 
+  setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr"))
+
+
+obsCONV <- fread(here("analysis", "data", "raw_data", "E4_asim_conv_20181121120000.ensmean"), 
+                 na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
+  .[, c("V2", "V4") := NULL] %>% 
+  setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr"))
+
+
+oficiales <- obsCONV[type != 290, unique(stationID)]
+
+no_oficiales <- unique(obsAUT, by = c("stationID")) %>% 
+  .[type != 290] %>% 
+  .[!str_detect(stationID, "SMN")] %>%
+  .[!stationID %in% oficiales & type != 290, stationID]
+
+unique(obsAUT, by = c("stationID")) %>% 
+  .[type != 290] %>% 
+  .[!str_detect(stationID, "SMN")] %>% 
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_mapa() +
+  geom_point(alpha = 0.8, size = 2,
+             aes(color = stationID %in% oficiales)) +
+  scale_color_manual(name =  NULL, values = c("TRUE" = "#FD8002", "FALSE" = "#00695c"),
+                     breaks = c("FALSE", "TRUE"),
+                     labels = c("Non-official (N = 820)","Official (N = 327)"))+
+  geom_point(data = square, aes(lon, lat), size = 0.2) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+```
+### Analysis comparison
+
+To observe the impact of assimilating each source of observations on the vertical structure, the average vertical profiles for  the temperature, specific humidity and wind components were calculated over the grey box in Figure \@ref(fig:dominio).
+
+
+```{r T-diff, fig.cap="Temperature difference between experiments in Kelvin.", fig.height=3}
+files <- list.files(derived_data, recursive = TRUE, full.names = TRUE,
+                    pattern = "perfiles_ana")
+
+perfiles <- purrr::map(files, function(f) {
+  exp <- unglue(basename(f), "perfiles_{run}_{exp}.csv")
+  fread(f) %>% 
+    .[, exp := exp[[1]][["exp"]]]
+  
+}) %>% 
+  rbindlist() %>% 
+   .[, date := ymd_hms(date)] %>% 
+  .[date %between% c(as_datetime("2018-11-20 18:00:00"),
+                     as_datetime("2018-11-23 12:00:00"))]
+
+
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "T") %>% 
+  .[, ":="(E5_E4 = E5 - E4,
+           E6_E5 = E6 - E5,
+           E7_E6 = E7 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = value), breaks = seq(-1, 1, 0.2)) +
+  scale_fill_divergent(name = NULL,
+                       breaks = seq(-1, 1, 0.2),
+                       guide = guide_colorstrip(inside = TRUE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
+  labs(subtitle = "Temperature difference (K)",
+       x = NULL,
+       y = "Pressure level") +
+  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E7_E6" = "RAD - SATWND"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+
+```{r Q-diff, fig.cap="Specific humidity difference between experiments in g/Kg", fig.height=3}
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "QVAPOR") %>% 
+  .[, ":="(E5_E4 = E5 - E4,
+           E6_E5 = E6 - E5,
+           E7_E6 = E7 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+  ggplot(aes(date, lev)) +
+    geom_contour_fill(aes(z = value*1000), breaks = seq(-0.0016, 0.0016, 0.0002)*1000) +
+  scale_fill_divergent(name = NULL,
+                       breaks = seq(-0.0016, 0.0016, 0.0002)*1000,
+                       guide = guide_colorstrip(inside = TRUE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
+  
+  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+  labs(subtitle = "Specific humidity difference (g/Kg)",
+       y = "Pressure level",
+       x = NULL) +
+  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E7_E6" = "RAD - SATWND"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+
+```{r U-diff, fig.cap="Zonal wind difference between experiments in m/s", fig.height=3}
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "U") %>% 
+  .[, ":="(E5_E4 = E5 - E4,
+           E6_E5 = E6 - E5,
+           E7_E6 = E7 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = value), reaks = seq(-1.2, 1.2, 0.2)) +
+  scale_fill_divergent(name = NULL,
+                       breaks = seq(-1.2, 1.2, 0.2),
+                       labels = round(seq(-1.2, 1.2, 0.2), 1),
+                       guide = guide_colorstrip(inside = TRUE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
+  labs(subtitle = "U difference (m/s)",
+       x = NULL,
+       y = "Pressure level") +
+  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E7_E6" = "RAD - SATWND"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+
+```{r V-diff, fig.cap="Meridial wind difference between experiments in m/s", fig.height=3}
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "V") %>% 
+  .[, ":="(E5_E4 = E5 - E4,
+           E6_E5 = E6 - E5,
+           E7_E6 = E7 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = value), reaks = seq(-1.2, 1.2, 0.2)) +
+  scale_fill_divergent(name = NULL,
+                       breaks = seq(-1.2, 1.2, 0.2),
+                       labels = round(seq(-1.2, 1.2, 0.2), 1),
+                       guide = guide_colorstrip(inside = TRUE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
+  labs(subtitle = "V difference (m/s)",
+       x = NULL,
+       y = "Pressure level") +
+  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E7_E6" = "RAD - SATWND"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+  
+```
+
+```{r q-wind, warning=FALSE, fig.align="center", fig.height=4, fig.width=6, message=FALSE,}
+fcsts <- expand_grid(fcsts = c("20181122000000", "20181122060000"),
+                     exp = c("E4", "E5", "E6", "E7"))
+
+q <- lapply(seq_len(nrow(fcsts)), function(f) {
+  
+  tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
+    .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
+    .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>% 
+    .[, date :=  ymd_hms(fcsts[f, 1])] %>% 
+    .[, exp := fcsts[f, 2]] %>%  
+    .[]
+}) %>% 
+  rbindlist()
+
+q[bottom_top <= 7, .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]), 
+  by = .(south_north, west_east, date, exp)] %>% 
+  .[coord, on = c("south_north", "west_east")] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = q*1000)) +
+  scale_color_distiller(name = NULL,
+                        palette = "BrBG", direction = 1,
+                        breaks = seq(0, 0.02, 0.002)*1000,
+                        guide = guide_colorstrip(inside = FALSE,
+                                                 barwidth = 30,
+                                                 barheight = 0.8)) +
+  geom_vector(aes(dx = u, dy = v), data = function(x) x[is.cross(south_north, west_east, 5)]) +
+  scale_mag() +
+  geom_sf(data = map, inherit.aes = FALSE, color = "black", fill = NA, size = 0.2) +
+  coord_sf(xlim = range(coord$lon), ylim = range(coord$lat)) +
+  facet_grid(date ~ exp, 
+             labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E7 = "RAD"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = "Low level humidity (g/Kg)",
+       x = "Longituted",
+       y = "Latitude") +
+  theme_minimal(base_size = 16) +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
