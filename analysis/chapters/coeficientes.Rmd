@@ -171,7 +171,7 @@ diag_rad %>%
   .[sensor %in% c("airs", "iasi")] %>% 
   .[, .N, by = .(date, channel, sensor)] %>% 
   ggplot(aes(channel, N)) +
-  geom_boxplot(aes(group = factor(channel))) +
+  geom_boxplot(aes(group = factor(channel)), color = "darkorange", size = 0.1) +
   facet_wrap(~sensor, scales = "free") +
   labs(x = "", y = "Observaciones por ciclo") +
   theme_minimal() +
@@ -181,7 +181,7 @@ diag_rad %>%
   .[!(sensor %in% c("airs", "iasi"))] %>% 
   .[, .N, by = .(date, channel, sensor)] %>% 
   ggplot(aes(channel, N)) +
-  geom_boxplot(aes(group = factor(channel))) +
+  geom_boxplot(aes(group = factor(channel)), color = "darkorange") +
   facet_wrap(~sensor, scales = "free") +
   labs(x = "Canal", y = "Observaciones por ciclo") +
   theme_minimal() +
@@ -200,7 +200,7 @@ diag_rad %>%
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[sensor %in% c("airs", "iasi")] %>% 
   ggplot(aes(channel, peakwt)) +
-  geom_boxplot(aes(group = factor(channel))) +
+  geom_boxplot(aes(group = factor(channel)), color = "darkorange", size = 0.1) +
   scale_y_level(name = "Presión (hPa)") +
   facet_wrap(~sensor, scales = "free") +
   labs(x = "", y = "") +
@@ -210,8 +210,8 @@ diag_rad %>%
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[!(sensor %in% c("airs", "iasi"))] %>% 
   ggplot(aes(channel, peakwt)) +
-  geom_boxplot(aes(group = factor(channel))) +
-  scale_x_continuous(breaks = seq) +
+  geom_boxplot(aes(group = factor(channel)), color = "darkorange") +
+  scale_x_continuous() +
   scale_y_level(name = "Presión (hPa)") +
   facet_wrap(~sensor, scales = "free") +
   labs(x = "Canal") +
@@ -309,9 +309,9 @@ satbias[sensor == this_sensor & iuse == 1] %>%
 
 #### AMSU-A
 
-Si observamos la corrección de bias para cada canal de la familia de sensores AMSU-A se ven diferencias interesantes entre los dos periodos pre-RAD1 y pre-RAD2. Para analizar estas diferencias en la Figura \@ref(fig:bias-amsua) hay que tener en cuenta que no todas las observaciones cumplen las condiciones para ser asimiladas y por lo tanto el BIAS no es corregido o si es corregido los coeficientes no son actualizados en cada ciclo.  En particular los canales 4 a 7 muestran una mejora en la mediana del bias (más cercana a cero) y/o en la dispersión (menor rango intercuartil y/o menos valores extremos). 
+Si observamos la corrección de bias para cada canal de la familia de sensores AMSU-A se ven diferencias interesantes entre los dos periodos pre-RAD1 y pre-RAD2. Para analizar estas diferencias en la Figura \@ref(fig:bias-amsua) hay que tener en cuenta que solo incluye las observaciones cumplen las condiciones para ser asimiladas y que este BIAS se obtiene de la diferencia entre la innovación con bias corregido y sin corregir. Por lo tanto este es el BIAS corregido por el sistema. Llama la atención que en muchos casos el BIAS durante el periodo pre-RAD2 tiene menor dispersión (menor rango intercuartil) y su mediana está más cerca de cero. Esto podría deberse a que a las observaciones que finalmente pasan el control de calidad requieren una menor corrección o que durante el periodo pre-RAD1 la corrección es sobreestimada.  
 
-La evolución de bias a lo largo del tiempo para el sensor sobre NOAA15 (Figura \@ref(fig:bias-temp-amsua)) muestra cambios entre los dos periodos en algunos casos del orden de 0.5 grados. En general el comportamiento del bias en el periodo pre-RAD2 mejora respecto del otro periodo y en los casos donde esto no ocurre as diferencias son muy pequeñas. 
+La evolución de bias a lo largo del tiempo para el sensor sobre NOAA15 (Figura \@ref(fig:bias-temp-amsua)) muestra cambios entre los dos periodos en algunos casos del orden de 0.5 grados. En general para los canales 7 y 8 los valores de bias en el periodo pre-RAD2 son algo menores respecto del otro periodo y en los casos donde esto no ocurre as diferencias son muy pequeñas. Esto coincide con lo que se observa en el panel superior derecho de la Figura \@ref(fig:bias-temp-amsua). 
 
 ```{r bias-amsua, fig.cap="Bias de las radianzas de AMSU-A en las distintas plataformas y para los dos periodos."}
 
@@ -333,7 +333,7 @@ diag_rad[sensor %in% sensores[1:5] & qc == 0] %>%
   geom_hline(yintercept = 0, color = "darkgrey") +
   geom_boxplot(aes(color = exp)) +
   scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
-  labs(x = "Canal", y = "BIAS (K)",
+  labs(x = "Canal", y = "BIAS corregido (K)",
        color = "") +
   facet_wrap(~sensor) +
   theme_minimal() +
@@ -341,9 +341,9 @@ diag_rad[sensor %in% sensores[1:5] & qc == 0] %>%
 
 ```
 
-```{r bias-temp-amsua, fig.cap="Bias medio de las radianzas de AMSU-A NOAA 15 en las distintas plataformas y para los dos periodos a lo largo del tiempo.", fig.height=4}
+```{r bias-temp-amsua, fig.cap="Bias medio de las radianzas de AMSU-A NOAA 15 en las distintas plataformas y para los dos periodos a lo largo del tiempo. El tamaño de los puntos indica la cantidad de observaciones disponibles en cada momento.", fig.height=3, fig.width=6, fig.align="center"}
 
-diag_rad[sensor %in% sensores[1] & qc == 0 & channel %in% c(7:8)] %>% 
+diag_rad[sensor %in% sensores[1] & qc == 0 & channel %in% c(6:8)] %>% 
   .[, .(mean_bias = mean(tbc - tbcnob, na.rm = TRUE),
         mean_mag_bias = mean(abs(tbc - tbcnob), na.rm = TRUE),
         n = .N), by = .(date, sensor, exp, channel)] %>% 
@@ -353,7 +353,7 @@ diag_rad[sensor %in% sensores[1] & qc == 0 & channel %in% c(7:8)] %>%
   geom_point(aes(color = exp, size = n)) +
   scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
   scale_size_area(max_size = 4) +
-  labs(x = "Canal", y = "BIAS (K)",
+  labs(x = "Canal", y = "BIAS corregido (K)",
        color = "", size = "") +
   facet_wrap(~channel) +
   theme_minimal() +
@@ -364,7 +364,7 @@ En la Figura \@ref(fig:bias-pred-amsua) se muestra la contribución de cada pred
 
 Analizando específicamente los resultados de los experimentos, se ve que la contribución de cada predictor es distinta para los canales mostrados y además es distinta entre sensores. Por ejemplo Para el canal 5 del AMSU-A NOAA19 el predictor asociado a emisividad es el que más contribuye mientras que para NOAA18 el TLR^2 tambien contribuye. Esto se ve también en canal 7 donde a veces contribuye más el TLR, otras veces el TLR^2.
 
-```{r bias-pred-ansua, fig.cap="Evolución temporal del bias asociado a cada predictor para los sensores AMSU-A en las distintas plataformas", fig.height=3}
+```{r bias-pred-amsua, fig.cap="Evolución temporal del bias asociado a cada predictor para los sensores AMSU-A en las distintas plataformas"}
 
 diag_rad[qc == 0] %>% 
   .[, bias_total := pred1 + pred2 + pred3 + pred4 + pred5 + pred6 + pred7 + pred8] %>% 
@@ -391,9 +391,9 @@ diag_rad[qc == 0] %>%
 
 ```
 
-La distribución espacial de la corrección de bias aportada por distintos predictores para un tiempo particular se puede observar en la Figura \@ref(fig:pred-amsua). En este caso el TLR^2 muestra valores comparables con la literatura y en particular un máximo que ocupa gran parte del dominio. El predictor asociado a la emisividad presenta valores distinto de cero solo en la zona de topografía. 
+La distribución espacial de la corrección de bias aportada por distintos predictores para un tiempo particular se puede observar en la Figura \@ref(fig:pred-amsua). En este caso el TLR^2 muestra valores comparables con la literatura y en particular un máximo que ocupa gran parte del dominio. El predictor asociado a la emisividad presenta valores distinto de cero solo en la zona de topografía donde el nivel de presión de las observaciones está cerca de superficie. 
 
-```{r pred-amsua, fig.cap="Contribución a la corrección del bias de dos predictores para el canal 8 de AMSU-A NOAA19 a las 8 UTC del 17/11/2018"}
+```{r pred-amsua, fig.cap="Contribución a la corrección del bias de dos predictores para el canal 8 de AMSU-A NOAA19 a las 8 UTC del 17/11/2018. Se incluyen observaciones que no pasaron el control de calidad."}
 
 diag_rad[sensor == "amsua_n19" & date == as_datetime("2018-11-17 08:00:00") & channel == 8] %>% 
   melt(measure.vars = paste0("pred", c(5))) %>% 
@@ -422,7 +422,7 @@ diag_rad[sensor == "amsua_n19" & date == as_datetime("2018-11-17 08:00:00") & ch
 
 #### MHS
 
-La corrección del bias para el sensor MHS en cada periodo es menos clara que para AMSU-A (Figura \@ref(fig:bias-mhs)). Los cambios en pre-RAD2 son mínimos y en algunos casos negativos. Por ejemplo el canal 1 que tiene el máximo cerca de superficie es el que muestra mayor dispersión, esto mejora mucho para el sensor sobre METOP-A y B (aunque en este ultimo caso la mediana se aleja de cero) pero para NOAA19 la dispersión no cambia particularmente (pero la mediana está más cerca de cero). 
+La corrección del bias para el sensor MHS en cada periodo es menos clara que para AMSU-A (Figura \@ref(fig:bias-mhs)). Los cambios en pre-RAD2 son muy pequeños y en algunos casos se observan valores muy grandes y mayores a pre-RAD1. Por ejemplo el canal 1 que tiene el máximo cerca de superficie es el que muestra mayor dispersión, esto disminuye mucho para el sensor sobre METOP-A y B (aunque en este ultimo caso la mediana se aleja de cero) pero para NOAA19 la dispersión no cambia particularmente (pero la mediana está más cerca de cero). Esto podría estar indicando que la corrección de bias con los coeficientes entrenados es mayor.
 
 
 
@@ -447,7 +447,7 @@ diag_rad[qc == 0] %>%
   geom_hline(yintercept = 0, color = "darkgrey") +
   geom_boxplot(aes(color = exp)) +
   scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
-  labs(x = "Canal", y = "BIAS (K)",
+  labs(x = "Canal", y = "BIAS Corregido (K)",
        color = "") +
   facet_wrap(~sensor) +
   theme_minimal() +
@@ -455,9 +455,9 @@ diag_rad[qc == 0] %>%
 
 ```
 
-De la misma manera la evolución temporal del bias para este sensor es muy variable y el periodo pre-RAD2 no muestran mejoras marcadas (Figura \@ref(fig:bias-temmp-mhs). Los valores de bias aumentan y disminuyen alternativamente [TODO: podría deberse a la cantidad de observaciones? eso parece cumplirse en el canal 4 pero se ve lo contrario en el canal 2].
+De la misma manera la evolución temporal del bias para este sensor es muy variable y el periodo pre-RAD2 no muestran cambios marcados (Figura \@ref(fig:bias-temmp-mhs). Los valores de bias corregido aumentan y disminuyen alternativamente [TODO: podría deberse a la cantidad de observaciones? eso parece cumplirse en el canal 4 pero se ve lo contrario en el canal 2].
 
-```{r bias-temmp-mhs, fig.cap="Bias medio de las radianzas de MHS para los dos periodos a lo largo del tiempo.", fig.height=4}
+```{r bias-temmp-mhs, fig.cap="Bias medio de las radianzas de MHS para los dos periodos a lo largo del tiempo.El tamaño de los puntos indican la cantidad de observaciones en cada ciclo.", fig.height=4}
 
 diag_rad[qc == 0] %>% 
   .[, .(mean_bias = mean(tbc - tbcnob, na.rm = TRUE),
@@ -469,14 +469,14 @@ diag_rad[qc == 0] %>%
   geom_point(aes(color = exp, size = n)) +
   scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
   scale_size_area(max_size = 4) +
-  labs(x = "Canal", y = "BIAS (K)",
+  labs(x = "Canal", y = "BIAS corregido (K)",
        color = "", size = "") +
   facet_wrap(~channel, scales = "free_y") +
   theme_minimal() +
   theme(legend.position = "bottom")
 ```
 
-En cuanto a la contribución para la corrección del bias por parte de los distintos predictores en MHS (Figura \@ref(fig:bias-pred-mhs)) se ven mayores diferencias entre los dos periodos. Llama poderosamente la atención la magnitud de corrección del bias para el canal 1 para metop a y b donde llega a valores de 30 K. El canal 5 muestra un pico que llegan a 5 K mientras que el canal 4 muestra essos valores de manera sostenida para todo el periodo pre-RAD2. Para el resto de los canales los valores son similares a lo observado para AMSU-A (Figura \@ref(fig:bias-pred-amsua)). Por la escala de las figuras no se observas demasiados detalles respecto de que predictor es el que más contribuye al bias total pero por ejemplo se puede ver que en el canal 3 y para todos los sensores el Offset parece ser el que tiene un mayor aporte. 
+En cuanto a la contribución para la corrección del bias por parte de los distintos predictores en MHS (Figura \@ref(fig:bias-pred-mhs)) se ven mayores diferencias entre los dos periodos. El canal 1 tiene un pico de 5 K al comienzo del periodo y los canales 4 y 5  tienen algunos valores cercanos a 3 K sobre todo en el periodo pre-RAD2. Para el resto de los canales los valores son similares a lo observado para AMSU-A (Figura \@ref(fig:bias-pred-amsua)). El predictor que más contribuye al bias total es distintos para cada canal, por ejemplo en el canal 3 el más importante es el Offset mientras que para el canal 4 es el TLR^2.
 
 ```{r bias-pred-mhs, fig.cap="Evolución temporal del bias asociado a cada predictor para los sensores MSH en las distintas plataformas", fig.height=5}
 
@@ -505,7 +505,9 @@ diag_rad[qc == 0] %>%
 
 ```
 
-Para estos sensores en particular llama la atención las diferencias entre los dos periodos, por ejemplo en el canal 4 de METOP-B hay un cambio de magnitud del bias que ocurre alrededor de 16 de noviembre y que se mantiene luego en pre-RAD2. Para explorar la posibilidad de que este cambio se deba realmente al entrenamiento de los coeficiente y que a partir de esos momentos la corrección del bias esté mejorando, en la Figura \@ref(fig:mhs-bias-res) se muestra la media de la innovación. En primer lugar se ven las diferencias bastante marcadas entre la media de la innovación con y sin bias corregido y que en la mayoría de los casos el primer es más cercano a cero. En particular para el canal 4 de METOP-B se obsera que la media de la innovación corregida luego de 16 de noviembre se aleja de cero y esto se mantiene también durante el periodo pre-RAD2. 
+Para estos sensores en particular llama la atención las diferencias entre los dos periodos, por ejemplo en el canal 4 de METOP-B hay un cambio de magnitud del bias que ocurre alrededor de 16 de noviembre y que se mantiene luego en pre-RAD2 en forma de picos. Para explorar la posibilidad de que este cambio se deba realmente al entrenamiento de los coeficiente y que a partir de esos momentos la corrección del bias esté mejorando, en la Figura \@ref(fig:mhs-bias-res) se muestra la media de la innovación con bias corregido (línea llena) y bias sin corregir (línea punteada). Se espera que la distribución de la innovación sea aproximadamente gausiana y por lo tanto que la media esté cerca de cero. Una desvíación de cero podría indicar que queda un bias *residual* luego de la corrección.
+
+En la figura se ven las diferencias bastante marcadas entre la media de la innovación con y sin bias corregido y que en la mayoría de los casos el primer es más cercano a cero, indicando que la corrección del bias va en la dirección correcta. En particular para el canal 4 de METOP-B se obsera que la media de la innovación corregida luego de 16 de noviembre se aleja de cero y esto se mantiene también durante el periodo pre-RAD2. Si bien no es posible identificar ninguna causa esto podía indicar que el coeficiente asociado al TLR^2 cambió afectando negativamente a la corrección del bias y esto se mantuvo a lo largo del tiempo.
 
 
 ```{r mhs-bias-res, fig.cap="Valor medio de la diferencia entre las observaciones y el pronóstico (O - B) a lo largo del tiempo para cada periodo, sensor y canal"}
@@ -530,7 +532,7 @@ ggplot(aes(date, ob_mean)) +
 
 La distribución espacial de la corrección del bias asociado a los predictores de TLR^2 y emisividad para un tiempo en particular se muestran en la Figura \@ref(fig:pred-mhs). En este tiempo la pasada del satélite cubrió gran parte del dominio. Respecto de la corrección asociada a la emisividad se observan valores distintos de cero en algunas regiones muy localizadas (sucede parecido en otros tiempos) en las zonas de mayor topografía. Esto podría deberse a que el nivel de presión asociado a esas observaciones se encuentra más cerca de la superficie? El TLR^2 tiene valores pequeños y varian de signo según la región. 
 
-```{r pred-mhs, fig.cap="Contribución a la corrección del bias de dos predictores para el canal 3 de MHS NOAA19 a las 8 UTC del 17/11/2018"}
+```{r pred-mhs, fig.cap="Contribución a la corrección del bias de dos predictores para el canal 3 de MHS NOAA19 a las 8 UTC del 17/11/2018. Incluye todas las observaciones de la pasada, aún si no pasan el control de calidad."}
 diag_rad[sensor == "mhs_n19" & date == as_datetime("2018-11-17 08:00:00") & channel == 3] %>% 
   melt(measure.vars = paste0("pred", c(5))) %>% 
   ggplot(aes(ConvertLongitude(lon), lat)) +
@@ -558,7 +560,12 @@ diag_rad[sensor == "mhs_n19" & date == as_datetime("2018-11-17 08:00:00") & chan
 
 ### Algunos casos de estudio
 
+A continuación se analizan algunos casos de estudio desde el punto de vista de la precipitación acumulada en una hora comparando el análisis con la precipitación estimada por IMERG.
+
+
 #### 2018-11-13 01:00Z
+
+El primer caso corresponder a las 01 UTC del 13 de noviembre y corresponde al 8vo ciclo de asimilación. 
 
 ```{r}
 files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
@@ -596,6 +603,9 @@ pp_imerg <- purrr::map(files, function(f) {
 
 ```
 
+En la Figura \@ref(fig:caso1) se muestra arriba la precipitación acumulada para la media del ensamble según cada experimento, abajo a la izquierda la diferencia entre los dos campos y a la derecha la precipitación acumulada según IMERG. En primer lugar es importante notar que los acumulados son mucho menores en los experimentos pero al mismo tiempo hay que tener en cuenta que en la media de los ensables se pierden las características de los miembros con distintas parametrizaciones. En particular algunas parametrizaciones muestran sistemáticamente menor convección afectando la precipitación acumulada. 
+
+Las diferencias entre los dos periodos se observan principalmente en toda la franja de precipitación con una disminución en el experimento pre-RAD2 sobre todo en Entre Rios, sur de Uruguay y Rio de la Plata, donde ambos experimentos subestiman la precipitación pero la sobreestiman sobre Santiago del Estero donde no se registró lluvia. Esta sobreestimación disminuye en pre-RAD2 y al mismo tiempo corrige la precipitación sobre Córdoba. Sobre Jujuy y Salta pre-RAD2 muestra mayor precipitación pero ubicada al oeste de las observaciones. 
 
 ```{r caso1, fig.cap="Precipitación acumulada en 60 minutos para cada experimento (arriba), diferencia entre los experimentos (abajo, izquierda) y precipitación acumulada según IMERG (abajo, derecha)", fig.height=7}
 p1 <- pp[, .(precipitacion = mean(precipitacion, na.rm = TRUE)), by = .(x, y, exp)] %>% 
@@ -652,6 +662,9 @@ p3 <- pp_imerg %>%
 
 ```
 
+En cuanto a la probabilidad de precipitación acumulada mayor a 5 mm (Figura \@ref(fig:caso1-prob)) las diferencias son importantes en la zona del sur de Santa Fe, Entre Rios y Buenos Aires principalmente. En pre-RAD1 la precipitación acumulda parece mucho más extendida en el dominio pero con mayor dispersión entre los miembros del ensable. En pre-RAD2 aparecen valores de probabilidad 
+de entre 30 y 50% sobre la provincia de Córodba y sobre Salta en la región donde se observa precipitación acumulada. Al mismo tiempo sobre Buenos Aires se observa una probabilidad de entre 10 y 20% al sur y mayor al 30% al este que no se observan en la realidad. 
+
 ```{r caso1-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento en el caso 1.", fig.height=7}
 pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>% 
   ggplot(aes(x, y)) +
@@ -668,30 +681,32 @@ pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>%
   facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
   ggtitle("Probabilidad de precipitación acumulada > 5 mm") +
   theme_minimal() +
-  theme(legend.position = "bottom") +
-  
-  pp[, .(prop = mean(precipitacion > 25)*100), by = .(exp, x, y)] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
-                    breaks = seq(0, 100, 10)) +
-  scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
-                       limits = c(10, 100),
-                       na.value = "white",
-                       breaks = seq(0, 100, 10),
-                       guide = guide_colorstrip(barwidth = 15,
-                                                barheight = 1)) +
-  geom_mapa() +
-  labs(fill = "", x = "", y = "") +
-  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
-  ggtitle("Probabilidad de precipitación acumulada > 25 mm") +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  plot_layout(ncol = 1, guides = "collect", widths = 0.5, heights = 2) &
   theme(legend.position = "bottom") 
+  
+  # pp[, .(prop = mean(precipitacion > 25)*100), by = .(exp, x, y)] %>% 
+  # ggplot(aes(x, y)) +
+  # geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
+  #                   breaks = seq(0, 100, 10)) +
+  # scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
+  #                      limits = c(10, 100),
+  #                      na.value = "white",
+  #                      breaks = seq(0, 100, 10),
+  #                      guide = guide_colorstrip(barwidth = 15,
+  #                                               barheight = 1)) +
+  # geom_mapa() +
+  # labs(fill = "", x = "", y = "") +
+  # facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  # ggtitle("Probabilidad de precipitación acumulada > 25 mm") +
+  # theme_minimal() +
+  # theme(legend.position = "bottom") +
+  # plot_layout(ncol = 1, guides = "collect", widths = 0.5, heights = 2) &
+  # theme(legend.position = "bottom") 
 ```
 
 
 #### 2018-11-18 10:00Z
+
+El segundo caso de estudio corresponde a las 10 UTC del 18 de noviembre casi 7 días luego del comienzo de cada periodo de asimilación continua. En este caso la precipitación se da sobre el norte de argentina y sur de Paraguay y Brasil, con algo de precipitación sobre Salta. 
 
 ```{r}
 files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
@@ -729,6 +744,8 @@ pp_imerg <- purrr::map(files, function(f) {
 
 ```
 
+
+En el campo de diferencia en la Figura \@ref(fig:caso2) se observa que en pre-RAD2 disminuye la precipitación acumulada sobre Salta, Jujuy y Tucumán (esta última no se observa en IMERG) mientras que aumenta sobre Formosa y Chaco donde se dan los mayores acumulados de precipitación. De nuevo, los paneles superiores muestran la media del ensable por lo que muchas características de la ubicación de la precipitación acumulada se pierden y hay mucha variabilidad entre los miembros.
 
 ```{r caso2, fig.cap="Precipitación acumulada en 10 minutos para cada experimento (arriba), diferencia entre los experimentos (abajo, izquierda) y precipitación acumulada en 30 minutos según IMERG (abajo, derecha)", fig.height=7}
 p1 <- pp[, .(precipitacion = mean(precipitacion, na.rm = TRUE)), by = .(x, y, exp)] %>% 
@@ -784,6 +801,9 @@ p3 <- pp_imerg %>%
 
 ```
 
+Esto puede verse en la Figura \@ref(fig:caso2-prob) que muestra la probabilidad de precipitación acumulada mayor a 5 mm. En pre-RAD2 se ve mayor probabilidad de precipitación por encima de 50% extendida sobre gran parte de la provincia de Formosa mientras que la precipitación observada según IMERG se localiza más hacia el este. La precipitación que se observa sobre Misiones en los experimentos no debe ser considerada con mucha confianza ya que se encuentran en el borde del diminio de simulación. 
+
+
 ```{r caso2-prob, fig.cap="Probabilidad de precipitación acumulada > 5 mm (arriba) y > 25 mm (abajo) para cada experimento correspondiente al caso 2", fig.height=7}
 pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>% 
   ggplot(aes(x, y)) +
@@ -800,26 +820,26 @@ pp[, .(prop = mean(precipitacion > 5)*100), by = .(exp, x, y)] %>%
   facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
   ggtitle("Probabilidad de precipitación acumulada > 5 mm") +
   theme_minimal() +
-  theme(legend.position = "bottom") +
-  
-  pp[, .(prop = mean(precipitacion > 25)*100), by = .(exp, x, y)] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
-                    breaks = seq(0, 100, 10)) +
-  scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
-                       limits = c(10, 100),
-                       na.value = "white",
-                       breaks = seq(0, 100, 10),
-                       guide = guide_colorstrip(barwidth = 15,
-                                                barheight = 1)) +
-  geom_mapa() +
-  labs(fill = "", x = "", y = "") +
-  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
-  ggtitle("Probabilidad de precipitación acumulada > 25 mm") +
-  theme_minimal() +
-  theme(legend.position = "bottom") +
-  plot_layout(ncol = 1, guides = "collect", widths = 0.5, heights = 2) &
   theme(legend.position = "bottom") 
+  
+  # pp[, .(prop = mean(precipitacion > 25)*100), by = .(exp, x, y)] %>% 
+  # ggplot(aes(x, y)) +
+  # geom_contour_fill(aes(z = prop), proj = norargentina_lambert,
+  #                   breaks = seq(0, 100, 10)) +
+  # scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")), 
+  #                      limits = c(10, 100),
+  #                      na.value = "white",
+  #                      breaks = seq(0, 100, 10),
+  #                      guide = guide_colorstrip(barwidth = 15,
+  #                                               barheight = 1)) +
+  # geom_mapa() +
+  # labs(fill = "", x = "", y = "") +
+  # facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  # ggtitle("Probabilidad de precipitación acumulada > 25 mm") +
+  # theme_minimal() +
+  # theme(legend.position = "bottom") +
+  # plot_layout(ncol = 1, guides = "collect", widths = 0.5, heights = 2) &
+  # theme(legend.position = "bottom") 
 ```
 
 ### Colophon
