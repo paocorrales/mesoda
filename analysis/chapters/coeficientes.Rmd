@@ -393,6 +393,27 @@ diag_rad[qc == 0] %>%
 
 ```
 
+```{r}
+diag_rad %>% 
+  .[qc == 0 & channel %in% c(5:8)] %>% 
+  melt(measure.vars = c("tbc", "tbcnob")) %>% 
+  .[, .(ob_mean = mean(value, na.rm = TRUE),
+       ob_sd = sd(value, na.rm = TRUE)), by = .(date, sensor, channel, exp, variable)] %>% 
+  # melt(measure.vars = c("ob_mean", "ob_sd"),  variable.name = "estadistico", 
+  #      value.name = "valor") %>% 
+ggplot(aes(date, ob_mean)) +
+  geom_hline(yintercept = 0) +
+  geom_point(aes(color = exp)) +
+  geom_line(aes(color = exp, linetype = variable)) +
+  scale_color_manual(values = c("darkorange", cyan), labels = c("pre-RAD1", "pre-RAD2")) +
+  scale_linetype_discrete(labels = c("Bias corregido", "Sin corrección")) +
+  facet_grid(channel~sensor, scales = "free_y") +
+  labs(y = NULL, x = NULL, color = NULL, linetype = NULL) +
+  theme_minimal()
+```
+
+
+
 La distribución espacial de la corrección de bias aportada por distintos predictores para un tiempo particular se puede observar en la Figura \@ref(fig:pred-amsua). En este caso el TLR^2 muestra valores comparables con la literatura y en particular un máximo que ocupa gran parte del dominio. El predictor asociado a la emisividad presenta valores distinto de cero solo en la zona de topografía donde el nivel de presión de las observaciones está cerca de superficie. 
 
 ```{r pred-amsua, fig.cap="Contribución a la corrección del bias de dos predictores para el canal 8 de AMSU-A NOAA19 a las 8 UTC del 17/11/2018. Se incluyen observaciones que no pasaron el control de calidad."}
