@@ -320,7 +320,7 @@ perfiles %>%
   
 ```
 
-```{r q-wind, warning=FALSE, fig.align="center", fig.height=4, fig.width=6, message=FALSE,}
+```{r q-wind, warning=FALSE, fig.align="center", fig.height=5, fig.width=9, message=FALSE,dev="png"}
 fcsts <- expand_grid(fcsts = c("20181122000000", "20181122060000"),
                      exp = c("E4", "E5", "E6", "E7"))
 
@@ -339,16 +339,20 @@ q[bottom_top <= 7, .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]
   by = .(south_north, west_east, date, exp)] %>% 
   .[coord, on = c("south_north", "west_east")] %>% 
   .[, date := factor(date)] %>% 
-  ggplot(aes(lon, lat)) +
-  geom_point(aes(color = q*1000)) +
-  scale_color_distiller(name = NULL,
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = q*1000), proj = norargentina_lambert,
+                    breaks = seq(0, 0.02, 0.002)*1000) +
+  scale_fill_distiller(name = NULL,
                         palette = "BrBG", direction = 1,
                         breaks = seq(0, 0.02, 0.002)*1000,
                         guide = guide_colorstrip(inside = FALSE,
-                                                 barwidth = 30,
+                                                 barwidth = 25,
                                                  barheight = 0.8)) +
-  geom_vector(aes(dx = u, dy = v), data = function(x) x[is.cross(south_north, west_east, 5)]) +
-  scale_mag() +
+  # geom_vector(aes(x = lon, y = lat,
+  #                 dx = u, dy = v), data = function(x) x[is.cross(y, x, 8)],
+  #             arrow.angle = 12, size = 0.3) +
+  # scale_mag() +
   geom_sf(data = map, inherit.aes = FALSE, color = "black", fill = NA, size = 0.2) +
   coord_sf(xlim = range(coord$lon), ylim = range(coord$lat)) +
   facet_grid(date ~ exp, 
@@ -357,9 +361,9 @@ q[bottom_top <= 7, .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   labs(title = "Low level humidity (g/Kg)",
-       x = "Longituted",
-       y = "Latitude") +
-  theme_minimal(base_size = 16) +
+       x = NULL,
+       y = NULL) +
+  theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
