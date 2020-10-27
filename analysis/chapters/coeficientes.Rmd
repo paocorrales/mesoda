@@ -58,6 +58,10 @@ sensores <- c("amsua_n15",
               "cris-fsr_npp",
               "cris-fsr_n20"
 )
+
+multiespectrales <- c("airs_aqua",
+              "iasi_metop-a",
+              "iasi_metop-b")
 cyan <- rgb(0, 139, 139, maxColorValue = 255)
 ```
 
@@ -580,6 +584,70 @@ diag_rad[sensor == "mhs_n19" & date == as_datetime("2018-11-17 08:00:00") & chan
   theme_minimal() +
   theme(legend.position = "bottom")
 ```
+
+#### Resumen para todos los sensores
+
+
+```{r resume-bias, fig.cap= "Diferencias absoluta entre ambos experimentos para bias residual (color, igual en ambos paneles) y cantidad de observaciones que superan el control de calidad (tamaño de los puntos). En circulos negros se indentifican los sesnores y canales donde se asimilaron más observaciones comparando experimentos."}
+files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
+                    pattern = "asim.", recursive = TRUE, 
+                    full.names = TRUE)
+files <- files[!str_detect(files, pattern = "conv")]
+
+diag_rad <- purrr::map(files, function(f) {
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/E7-training/ANA/{exp}/{date_ana}/diagfiles/{file}" )
+  read_diag_rad(f, exp = meta[[1]][["exp"]]) %>%
+    .[]
+  
+}) %>%
+  rbindlist()
+
+n_obs <- diag_rad[qc == 0, .N, by = .(sensor, channel, exp)] %>% 
+  dcast(sensor + channel ~ exp) %>% 
+  .[, win := fifelse(week2 > week1, "week2", "week1")] %>% 
+  melt(measure.vars = c("week1", "week2"), variable.name = "exp", value.name = "N")
+
+abs_bias <- diag_rad %>% 
+  .[, pasa_qc := fifelse(qc == 0, "pasa qc", "no pasa qc")] %>% 
+  .[, .(bias_tbc = mean(tbc, na.rm = TRUE),
+        bias_tbcnob = mean(tbcnob, na.rm = TRUE)), 
+    by = .(sensor, channel, exp, pasa_qc)] %>% 
+  .[, abs_bias := abs(bias_tbc) - abs(bias_tbcnob)] %>% 
+  dcast(sensor + channel + exp ~ pasa_qc, value.var = "abs_bias") %>% 
+  setnames(c("no pasa qc", "pasa qc"), c("abs_bias_nqc", "abs_bias_qc"))
+ 
+total <- diag_rad %>% 
+  .[, .(bias_tbc = mean(tbc, na.rm = TRUE),
+        bias_tbcnob = mean(tbcnob, na.rm = TRUE)), 
+    by = .(sensor, channel, exp)] %>% 
+  dcast(sensor + channel ~ exp, value.var = "bias_tbc") %>% 
+  .[, abs_bias := abs(week2) - abs(week1)] %>% 
+  melt(measure.vars = c("week1", "week2"), value.name = "bias_tbc", variable.name = "exp") %>% 
+  # .[abs_bias, on = c("sensor", "channel", "exp")] %>% 
+  .[n_obs, on = c("sensor", "channel", "exp")]
+
+total %>% 
+  .[!(sensor %in% c(multiespectrales, "atms_npp"))] %>% 
+ # dcast(sensor + channel + N ~ exp, value.var = "bias_tbc")
+  ggplot(aes(channel, sensor)) +
+  geom_point(aes(color = abs_bias, size = N)) +
+  geom_point(data = ~.x[win == exp], shape = 21, aes(size = N)) +
+  # geom_text(aes(label = round(abs_bias, 1)), size = 2) +
+  # scale_color_viridis_c(trans = scales::log_trans(), breaks = c(0.1, 1, 10, 100),
+  #                       guide = guide_colourbar(barwidth = 7)) +
+  scale_color_divergent(trans = symlog_trans(), breaks = c(-1, 0, 1, 10),
+                        guide = guide_colourbar(barwidth = 7)) +
+  facet_wrap(~exp, labeller = labeller(exp = c("week1" = "pre-RAD1", "week2" = "pre-RAD2"))) +
+  labs(subtitle = "all obs",
+       color = "Bias\ndifference",
+       size = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
+
 
 ### Algunos casos de estudio
 
