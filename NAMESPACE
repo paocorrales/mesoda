@@ -3,4 +3,5 @@
 export(norargentina_lambert)
 export(read_diag_rad)
 export(read_satbias)
+export(symlog_trans)
 export(wrf_project)
