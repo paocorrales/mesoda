@@ -602,6 +602,10 @@ diag_rad <- purrr::map(files, function(f) {
 }) %>%
   rbindlist()
 
+satinfo <- fread(here("analysis", "data", "raw_data", "satinfo.txt")) %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+
+
 n_obs <- diag_rad[qc == 0, .N, by = .(sensor, channel, exp)] %>% 
   dcast(sensor + channel ~ exp) %>% 
   .[, win := fifelse(week2 > week1, "week2", "week1")] %>% 
@@ -624,9 +628,10 @@ total <- diag_rad %>%
   .[, abs_bias := abs(week2) - abs(week1)] %>% 
   melt(measure.vars = c("week1", "week2"), value.name = "bias_tbc", variable.name = "exp") %>% 
   # .[abs_bias, on = c("sensor", "channel", "exp")] %>% 
-  .[n_obs, on = c("sensor", "channel", "exp")]
+  .[n_obs, on = c("sensor", "channel", "exp")] %>% 
+  satinfo[., on = c("sensor", "channel")]
 
-total %>% 
+total[iuse == 1] %>% 
   .[!(sensor %in% c(multiespectrales, "atms_npp"))] %>% 
  # dcast(sensor + channel + N ~ exp, value.var = "bias_tbc")
   ggplot(aes(channel, sensor)) +
