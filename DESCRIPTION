@@ -22,7 +22,9 @@ Imports:
     lubridate,
     dplyr,
     purrr,
-    stringr
+    stringr,
+    verification,
+    scales
 Suggests: 
     devtools,
     git2r
