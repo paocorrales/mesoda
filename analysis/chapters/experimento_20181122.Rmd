@@ -237,7 +237,7 @@ perfiles %>%
   dcast(lev + date ~ exp, value.var = "QVAPOR") %>% 
   .[, ":="(E5_E4 = E5 - E4,
            E6_E5 = E6 - E5,
-           E7_E6 = E7 - E6)] %>% 
+           E7_E6 = E7 - E5)] %>% 
   melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
   ggplot(aes(date, lev)) +
     geom_contour_fill(aes(z = value*1000), breaks = seq(-0.0016, 0.0016, 0.0002)*1000) +
@@ -272,7 +272,7 @@ perfiles %>%
   geom_contour_fill(aes(z = value), reaks = seq(-1.2, 1.2, 0.2)) +
   scale_fill_divergent(name = NULL,
                        breaks = seq(-1.2, 1.2, 0.2),
-                       labels = round(seq(-1.2, 1.2, 0.2), 1),
+                       # labels = round(seq(-1.2, 1.2, 0.2), 1),
                        guide = guide_colorstrip(inside = TRUE,
                                                 barwidth = 25,
                                                 barheight = 0.8)) +
@@ -301,7 +301,7 @@ perfiles %>%
   geom_contour_fill(aes(z = value), reaks = seq(-1.2, 1.2, 0.2)) +
   scale_fill_divergent(name = NULL,
                        breaks = seq(-1.2, 1.2, 0.2),
-                       labels = round(seq(-1.2, 1.2, 0.2), 1),
+                       # labels = round(seq(-1.2, 1.2, 0.2), 1),
                        guide = guide_colorstrip(inside = TRUE,
                                                 barwidth = 25,
                                                 barheight = 0.8)) +
@@ -368,3 +368,26 @@ q[bottom_top <= 7, .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 ```
+
+#### FSS for analysis
+
+```{r}
+files <- list.files(here("analysis", "data", "derived_data"), 
+                    full.names = TRUE,
+                    pattern = "fss_3h")
+
+fss <- purrr::map(files, function(f) {
+  
+  fread(f) %>% 
+    .[, date := as_datetime(date)]
+}) %>% 
+  rbindlist()
+
+fss %>% 
+  ggplot(aes(date, fss)) +
+  geom_point(aes(color = exp)) +
+  geom_line(aes(color = exp, linetype = factor(w))) +
+  facet_grid(w~q)
+
+```
+
