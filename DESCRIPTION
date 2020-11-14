@@ -24,7 +24,9 @@ Imports:
     purrr,
     stringr,
     verification,
-    scales
+    scales,
+    furrr,
+    future
 Suggests: 
     devtools,
     git2r

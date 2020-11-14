@@ -11,12 +11,15 @@
 #' @param progress lógico, muestra o no el progreso
 #'
 #' @export
-calculate_fss <- function(fcst, obs, q, w, progress = TRUE) {
-  out <- purrr::map_dfr(q, function(q) {
+calculate_fss <- function(fcst, obs, q, w, progress = TRUE, plan = "cluster", workers = 3) {
+
+  future::plan("cluster", workers = 3)
+
+  out <- furrr::future_map_dfr(q, function(q) {
     fcst_q <- fcst >= q
     obs_q <- obs >= q
 
-    return <- list(fss = purrr::map_dbl(w, ~ verification::fss(obs_q, fcst_q, .x)),
+    return <- list(fss = furrr::future_map_dbl(w, ~ verification::fss(obs_q, fcst_q, .x)),
                    w = w,
                    q = rep(q, length(w)))
 
