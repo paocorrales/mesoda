@@ -184,12 +184,17 @@ unique(obsAUT, by = c("stationID")) %>%
   theme_minimal() + 
   theme(legend.position = "bottom")
 ```
+
+Figure with all type of observations (radiosonde, convencional, automatic station, aircraft, ships/buoys, satwind)
+Figure with number of observation throughout the cycles for each type including riadiances.
+
+
 ### Analysis comparison
 
 To observe the impact of assimilating each source of observations on the vertical structure, the average vertical profiles for  the temperature, specific humidity and wind components were calculated over the grey box in Figure \@ref(fig:dominio).
 
 
-```{r T-diff, fig.cap="Temperature difference between experiments in Kelvin.", fig.height=3}
+```{r T-diff, fig.cap="Temperature difference between experiments in Kelvin."}
 files <- list.files(derived_data, recursive = TRUE, full.names = TRUE,
                     pattern = "perfiles_ana")
 
@@ -200,7 +205,7 @@ perfiles <- purrr::map(files, function(f) {
   
 }) %>% 
   rbindlist() %>% 
-   .[, date := ymd_hms(date)] %>% 
+  .[, date := ymd_hms(date)] %>% 
   .[date %between% c(as_datetime("2018-11-20 18:00:00"),
                      as_datetime("2018-11-23 12:00:00"))]
 
@@ -232,7 +237,10 @@ perfiles %>%
         panel.grid = element_line(linetype = 3))
 ```
 
-```{r Q-diff, fig.cap="Specific humidity difference between experiments in g/Kg", fig.height=3}
+
+AUT-CONV present a negative difference in low levels with a clear diurnal cycle (Figure \@ref(fig:T-diff)). This negative difference indicate that AUT is warmer than CONV. It also shows significant differences in the upper levels of the troposphere during the hours of maximun convection. The temperature profiles of AUT y SATWND are very similar. The difference bewteen the two experiments is smaller than +-0.1 until Nov, 22th 00Z when the convection starts to develope on the domain. The differences between RAD y SATWIND (and AUT) are smaller important in low levels at the begining of the experiment and in upper levels at the end indicating that the satellite observations have impact in several levels. 
+
+```{r Q-diff, fig.cap="Specific humidity difference between experiments in g/Kg"}
 perfiles %>% 
   dcast(lev + date ~ exp, value.var = "QVAPOR") %>% 
   .[, ":="(E5_E4 = E5 - E4,
@@ -240,7 +248,7 @@ perfiles %>%
            E7_E6 = E7 - E5)] %>% 
   melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
   ggplot(aes(date, lev)) +
-    geom_contour_fill(aes(z = value*1000), breaks = seq(-0.0016, 0.0016, 0.0002)*1000) +
+  geom_contour_fill(aes(z = value*1000), breaks = seq(-0.0016, 0.0016, 0.0002)*1000) +
   scale_fill_divergent(name = NULL,
                        breaks = seq(-0.0016, 0.0016, 0.0002)*1000,
                        guide = guide_colorstrip(inside = TRUE,
@@ -261,7 +269,11 @@ perfiles %>%
         panel.grid = element_line(linetype = 3))
 ```
 
-```{r U-diff, fig.cap="Zonal wind difference between experiments in m/s", fig.height=3}
+Comparing the specific humidity (Figure \@ref(fig:Q-diff)) once again the difference between AUT and CONV is important in low levels showing the impact of assimilating the observations from automatic stations with larger spacial and temporal resolution. Between SATWND and AUT the differences are smaller and only important after Nov, 21st 18Z. The addition of satellite derived winds produce and increse of humidity around 750 hPa during Nov 21st (0.05 to 0.10 g/kg) and a decrese of humidity between surface and 750 hPa starting at 00Z Nov 22th until the end of the experiment.  
+
+The differences between RAD and SATWND and therefore the impact of the radiances have opposite sign to the impact of the observations from automatic stations but with smaller magnituded in low levels. A positive difference can also be observed between 850 and 600 hPa. 
+
+```{r U-diff, fig.cap="Zonal wind difference between experiments in m/s (filled contours) and zonal wind profile for the experiment with more observations."}
 perfiles %>% 
   dcast(lev + date ~ exp, value.var = "U") %>% 
   .[, ":="(E5_E4 = E5 - E4,
@@ -269,19 +281,25 @@ perfiles %>%
            E7_E6 = E7 - E6)] %>% 
   melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
   ggplot(aes(date, lev)) +
-  geom_contour_fill(aes(z = value), reaks = seq(-1.2, 1.2, 0.2)) +
+  geom_contour_fill(aes(z = value), breaks = seq(-1.2, 1.4, 0.2)) +
   scale_fill_divergent(name = NULL,
-                       breaks = seq(-1.2, 1.2, 0.2),
-                       # labels = round(seq(-1.2, 1.2, 0.2), 1),
+                       breaks = seq(-1.2, 1.4, 0.2),
+                       labels = function(x) round(x, digits = 1),
                        guide = guide_colorstrip(inside = TRUE,
                                                 barwidth = 25,
                                                 barheight = 0.8)) +
+  geom_contour2(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 = E7)] %>% 
+                  melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
+                breaks = seq(0, 30, 3), size = 0.3, linetype = 1, color = "grey30") +
+  geom_text_contour(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 =E7)] %>% 
+                      melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
+                    breaks = seq(0, 30, 3), color = "grey30", skip = 1, stroke = 0.2) +
   labs(subtitle = "U difference (m/s)",
        x = NULL,
        y = "Pressure level") +
   scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
-   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
                                                          "E7_E6" = "RAD - SATWND"))) +
   theme_minimal() +
@@ -290,7 +308,11 @@ perfiles %>%
         panel.grid = element_line(linetype = 3))
 ```
 
-```{r V-diff, fig.cap="Meridial wind difference between experiments in m/s", fig.height=3}
+In Figure \@ref(fig:U-diff) the difference between the experiments for the zonal wind is shown with the vertical profile for the experiment with more observations. For example the left panel shows the difference between AUT and CONV experiments and the profile wind for AUT. The wind profiles for the experiments are similar but there are important differences that can be seen on the filled contours. 
+
+The differences between AUT and CONV are important in low levels, for the first two days the impact of assimilation observations from automatic stations is a disminution on the wind from the west but an increse of the wind from the west after Nov 22th, 18Z. In upper levels the sign of the impact varies throughout the experiment period. The assimilation of satellite derived winds produces an impact in midle and upper levels and the incorporation of radiances prodeces impacts on low and upper levels. In low levels the impact has the oposite sign comparing with AUT-CONV, this means that RAD experiment shows on average less westerly wind. 
+
+```{r V-diff, fig.cap="Meridial wind difference between experiments in m/s"}
 perfiles %>% 
   dcast(lev + date ~ exp, value.var = "V") %>% 
   .[, ":="(E5_E4 = E5 - E4,
@@ -298,27 +320,42 @@ perfiles %>%
            E7_E6 = E7 - E6)] %>% 
   melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
   ggplot(aes(date, lev)) +
-  geom_contour_fill(aes(z = value), reaks = seq(-1.2, 1.2, 0.2)) +
+  geom_contour_fill(aes(z = value), breaks = seq(-1.8, 1.2, 0.2)) +
   scale_fill_divergent(name = NULL,
-                       breaks = seq(-1.2, 1.2, 0.2),
-                       # labels = round(seq(-1.2, 1.2, 0.2), 1),
+                       breaks = seq(-1.8, 1.2, 0.2),
+                       labels = function(x) round(x, digits = 1),
                        guide = guide_colorstrip(inside = TRUE,
                                                 barwidth = 25,
                                                 barheight = 0.8)) +
+  geom_contour2(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 = E7)] %>% 
+                  melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
+                breaks = seq(-7, 0, 1), size = 0.3, linetype = 2, color = "grey30") +
+  geom_text_contour(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 =E7)] %>% 
+                      melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
+                    breaks = seq(-7, 0, 1), color = "grey30", skip = 1, stroke = 0.2) +
   labs(subtitle = "V difference (m/s)",
        x = NULL,
        y = "Pressure level") +
   scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
-   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
                                                          "E7_E6" = "RAD - SATWND"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
-  
+
+ggplot(data = perfiles[exp == "E5" & V < 0], aes(date, lev)) +
+  geom_contour2(aes(z = V))
+
 ```
+
+Figure \@ref(fig:V-diff) is constructed in the same way as Figure \@ref(fig:U-diff) but here only negative meridional wind is ploted. Again the wind profiles are similar for each experiment but nevertheless there are differences of +- 1 m/s. 
+
+In upper levels and during Nov 22nd and 23rd the impact of assimilating new observations (mainly from automatic stations and radiances) produces an increse of northerly wind. In low levels the impact has different sign in AUT-CONV and RAD-SATWND.
+
+
 
 ```{r q-wind, warning=FALSE, fig.align="center", fig.height=5, fig.width=9, message=FALSE,dev="png"}
 fcsts <- expand_grid(fcsts = c("20181122000000", "20181122060000"),
@@ -344,11 +381,11 @@ q[bottom_top <= 7, .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]
   geom_contour_fill(aes(z = q*1000), proj = norargentina_lambert,
                     breaks = seq(0, 0.02, 0.002)*1000) +
   scale_fill_distiller(name = NULL,
-                        palette = "BrBG", direction = 1,
-                        breaks = seq(0, 0.02, 0.002)*1000,
-                        guide = guide_colorstrip(inside = FALSE,
-                                                 barwidth = 25,
-                                                 barheight = 0.8)) +
+                       palette = "BrBG", direction = 1,
+                       breaks = seq(0, 0.02, 0.002)*1000,
+                       guide = guide_colorstrip(inside = FALSE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
   # geom_vector(aes(x = lon, y = lat,
   #                 dx = u, dy = v), data = function(x) x[is.cross(y, x, 8)],
   #             arrow.angle = 12, size = 0.3) +
@@ -368,6 +405,11 @@ q[bottom_top <= 7, .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 ```
+
+```{r}
+
+```
+
 
 #### FSS for analysis
 
