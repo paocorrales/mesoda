@@ -77,77 +77,77 @@ read_diag <- function(path, variable) {
   return(obs)
 }
 
-# read_diag_mean ---------------------------------------------------------------
-# Read mean diagfiles and tidy uv observations
-
-read_diag_mean <- function(path, variable = c("uv", "p", "t", "q")) {
-
-
-  files <- list.files(path, pattern = "asim_conv", full.names = TRUE,  recursive = TRUE)
-
-
-  obs <- purrr::map(files, function(f) {
-
-    if (file.size(f) == 0) {
-      return(NULL)
-    }
-
-    diag <- fread(f) %>%
-      # .[V10 == 1] %>%
-      .[, exp := basename(dirname(f))] %>%
-      .[, mem := "00"] %>%
-      .[, date := ymd_hms(str_extract(f, "\\d{14}"))] %>%
-      .[, c("V2", "V4") := NULL]
-
-    # cat("Archivo ", basename(files[f]))
-
-    colnames(diag) <- c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag.prep", "obs", "obs.guess", "obs2", "obs.guess2", "rerr", "exp", "mem", "date")
-
-    if ("uv" %in% variable & length(variable) == 1) {
-
-      diag <- diag[var == "uv"] %>%
-        melt(measure.vars = c("obs", "obs2", "obs.guess", "obs.guess2")) %>%
-        .[, var := if_else(str_detect(variable, "2"), "v", "u")] %>%
-        .[, variable := str_remove(variable, "2")]
-
-      vars <- rlang::syms(setdiff(names(diag), "value"))
-      diag <- diag %>%
-        distinct(!!!vars, .keep_all = TRUE) %>%
-        pivot_wider(names_from = variable, values_from = value) %>%
-        setDT %>%
-        .[, id := 1:.N, by = mem]
-
-    } else if ("uv" %in% variable & length(variable) != 1) {
-
-
-      uv <- diag[var == "uv"] %>%
-        melt(measure.vars = c("obs", "obs2", "obs.guess", "obs.guess2")) %>%
-        .[, var := if_else(str_detect(variable, "2"), "v", "u")] %>%
-        .[, variable := str_remove(variable, "2")]
-
-      vars <- rlang::syms(setdiff(names(uv), "value"))
-      uv <- uv %>%
-        distinct(!!!vars, .keep_all = TRUE) %>%
-        pivot_wider(names_from = variable, values_from = value) %>%
-        setDT
-
-      variable <- c(variable, "u", "v")
-
-      diag <- diag[var != "uv", -c("obs2", "obs.guess2"), with = FALSE] %>%
-        rbind(uv) %>%
-        .[var %in% variable] %>%
-        .[, id := 1:.N, by = mem]
-
-    } else {
-      diag <- diag[var %in% variable, -c("obs2", "obs.guess2"), with = FALSE] %>%
-        .[, id := 1:.N, by = mem]
-    }
-
-    diag[, obs := ifelse(obs == -1e+05, NA, obs)][]
-
-  }) %>%
-    rbindlist()
-}
+# # read_diag_mean ---------------------------------------------------------------
+# # Read mean diagfiles and tidy uv observations
+#
+# read_diag_mean <- function(path, variable = c("uv", "p", "t", "q")) {
+#
+#
+#   files <- list.files(path, pattern = "asim_conv", full.names = TRUE,  recursive = TRUE)
+#
+#
+#   obs <- purrr::map(files, function(f) {
+#
+#     if (file.size(f) == 0) {
+#       return(NULL)
+#     }
+#
+#     diag <- fread(f) %>%
+#       # .[V10 == 1] %>%
+#       .[, exp := basename(dirname(f))] %>%
+#       .[, mem := "00"] %>%
+#       .[, date := ymd_hms(str_extract(f, "\\d{14}"))] %>%
+#       .[, c("V2", "V4") := NULL]
+#
+#     # cat("Archivo ", basename(files[f]))
+#
+#     colnames(diag) <- c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag.prep", "obs", "obs.guess", "obs2", "obs.guess2", "rerr", "exp", "mem", "date")
+#
+#     if ("uv" %in% variable & length(variable) == 1) {
+#
+#       diag <- diag[var == "uv"] %>%
+#         melt(measure.vars = c("obs", "obs2", "obs.guess", "obs.guess2")) %>%
+#         .[, var := if_else(str_detect(variable, "2"), "v", "u")] %>%
+#         .[, variable := str_remove(variable, "2")]
+#
+#       vars <- rlang::syms(setdiff(names(diag), "value"))
+#       diag <- diag %>%
+#         distinct(!!!vars, .keep_all = TRUE) %>%
+#         pivot_wider(names_from = variable, values_from = value) %>%
+#         setDT %>%
+#         .[, id := 1:.N, by = mem]
+#
+#     } else if ("uv" %in% variable & length(variable) != 1) {
+#
+#
+#       uv <- diag[var == "uv"] %>%
+#         melt(measure.vars = c("obs", "obs2", "obs.guess", "obs.guess2")) %>%
+#         .[, var := if_else(str_detect(variable, "2"), "v", "u")] %>%
+#         .[, variable := str_remove(variable, "2")]
+#
+#       vars <- rlang::syms(setdiff(names(uv), "value"))
+#       uv <- uv %>%
+#         distinct(!!!vars, .keep_all = TRUE) %>%
+#         pivot_wider(names_from = variable, values_from = value) %>%
+#         setDT
+#
+#       variable <- c(variable, "u", "v")
+#
+#       diag <- diag[var != "uv", -c("obs2", "obs.guess2"), with = FALSE] %>%
+#         rbind(uv) %>%
+#         .[var %in% variable] %>%
+#         .[, id := 1:.N, by = mem]
+#
+#     } else {
+#       diag <- diag[var %in% variable, -c("obs2", "obs.guess2"), with = FALSE] %>%
+#         .[, id := 1:.N, by = mem]
+#     }
+#
+#     diag[, obs := ifelse(obs == -1e+05, NA, obs)][]
+#
+#   }) %>%
+#     rbindlist()
+# }
 
 
 # read_diag_mean_rad <- function(file_list, exp) {
