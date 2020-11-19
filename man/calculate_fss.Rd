@@ -4,7 +4,7 @@
 \alias{calculate_fss}
 \title{Wrap para FSS}
 \usage{
-calculate_fss(fcst, obs, q, w, progress = TRUE)
+calculate_fss(fcst, obs, q, w, progress = TRUE, plan = "cluster", workers = 3)
 }
 \arguments{
 \item{fcst}{matriz con precipitación pronosticada}

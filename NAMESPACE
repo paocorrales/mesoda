@@ -2,6 +2,7 @@
 
 export(calculate_fss)
 export(norargentina_lambert)
+export(read_diag_conv)
 export(read_diag_rad)
 export(read_satbias)
 export(symlog_trans)
