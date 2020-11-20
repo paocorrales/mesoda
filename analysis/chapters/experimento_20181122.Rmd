@@ -1,8 +1,8 @@
 ---
 title: "Asimilación de distintas observaciones"
 output: 
-  bookdown::html_document2: default
   bookdown::pdf_document2: default
+  bookdown::html_document2: default
 bibliography: mesoda_ref.bib
 ---
 
@@ -12,6 +12,7 @@ knitr::opts_chunk$set(
   fig.path = "../figures/",
   fig.retina = TRUE,
   # fig.height = 3,
+  dev = "png",
   message = FALSE,
   warning = FALSE,
   collapse = TRUE,
@@ -37,8 +38,8 @@ square2 <- fread(here("analysis", "data", "derived_data", "dominio_square2.csv")
 coord <- fread(here("analysis", "data", "derived_data", "coordenadas.csv"))
 
 
-geom_mapa <- function() {
-  list(geom_sf(data = map, fill = NA, color = "black", size = 0.2, inherit.aes = FALSE),
+geom_mapa <- function(fill = NA) {
+  list(geom_sf(data = map, fill = fill, color = "black", size = 0.2, inherit.aes = FALSE),
        coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)))
 }
 
@@ -52,6 +53,12 @@ fisica <- data.table(ens = 1:60,
                                     "KF-MYNN2",
                                     "BMJ-MYNN2",
                                     "GF-MYNN2"), length.out = 60)) %>% setDT()
+
+experiments <- c("E4", "E5", "E6", "E7")
+#Color blind friendly but E4 y E7 parecidos en Desaturated
+colores_exp <- c(E4 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311") 
+# colores_exp <- c(E4 = "#225555", E5 = "#CCBB44", E6 = "#CC6677", E7 = "#882255")
+
 derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
 
 ```
@@ -346,9 +353,6 @@ perfiles %>%
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 
-ggplot(data = perfiles[exp == "E5" & V < 0], aes(date, lev)) +
-  geom_contour2(aes(z = V))
-
 ```
 
 Figure \@ref(fig:V-diff) is constructed in the same way as Figure \@ref(fig:U-diff) but here only negative meridional wind is ploted. Again the wind profiles are similar for each experiment but nevertheless there are differences of +- 1 m/s. 
@@ -397,12 +401,12 @@ q[bottom_top %between% c(0, 7), .(q = mean(q), u = u[bottom_top == 1], v = v[bot
   .[, date := factor(date)] %>% 
   .[, c("x", "y") := wrf_project(lon, lat)] %>% 
   ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = q*1000), proj = norargentina_lambert,
+  geom_contour_fill(aes(z = q*1000, fill = stat(level_d)), proj = norargentina_lambert,
                     breaks = seq(0, 0.02, 0.002)*1000) +
-  scale_fill_distiller(name = NULL,
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
                        palette = "BrBG", direction = 1,
-                       breaks = seq(0, 0.02, 0.002)*1000,
-                       guide = guide_colorstrip(inside = FALSE,
+                       limits = c(1, 19),
+                       guide = guide_colorsteps(#inside = FALSE,
                                                 barwidth = 25,
                                                 barheight = 0.8)) +
   # geom_vector(aes(x = lon, y = lat,
@@ -425,12 +429,49 @@ q[bottom_top %between% c(0, 7), .(q = mean(q), u = u[bottom_top == 1], v = v[bot
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 ```
+```{r}
+
+q[bottom_top %between% c(8, 12), .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]), 
+  by = .(south_north, west_east, date, exp)] %>% 
+  .[coord, on = c("south_north", "west_east")] %>% 
+  .[, date := factor(date)] %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = q*1000, fill = stat(level_d)), proj = norargentina_lambert,
+                    breaks = seq(0, 0.02, 0.002)*1000) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "BrBG", direction = 1,
+                       limits = c(1, 19),
+                       guide = guide_colorsteps(#inside = FALSE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
+  # geom_vector(aes(x = lon, y = lat,
+  #                 dx = u, dy = v), data = function(x) x[is.cross(y, x, 8)],
+  #             arrow.angle = 12, size = 0.3) +
+  # scale_mag() +
+  cordillera +
+  geom_sf(data = map, inherit.aes = FALSE, color = "black", fill = NA, size = 0.2) +
+  coord_sf(xlim = range(coord$lon), ylim = range(coord$lat)) +
+  facet_grid(date ~ exp, 
+             labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E7 = "RAD"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(title = "Humidity (g/Kg) 800-700 hPa",
+       x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+
 
 Is the analysis correcting a dry bias on the model or the humidity is being transported into the domain?
 
-The innovation (OmB) for surface humidity observations is mainly positive indicating that the model has always less humidity than the atmosfere (reallity?) throghout the domain for a specific cycle. 
+The innovation (OmB) for surface humidity observations is mainly positive indicating that the model has in general less humidity than the atmosfere throghout the domain for a specific cycle. 
 
-```{r}
+```{r omb-q, fig.cap="Observation minus guess for humidity surface observations during Nov, 21st 18Z"}
 
 exp <- c("E4", "E5", "E6", "E7")
 
@@ -444,16 +485,31 @@ q_field <- purrr::map(exp, function(f) {
 
 q_field[usage.flag == 1 & type %in% c(181, 187) & obs.guess < 0.02] %>% 
   ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_mapa(fill = "grey90") +
   geom_point(aes(color = obs.guess)) +
-  scale_color_divergent() +
-  geom_mapa() +
-  facet_wrap(~exp)
+  scale_color_divergent(guide = guide_colorbar(barwidth = 25,
+                                                barheight = 0.8)) +
+  
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  facet_wrap(~exp, ncol = 4, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E7 = "RAD"))) +
+  labs(x = NULL, y = NULL, color = "OmB") +
+    theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+
 ```
 
 
-The evolution of the mean of the absolute OmB is always positive for all four experiments, AUT and SATWND showing higher values follow by RAD. 
+The evolution of the mean of the absolute OmB is always positive for all four experiments, AUT and SATWND showing higher values follow by RAD. The size of the points shows that AUT, SATWND and RAD assimilate more observations.
 
-```{r}
+This result is indicating that the model has an important dry bias and the assimilation of high temporal and spatial resolution observations are correcting this. 
+
+TODO: it's the same for all PBL parameterizations? 
+
+```{r omb-q-evol, fig.cap="Evolution of the mean OmB for humidity throughout the periodod"}
 files <- list.files("/home/paola.corrales/datosmunin/EXP/", full.names = TRUE, recursive = TRUE,
                     pattern = "asim_conv_201811*")
 files <- files[!str_detect(files, pattern = "mem")]
@@ -471,61 +527,117 @@ conv <- purrr::map(files, function(f) {
 }) %>% rbindlist()
 
 
-conv[usage.flag == 1 & type %in% c(181, 187), ":="(mean_omb = mean(abs(obs.guess), na.rm = TRUE),
+conv[usage.flag == 1 & type %in% c(181, 187) & exp %in% experiments, 
+     .(mean_omb = mean(obs.guess, na.rm = TRUE),
                                                    n = .N), 
      by = .(date, exp)] %>% 
   ggplot(aes(date, mean_omb)) +
   geom_line(aes(color = exp)) +
   geom_point(aes(color = exp, size = n)) +
   scale_size_area(max_size = 3) +
-  scale_color_brewer(palette = "Dark2") +
-  labs(y = "Mean of abs(OmB) (g/g)", x = NULL) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                          E6 = "SATWND", E7 = "RAD")) +
+  labs(y = "Mean of OmB (g/g)", x = NULL,
+       color = NULL, size = "n obs") +
   theme_minimal()
+
+# conv[usage.flag == 1 & type %in% c(181, 187) & exp %in% experiments] %>% 
+#   ggplot(aes(date, obs.guess)) +
+#   geom_point(aes(color = exp, group = date), alpha = 0.1) +
+# scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+#                                           E6 = "SATWND", E7 = "RAD")) +
+#   geom_smooth() +
+#   facet_wrap(~exp) +
+#   labs(y = "Mean of OmB (g/g)", x = NULL,
+#        color = NULL, size = "n obs") +
+#   theme_minimal()
+# ,
+#      .(n = .N), 
+#      by = .(date, exp)] %>% 
+#   ggplot(aes(date, n)) +
+#   geom_line(aes(color = exp)) +
+#   # geom_point(aes(color = exp, size = n)) +
+#   # scale_size_area(max_size = 3) +
+#   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+#                                           E6 = "SATWND", E7 = "RAD")) +
+#   labs(y = "Mean of OmB (g/g)", x = NULL,
+#        color = NULL, size = "n obs") +
+#   theme_minimal()
+
 ```
 
+The negative difference between RAD and SATWND in low levels (\@ref(fig:Q-diff)) and positive values over those levels can be explain by a deeper boundary layer. To explore this posibility Figure \@ref(fig:pbl-18Z) shows the zonal mean high of the PBL over the subdomain estimated for the PBL parameterization for Nov 21st, 18Z. The mean is calculated over a big area with different hights than can altered the result but but still the hight of the boundary layer for RAD is greater than in the other experiments in many areas.
 
 
-```{r}
-a <- ReadNetCDF("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121180000/analysis.ensmean", 
-                vars = c(p = "P", "PB", qv = "QVAPOR", 
-                         lon = "XLONG", lat = "XLAT")) %>% 
-  .[, p := p + PB] %>% 
-  .[, c("x", "y") := wrf_project(lon, lat)]
-
-a[bottom_top == 12] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z =  p/100), proj = norargentina_lambert) +
-  scale_fill_viridis_b()
-
-exp <- c("E4", "E5", "E6", "E7")
-
-pblh <- purrr::map(exp, function(f) {
+```{r pbl-18Z, fig.cap="Zonal mean high of the PBL over the subdomain estimated for the PBL parameterization for Nov 21st, 18Z"}
+pblh18 <- purrr::map(exp, function(f) {
   
   ReadNetCDF(paste0("/home/paola.corrales/datosmunin/EXP/", f, "/ANA/20181121180000/analysis.ensmean"), 
-             vars = c("PBLH", lon = "XLONG", lat = "XLAT")) %>% 
+             vars = c("PBLH", lon = "XLONG", lat = "XLAT"),
+             subset = list(south_north = c(41, 119),
+                           west_east = c(96, 143))) %>% 
     .[, c("x", "y") := wrf_project(lon, lat)] %>% 
     .[, exp := f]
   
 }) %>% 
   rbindlist()
 
-pblh[lat %between% c(-38.5, -20.8) & lon %between% c(-67, -54)] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z =  PBLH), proj = norargentina_lambert,
-                    breaks = seq(0, 5000, 500)) +
-  scale_fill_viridis_b(breaks = seq(0, 5000, 500)) +
-  geom_mapa() +
-  facet_wrap(~ exp) +
-  theme_minimal()
 
-pblh[lat %between% c(-38.5, -20.8) & lon %between% c(-67, -54)] %>% 
+pblh18[lat %between% c(-38.5, -20.8) & lon %between% c(-67, -54)] %>% 
   .[, .(mean = mean(PBLH)), by = .(exp, south_north)] %>% 
   ggplot(aes(south_north, mean)) +
-  geom_point(aes(color = exp))
+  geom_point(aes(color = exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                          E6 = "SATWND", E7 = "RAD")) +
+  labs(x = "Grid points (south - north)", y = "mean PBLH (m)", color = NULL) +
+  theme_minimal()
 ```
 
 
-#### FSS for analysis
+If the average is calculated over a smaller domain to avoid hight terrain and water, it is posible to see the evolution of the PBL hight during the experiment (Figure \@ref(fig:pblh-evol)). In CONV and RAD the PBL is higher during the diurnal hours of Nov, 21st with, exceeding AUT and SATWND by about 200 meters. These hours coincide with the time when the highest humidity above 800 hPa in RAD is observed. After that, the behavior chances and the development of the convection over the domain starts to affect the PBL. 
+
+The deeper PBL in RAD can explain the transport of humidity to higher levels. This efect does not appear in CONV because there is no much humidity to transport to upper levels. 
+
+TODO: Are there RAD observations on those levels to explain the humidity besides the transport from low levels? 
+
+```{r pblh, fig.cap=""}
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E[4-7]/ANA/*/analysis.ensmean")
+
+pblh <- purrr::map(files, function(f) {
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/ANA/{date}/analysis.ensmean")
+  
+  ReadNetCDF(paste0(f), 
+             vars = c("PBLH", lon = "XLONG", lat = "XLAT"),
+             subset = list(south_north = c(41, 119),
+                           west_east = c(96, 143))) %>% 
+    .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[, exp := meta[[1]][["exp"]]] %>% 
+    .[, date := ymd_hms(meta[[1]][["date"]])]
+  
+}) %>% 
+  rbindlist()
+
+# pblh[lat %between% c(-38, -31) & lon %between% c(-64, -59)] %>%
+#   ggplot(aes(x, y)) +
+#   geom_contour_fill(aes(z =  PBLH), proj = norargentina_lambert,
+#                     breaks = seq(0, 5000, 500)) +
+#   scale_fill_viridis_b(breaks = seq(0, 5000, 500)) +
+#   geom_mapa() +
+#   facet_wrap(~ exp) +
+#   theme_minimal()
+
+pblh[, .(mean = mean(PBLH)), by = .(exp, date)] %>% 
+  ggplot(aes(date, mean)) +
+  geom_line(aes(color = exp)) +
+  geom_point(aes(color = exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                          E6 = "SATWND", E7 = "RAD")) +
+  labs(x = NULL, y = "mean PBLH (m)", color = NULL) +
+  theme_minimal()
+```
+
+
+#### FSS for the analysis
 
 ```{r}
 files <- list.files(here("analysis", "data", "derived_data"), 
@@ -541,9 +653,44 @@ fss <- purrr::map(files, function(f) {
 
 fss %>% 
   ggplot(aes(date, fss)) +
-  geom_point(aes(color = exp)) +
-  geom_line(aes(color = exp, linetype = factor(w))) +
-  facet_grid(w~q)
+  geom_hline(yintercept = 1, color = "darkgray") +
+  geom_line(aes(color = exp)) +
+  # geom_point(aes(color = exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                          E6 = "SATWND", E7 = "RAD")) +
+  facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", "10" = "10 mm"),
+                                      w = c("2" = "50 km", "5" = "100 km", 
+                                            "25" = "500 km", "50" = "1000 km"))) +
+  labs(color = NULL, x = NULL) +
+  theme_minimal()
 
 ```
+#### FSS for the forecast
+
+```{r}
+files <- list.files(here("analysis", "data", "derived_data"), 
+                    full.names = TRUE,
+                    pattern = "fss_6h_fcst")
+
+fss <- purrr::map(files, function(f) {
+  
+  fread(f) %>% 
+    .[, date := as_datetime(date)]
+}) %>% 
+  rbindlist()
+
+fss %>% 
+  ggplot(aes(date, fss)) +
+  geom_hline(yintercept = 1, color = "darkgray") +
+  geom_line(aes(color = exp)) +
+  # geom_point(aes(color = exp)) +
+  scale_color_manual(values = colores_exp) +
+  facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", "10" = "10 mm"),
+                                      w = c("2" = "50 km", "5" = "100 km", 
+                                            "25" = "500 km", "50" = "1000 km"))) +
+  labs(color = NULL, x = NULL) +
+  theme_minimal()
+
+```
+
 
