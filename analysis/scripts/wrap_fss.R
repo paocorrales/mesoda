@@ -10,13 +10,14 @@ library(mesoda)
 future::plan("cluster", workers = 3)
 imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E4"
+exp <- "E7"
+run <- "fcst"
 
-ini_date <- ymd_hms("20181120180000")
-ciclos <- 68
+ini_date <- ymd_hms("20181122000000")
+ciclos <- 37
 
-acumulado <- 3
-q <- c(1, 5, 10) #10mm, para arrancar pensanod en pp acumulada
+acumulado <- 6
+q <- c(1, 5, 10) #10mm, para arrancar pensando en pp acumulada
 w <- c(2, 5, 25, 50) #ancho de cada box w*2+1
 
 # Inicio
@@ -48,28 +49,63 @@ fss_out <- furrr::future_map_dfr(dates, function(d) {
 
   # Modelo
 
-  files_wrf <-  purrr::map(seq(0, acumulado - 1), function(l) {
-    list.files(path = paste0(wrf_path, exp, "/ANA/", format(date - hours(l), "%Y%m%d%H%M%S")),
-               full.names = TRUE,
-               recursive = TRUE,
-               pattern = "analysis.ensmean")
-  }) %>% unlist()
+  if (run == "ana") {
+    files_wrf <-  purrr::map(seq(0, acumulado - 1), function(l) {
+      list.files(path = paste0(wrf_path, exp, "/", toupper(run), "/", format(date - hours(l), "%Y%m%d%H%M%S")),
+                 full.names = TRUE,
+                 recursive = TRUE,
+                 pattern = "analysis.ensmean")
+    }) %>% unlist()
 
 
-  pp_wrf <- purrr::map(files_wrf, function(f) {
-    ReadNetCDF(f, vars = c("RAINNC", "RAINC", "RAINSH",
-                           lon = "XLONG", lat = "XLAT")) %>%
-      .[, ":="(pp_acum = RAINNC + RAINC + RAINSH,
-               exp = exp,
-               date = date)] %>%
-      .[, ":="(RAINNC = NULL,
-               RAINC = NULL,
-               RAINSH = NULL,
-               Time = NULL)]
-  }) %>%
-    rbindlist() %>%
-    .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)]
+    pp_wrf <- purrr::map(files_wrf, function(f) {
+      ReadNetCDF(f, vars = c("RAINNC", "RAINC", "RAINSH",
+                             lon = "XLONG", lat = "XLAT")) %>%
+        .[, ":="(pp_acum = RAINNC + RAINC + RAINSH,
+                 exp = exp,
+                 date = date)] %>%
+        .[, ":="(RAINNC = NULL,
+                 RAINC = NULL,
+                 RAINSH = NULL,
+                 Time = NULL)]
+    }) %>%
+      rbindlist() %>%
+      .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)]
 
+  } else {
+
+    lead_time <- as.numeric(difftime(date, ini_date, units = "hours"))
+
+    files_wrf <-  purrr::map(seq(0, acumulado - 1), function(l) {
+      paste0(wrf_path, exp, "/", toupper(run), "/",
+             format(ini_date, "%Y%m%d%H"), "/NPP/NPP_",
+             format(ini_date, "%Y"), "-",
+             format(ini_date, "%m"), "-",
+             format(ini_date, "%d"), "_",
+             format(ini_date, "%H"), "_FC",
+             formatC(lead_time - l, width = 2, flag = "0"),
+             ".nc")
+    }) %>% unlist()
+
+
+    pp_wrf <- purrr::map(files_wrf, function(f) {
+
+      if (!file.exists(f)) {
+        return(NULL)
+      }
+
+      ReadNetCDF(f, vars = c("PP", "XLAT", "XLONG")) %>%
+        .[, ":="(lon = XLONG, lat = XLAT)] %>%
+        .[, ":="(XLONG = NULL, XLAT = NULL)] %>%
+        .[, .(pp_acum = mean(PP, na.rm = TRUE),
+              exp = exp,
+              date = date), by = .(lat, lon)]
+
+    }) %>%
+      rbindlist() %>%
+      .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)]
+
+  }
 
   interpolate <- function(lon, lat, pp) {
     data <- interp::interp(lon, lat, pp, output = "grid",
@@ -102,5 +138,12 @@ fss_out <- furrr::future_map_dfr(dates, function(d) {
 
 })
 
-fwrite(fss_out, file = paste0("fss_", acumulado, "h_ana_", exp, ".csv"))
+if (run == "ana") {
+  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, ".csv"))
 
+} else {
+
+  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_",
+                                format(ini_date, "%Y%m%d%H"), "_", exp, ".csv"))
+
+}
