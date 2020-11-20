@@ -10,7 +10,7 @@ library(mesoda)
 future::plan("cluster", workers = 3)
 imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E7"
+exp <- "E6"
 run <- "fcst"
 
 ini_date <- ymd_hms("20181122000000")
@@ -21,7 +21,8 @@ q <- c(1, 5, 10) #10mm, para arrancar pensando en pp acumulada
 w <- c(2, 5, 25, 50) #ancho de cada box w*2+1
 
 # Inicio
-dates <- seq.POSIXt(ini_date, by = "hour", length.out = ciclos)
+dates <- seq.POSIXt(ini_date + hours(acumulado), by = "hour",
+                    length.out = ciclos - acumulado)
 
 fss_out <- furrr::future_map_dfr(dates, function(d) {
 
@@ -76,7 +77,7 @@ fss_out <- furrr::future_map_dfr(dates, function(d) {
 
     lead_time <- as.numeric(difftime(date, ini_date, units = "hours"))
 
-    files_wrf <-  purrr::map(seq(0, acumulado - 1), function(l) {
+    files_wrf <-  purrr::map(c(acumulado, 0), function(l) {
       paste0(wrf_path, exp, "/", toupper(run), "/",
              format(ini_date, "%Y%m%d%H"), "/NPP/NPP_",
              format(ini_date, "%Y"), "-",
@@ -99,11 +100,12 @@ fss_out <- furrr::future_map_dfr(dates, function(d) {
         .[, ":="(XLONG = NULL, XLAT = NULL)] %>%
         .[, .(pp_acum = mean(PP, na.rm = TRUE),
               exp = exp,
-              date = date), by = .(lat, lon)]
+              date = date,
+              t = basename(f)), by = .(lat, lon)]
 
     }) %>%
       rbindlist() %>%
-      .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)]
+      .[, .(pp_acum = diff(pp_acum)), by = .(lon, lat, date, exp)]
 
   }
 
