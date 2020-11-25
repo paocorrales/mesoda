@@ -167,22 +167,56 @@ obsCONV <- fread(here("analysis", "data", "raw_data", "E4_asim_conv_201811211200
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr"))
 
 
-oficiales <- obsCONV[type != 290, unique(stationID)]
+obsSATW <- fread(here("analysis", "data", "raw_data", "E6_asim_conv_20181121120000.ensmean"), 
+                 na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
+  .[, c("V2", "V4") := NULL] %>% 
+  setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr"))
 
-no_oficiales <- unique(obsAUT, by = c("stationID")) %>% 
-  .[type != 290] %>% 
+
+oficiales <- obsCONV[type %in% c(181, 281)] %>% unique(by = c("stationID")) %>% 
+  .[, source := "Sfc - Official"]
+
+sondeos <- obsCONV[type == 120] %>% unique(by = c("stationID")) %>% 
+  .[, source := "Radiosonde"]
+
+ascat <- obsCONV[type == 290] %>% unique(by = c("stationID")) %>% 
+  .[, source := "ASCAT"]
+
+aircraf <- obsCONV[type %in% c(130, 131, 133)] %>%# unique(by = c("stationID")) %>% 
+  .[, source := "AIRCRFT"]
+
+satwnd <- obsSATW[type %between% c(240, 260)] %>%# unique(by = c("stationID")) %>% 
+  .[, source := "SATWND"]
+
+no_oficiales <- obsAUT %>% 
+  .[type %in% c(181, 187)] %>% 
   .[!str_detect(stationID, "SMN")] %>%
-  .[!stationID %in% oficiales & type != 290, stationID]
+  .[!stationID %in% oficiales$stationID] %>% 
+  unique(by = c("stationID")) %>% 
+  .[, source := "Sfc - Non-official"]
 
-unique(obsAUT, by = c("stationID")) %>% 
-  .[type != 290] %>% 
-  .[!str_detect(stationID, "SMN")] %>% 
+rbindlist(list(oficiales, no_oficiales, ascat, sondeos, aircraf, satwnd)) %>% 
   ggplot(aes(ConvertLongitude(lon), lat)) +
   geom_mapa() +
-  geom_point(alpha = 0.8, size = 2,
-             aes(color = stationID %in% oficiales)) +
-  scale_color_manual(name =  NULL, values = c("TRUE" = "#FD8002", "FALSE" = "#00695c"),
-                     breaks = c("FALSE", "TRUE"),
+  geom_point(alpha = 1, size = 0.5,
+             aes(color = source, shape = source)) +
+  scale_color_brewer(palette = "Dark2") +
+  # khroma::scale_color_vibrant() +
+  geom_point(data = square, aes(lon, lat), size = 0.2) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+rbindlist(list(no_oficiales, oficiales)) %>% 
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_mapa() +
+  geom_point(alpha = 0.8, size = 1,
+             aes(color = source)) +
+  scale_color_manual(name =  NULL, values = c("Sfc - Non-official" = "#00695c", 
+                                              "Sfc - Official" = "#FD8002"),
+                     breaks = c("Sfc - Non-official", "Sfc - Official"),
                      labels = c("Non-official (N = 820)","Official (N = 327)"))+
   geom_point(data = square, aes(lon, lat), size = 0.2) +
   scale_x_continuous(expand = c(0, 0)) +
