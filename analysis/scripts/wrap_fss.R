@@ -7,8 +7,8 @@ library(mesoda)
 
 
 # Constante
-future::plan("cluster", workers = 3)
-imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
+#future::plan("cluster", workers = 3)
+imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
 exp <- "E6"
 run <- "fcst"
@@ -16,37 +16,26 @@ run <- "fcst"
 ini_date <- ymd_hms("20181122000000")
 ciclos <- 37
 
-acumulado <- 6
-q <- c(1, 5, 10) #10mm, para arrancar pensando en pp acumulada
-w <- c(2, 5, 25, 50) #ancho de cada box w*2+1
+acumulado <- 3
+q <- c(1, 5, 10, 25) #10mm, para arrancar pensando en pp acumulada
+w <- c(5, 11, 51, 101) #ancho de cada box en puntos de grilla
 
 # Inicio
 dates <- seq.POSIXt(ini_date + hours(acumulado), by = "hour",
                     length.out = ciclos - acumulado)
 
-fss_out <- furrr::future_map_dfr(dates, function(d) {
+
+pp_imerg_all <- readRDS(paste0(imerg_path, "IMERG_", acumulado, "h.rds"))
+
+
+fss_out <- purrr::map_dfr(dates, function(d) {
 
   print(d)
   date <- d
 
   # Observaciones
-  files_imerg <- purrr::map(seq(acumulado), function(l) {
-    list.files(imerg_path, pattern = format(date - hours(l), "%Y%m%d-S%H"), full.names = TRUE)
-  }) %>% unlist()
 
-  pp_imerg <- purrr::map(files_imerg, function(f) {
-    meta <- unglue(basename(f), "3B-HHR-L.MS.MRG.3IMERG.{dia}-S{hora_ini}-E{hora_fin}.{algo}.V05B.RT-H5")
-    ReadNetCDF(f,
-               vars = c(pp = "Grid/precipitationCal"),
-               subset = list("Grid/lon" = -80:-50,
-                             "Grid/lat" = -45:-15)) %>%
-      .[, fecha := ymd_hms(paste0(meta[[1]][[1]], meta[[1]][[3]]))]
-
-  }) %>%
-    rbindlist() %>%
-    setnames(c("Grid/lon", "Grid/lat"), c("lon", "lat")) %>%
-    .[, .(pp_acum = sum(pp)), by = .(lon, lat)]
-
+  pp_imerg <- pp_imerg_all[end_date == date]
 
   # Modelo
 
@@ -71,7 +60,8 @@ fss_out <- furrr::future_map_dfr(dates, function(d) {
                  Time = NULL)]
     }) %>%
       rbindlist() %>%
-      .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)]
+      .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)] %>%
+      .[, c("x", "y") := wrf_project(lon, lat)]
 
   } else {
 
@@ -105,47 +95,35 @@ fss_out <- furrr::future_map_dfr(dates, function(d) {
 
     }) %>%
       rbindlist() %>%
-      .[, .(pp_acum = diff(pp_acum)), by = .(lon, lat, date, exp)]
+      .[, .(pp_acum = diff(pp_acum)), by = .(lon, lat, date, exp)] %>%
+      .[, c("x", "y") := wrf_project(lon, lat)]
 
   }
 
-  interpolate <- function(lon, lat, pp) {
-    data <- interp::interp(lon, lat, pp, output = "grid",
-                           xo = unique(pp_imerg$lon),
-                           yo = unique(pp_imerg$lat))
-    dimnames(data$z) <- list(lon = data$x,
-                             lat = data$y)
-    reshape2::melt(data$z)
-  }
-
-  pp_wrf <- pp_wrf[, interpolate(lon, lat, pp_acum),
-                   by = .(date, exp)] %>%
-    setnames(c("value"), c("pp_acum"))
-
-
+  # browser()
   fcst <- pp_wrf %>%
-    .[, .(pp = list(dcast(.SD, lon ~ lat, value.var = "pp_acum") %>%
+    .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
                       .[, -1] %>%
                       as.matrix())),
       by = .(exp, date)]
 
   obs <- pp_imerg %>%
-    .[, .(pp = list(dcast(.SD, lon ~ lat, value.var = "pp_acum") %>%
+    .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
                       .[, -1] %>%
                       as.matrix()))]
 
   fss <- fcst[, calculate_fss(pp[[1]], obs[, pp[[1]]],
-                              q = q, w = w, progress = FALSE),
+                              q = q, w = w),
               by = .(exp, date)]
 
 })
 
 if (run == "ana") {
-  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, ".csv"))
+  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, "new.csv"))
 
 } else {
 
   fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_",
-                                format(ini_date, "%Y%m%d%H"), "_", exp, ".csv"))
+                                format(ini_date, "%Y%m%d%H"), "_", exp, "new.csv"))
 
 }
