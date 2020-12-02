@@ -9,12 +9,12 @@
 #' @param map_proj recibe un string con la proyección correspondiente en el formato aceptado por proj4
 #' @export
 
-wrf_project <- function(lon, lat, inverse = FALSE, round = TRUE, map_proj = norargentina_lambert) {
+wrf_project <- function(lon, lat, inverse = FALSE, round = c(-3, -4), map_proj = norargentina_lambert) {
 
   xy <- proj4::project(list(lon, lat), map_proj, inverse = inverse)
-  if (round == TRUE) {
-    list(x = round(xy$x, -3),
-         y = round(xy$y, -4))
+  if (!isFALSE(round)) {
+    list(x = round(xy$x, round[1]),
+         y = round(xy$y, round[2]))
   } else {
     list(x = xy$x,
          y = xy$y)
@@ -22,4 +22,4 @@ wrf_project <- function(lon, lat, inverse = FALSE, round = TRUE, map_proj = nora
 }
 
 #' @export
-norargentina_lambert <- "+proj=lcc +lat_1=-30.9659996032715 +lat_2=-30.9659996032715 +lat_0=-30.9660034179688 +lon_0=-63.5670013427734 +a=6370000 +b=6370000"
+norargentina_lambert <- "+proj=lcc +lat_1=-30.965999603271484375 +lat_2=-30.965999603271484375 +lat_0=-30.96600341796875 +lon_0=-63.5670166015625 +a=6370000 +b=6370000"
