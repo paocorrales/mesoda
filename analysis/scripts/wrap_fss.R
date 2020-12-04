@@ -10,11 +10,11 @@ library(mesoda)
 #future::plan("cluster", workers = 3)
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E6"
+exp <- "E7"
 run <- "fcst"
 
-ini_date <- ymd_hms("20181122000000")
-ciclos <- 37
+ini_date <- ymd_hms("20181122060000")
+ciclos <- 31
 
 acumulado <- 3
 q <- c(1, 5, 10, 25) #10mm, para arrancar pensando en pp acumulada
