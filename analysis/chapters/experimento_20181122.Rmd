@@ -680,8 +680,8 @@ q[date == unique(date)[1:3] & west_east %between% c(70, 180)] %>%
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
   geom_contour(aes(z = v_mean, linetype = factor(-sign(..level..))), 
-               color = "grey30", size = 0.5, binwidth = 2) +
-  geom_text_contour(aes(z = v_mean), color = "grey30", stroke = 0.1, breaks = seq(-10, 6, 2)) +
+               color = "grey30", size = 0.3, binwidth = 2) +
+  geom_text_contour(aes(z = v_mean), color = "grey30", size = 4, stroke = 0.1, breaks = seq(-10, 6, 2)) +
   scale_linetype(guide = NULL) +
   # geom_vector(aes(x = south_north, y = bottom_top,
   #                 mag = abs(v_mean), angle = fifelse(v_mean > 0, 0, 180)),
