@@ -153,7 +153,7 @@ pp_imerg <- purrr::map(files_imerg, function(f) {
 pp_imerg_interp <- pp_imerg[, interpolate(x, y, pp_acum)] %>%
     setnames(c("value"), c("pp_acum")) %>%
     setDT() %>%
-    .[, end_date := date]
+    .[, ini_date := date]
 
 
 
