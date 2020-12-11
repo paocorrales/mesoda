@@ -12,7 +12,7 @@ read_diag_rad <- function(file_list, exp) {
     if (file.size(file_list[f]) == 0) {
       return(NULL)
     }
-    meta <- unglue::unglue(basename(file_list[f]), "asim_{sensor}_{plat}_{date}.{mem}")
+    meta <- unglue::unglue(basename(file_list[f]), "asim_{sensor}_{plat}_{date}.mem{mem}")
     # print(f)
     out <- data.table::fread(file_list[f], na.strings = c("0.100000E+12"))
     # .[V10 == 1] %>%
@@ -20,15 +20,16 @@ read_diag_rad <- function(file_list, exp) {
     if (file.size(file_list[f]) != 0) {
       out[, ":="(date = lubridate::ymd_hms(meta[[1]][["date"]]),
                  mem = meta[[1]][["mem"]],
-                 exp = exp)]
+                 exp = exp)] %>%
+        .[, id := 1:.N, by = mem]
     }
     out
   }) %>%
     rbindlist()
 
   colnames(diag) <- c("sensor", "channel", "freq", "lat", "lon", "peakwt", "press", "dhr", "tb_obs", "tbc", "tbcnob",
-                      "errinv", "qc", "emis", "tlapchn", "rzen", "razi", "rlnd", "rice", "rsnw", "rcld",
-                      "rcldp", paste0("pred", seq(8)), "date", "mem", "exp")
+                      "varch", "errinv", "qc", "emis", "tlapchn", "rzen", "razi", "rlnd", "rice", "rsnw", "rcld",
+                      "rcldp", paste0("pred", seq(8)), "date", "mem", "exp", "id")
   return(diag)
 }
 
