@@ -1,8 +1,8 @@
 ---
 title: "Asimilación de distintas observaciones"
 output: 
-  bookdown::pdf_document2: default
   bookdown::html_document2: default
+  bookdown::pdf_document2: default
 bibliography: mesoda_ref.bib
 ---
 
@@ -53,6 +53,34 @@ cordillera <- list(
                     breaks = seq(1500, 8000, by = 700)),
   scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
                       oob = scales::squish))
+
+scale_date <- function(ini, end, break_bin = "6 hour") {
+  scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin),
+                   labels = function(x) {
+    fifelse(hour(x) == 0, format(x, "%H\n%b %d"), format(x, "%H"))
+  }) 
+}
+
+obs.type <- tribble(
+  ~type, ~code,
+  120, "ADPUPA",
+  130, "AIRCFT-AIREP",
+  131, "AIRCFT-AMDAR",
+  133, "AIRCAR",
+  180, "SFCSHP",
+  181, "ADPSFC",
+  187, "ADPSFC\nno pressure",
+  220, "ADPUPA",
+  221, "ADPUPA-PIBAL",
+  230, "AIRCFT-AIREP",
+  231, "AIRCFT-AMDAR",
+  233, "AIRCAR",
+  280, "SFCSHP",
+  281, "ADPSFC",
+  287, "ADPSFC\nno pressure",
+  290, "ASCATW"
+) %>% 
+  setDT()
 
 fisica <- data.table(ens = 1:60, 
                      fisica = rep(c("KF-YSU", 
@@ -147,18 +175,18 @@ The AUT experiment add to CONV the regional automatic stations networks from Arg
 
 SATWND add to AUT the satellite motion vectors from several satellites including GOES-16 and finally the RAD experiments also includes randiances observations from sensors over polar orbit satellites.
 
-```{r obs, eval=FALSE, include=FALSE}
+```{r obs}
 tribble(
   ~obs_type, ~conv, ~aut, ~satwnd, ~rad,
-  "ADPSFC", "✔", "✔", "✔", "✔",
-  "ADPUPA", "✔", "✔", "✔", "✔",
-  "AIRCFT", "✔", "✔", "✔", "✔",
-  "AIRCAR", "✔", "✔", "✔", "✔",
-  "SFCSHP", "✔", "✔", "✔", "✔",
-  "ASCATW", "✔", "✔", "✔", "✔", 
-  "AUTSFC", " ", "✔", "✔", "✔",
-  "SATWND", " ", " ", "✔", "✔",
-  "RAD", " ", " ", " ", "✔",
+  "ADPSFC", "x", "x", "x", "x",
+  "ADPUPA", "x", "x", "x", "x",
+  "AIRCFT", "x", "x", "x", "x",
+  "AIRCAR", "x", "x", "x", "x",
+  "SFCSHP", "x", "x", "x", "x",
+  "ASCATW", "x", "x", "x", "x", 
+  "AUTSFC", " ", "x", "x", "x",
+  "SATWND", " ", " ", "x", "x",
+  "RAD", " ", " ", " ", "x",
 ) %>% 
   kbl(col.names = c("Obs type", "CONV", "AUT", "SATWND", "RAD"),
       caption = "Observation types assimilated in each experiment.") %>% 
@@ -281,7 +309,84 @@ rad %>%
   
 ```
 
+### Ensemble characteristics
 
+#### Reduced Centered Random Variable
+
+```{r rcrv-sfc, fig.cap="Standar deviation of rcrv calculate for surface observations included in boxes of 2.5 degree", fig.scap=c("Wind", "Temperature")}
+
+fread(here("analysis", "data", "derived_data", "uvt_rcrv_box.csv")) %>%   
+  .[var %in% c("u", "v") & type %in% c(280, 281, 287, 290)] %>% 
+  .[, type.obs := type] %>% 
+  ggplot(aes(ConvertLongitude(lon.box), lat.box)) +
+  geom_raster(aes(fill = sd.y)) +
+  geom_mapa() +
+  scale_fill_viridis_c(breaks = seq(0, 4, 0.5),
+                       limits = c(0, 4),
+                       direction = -1,
+                       guide = guide_colorstrip(inside = TRUE,
+                                                barwidth = 20,
+                                                barheight = 0.8)) +
+  facet_grid(var~type.obs, 
+             labeller = labeller(type.obs = c("280" = "SFCSHP",
+                                              "281" = "ADPSFC",
+                                              "287" = "ADPSFC\n no pressure",
+                                              "290" = "ASCATW"),
+                                 var = c("u" = "U wind",
+                                         "v" = "V wind" ))) +
+  labs(x = "",
+       y = "",
+       fill = "") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+fread(here("analysis", "data", "derived_data", "uvt_rcrv_box.csv")) %>%
+  .[var %in% c("t") & type %in% c(180, 181, 187)] %>% 
+  .[, type.obs := type] %>% 
+  ggplot(aes(ConvertLongitude(lon.box), lat.box)) +
+  geom_raster(aes(fill = sd.y)) +
+  geom_mapa() +
+  scale_fill_viridis_c(breaks = seq(0, 5, 0.5),
+                       limits = c(0, 5),
+                       direction = -1,
+                       guide = guide_colorstrip(inside = TRUE,
+                                                barwidth = 20,
+                                                barheight = 0.8)) +
+  facet_grid(var~type.obs, labeller = labeller(type.obs = c("180" = "SFCSHP",
+                                              "181" = "ADPSFC",
+                                              "187" = "ADPSFC\n no pressure"),
+                                              var = c("t" = "Temperature"))) +
+  labs(x = "",
+       y = "",
+       fill = "") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+
+```{r rcrv-profile, fig.cap="Profiles of mean and standar deviation of rcrv for sounding and aircraft observations."}
+obs.type[fread(here("analysis", "data", "derived_data", "rcrv_uvt_perfil.csv")), on = "type"] %>% 
+  .[type != 130] %>%
+  melt(measure.vars = c("mean.y", "sd.y")) %>% 
+  ggplot(aes(nivel.error, value)) +
+  geom_hline(yintercept = c(0, 1), color = "grey20") +
+  geom_line(aes(color = factor(code), linetype = variable)) +
+  scale_color_brewer(palette = "Set1") +
+  scale_linetype_manual(values = c("dashed", "solid"),
+                        labels = c("Mean RCRV", "SD RCRV")) +
+  scale_x_level() +
+  coord_flip() +
+  facet_wrap(~ var, labeller = labeller(var = c("t" = "Temperature",
+                                                "u" = "U wind",
+                                                "v" = "V wind"))) +
+  labs(y = NULL,
+       linetype = "",
+       color = NULL) +
+ theme_minimal() 
+```
 
 ### Analysis comparison
 
@@ -947,7 +1052,7 @@ conv <- purrr::map(files, function(f) {
 }) %>% rbindlist()
 
 
-conv[type %in% c(181, 187) & exp %in% experiments, 
+conv[type %in% c(181, 187) & exp %in% c("E5", "E7") & usage.flag == 1, 
      .(mean_omb = mean(obs.guess, na.rm = TRUE),
                                                    n = .N), 
      by = .(date, exp, usage.flag)] %>% 
@@ -957,10 +1062,11 @@ conv[type %in% c(181, 187) & exp %in% experiments,
   scale_size_area(max_size = 2) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                           E6 = "SATWND", E7 = "RAD")) +
-  facet_wrap(~usage.flag, labeller = labeller(usage.flag = c("1" =  "assimilated",
-                                                             "-1" = "rejected"))) +
+  # facet_wrap(~usage.flag, labeller = labeller(usage.flag = c("1" =  "assimilated",
+  #                                                            "-1" = "rejected"))) +
+scale_date(20181120180000, 20181123120000) +
   labs(y = "Mean of OmB (g/g)", x = NULL,
-       color = NULL, size = "n obs") +
+       color = NULL, size = "number\n of obs") +
   theme_minimal()
 
 # conv[usage.flag == 1 & type %in% c(181, 187) & exp %in% experiments] %>% 
@@ -1081,11 +1187,12 @@ fss %>%
   # geom_point(aes(color = exp)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                           E6 = "SATWND", E7 = "RAD")) +
+  scale_date(20181121000000, 20181123000000, "12 hours") +
   facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
                                             "10" = "10 mm", "25" = "25 mm"),
                                       w = c("5" = "50 km", "11" = "100 km", 
                                             "51" = "500 km", "101" = "1000 km"))) +
-  labs(color = NULL, x = NULL) +
+  labs(color = NULL, x = NULL, y = "FSS") +
   theme_minimal()
 
 ```
