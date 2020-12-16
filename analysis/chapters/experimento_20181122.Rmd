@@ -54,7 +54,8 @@ cordillera <- list(
   scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
                       oob = scales::squish))
 
-scale_date <- function(ini, end, break_bin = "6 hour") {
+scale_date <- function(ini = 20181120180000, end = 20181123120000,
+                       break_bin = "6 hour") {
   scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin),
                    labels = function(x) {
     fifelse(hour(x) == 0, format(x, "%H\n%b %d"), format(x, "%H"))
@@ -269,7 +270,7 @@ Figure with all type of observations (radiosonde, convencional, automatic statio
 Figure with number of observation throughout the cycles for each type including riadiances.
 
 
-```{r rad}
+```{r rad, fig.cap="Radiances for each 50 hPa pressure layer over time", fig.scap=c("OmB", "Number of observations")}
 
 files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/*/diagfiles/asim*ensmean")
 
@@ -285,27 +286,36 @@ rad <- satinfo[rad, on = c("sensor", "channel")]
 
 rad %>% 
   .[qc == 0 & iuse == 1] %>% 
-  .[, lev := cut_width(peakwt, 50)] %>% 
+  .[, lev := factor(cut_round(peakwt, breaks = seq(0, 1050, 50)))] %>% 
   .[, .(omb = mean(tbc),
               n = .N), by = .(date, lev)] %>% 
+  .[lev != 1025] %>% 
   ggplot(aes(date, fct_rev(lev))) +
-  geom_raster(aes(fill = omb)) +
+  geom_tile(aes(fill = omb)) +
   scale_fill_divergent(trans = mesoda::symlog_trans(),
-                       guide = guide_colourbar(barheight = 20))  +
-  scale_x_datetime(date_breaks = "12 hours", date_labels = "%b %d \n %H:%M") +
-  labs(x = NULL, fill = NULL, y = "pressure layer")
+                       guide = guide_colourbar(barheight = 18))  +
+   # scale_y_level() +
+  scale_date() +
+  # scale_x_datetime(date_breaks = "12 hours", date_labels = "%b %d \n %H:%M") +
+  labs(x = NULL, fill = NULL, y = "pressure (hPa)",
+       caption = "OmB") +
+  theme_minimal()
   
 rad %>% 
   .[qc == 0 & iuse == 1] %>% 
-  .[, lev := cut_width(peakwt, 50)] %>% 
+  .[, lev := factor(cut_round(peakwt, breaks = seq(0, 1050, 50)))] %>% 
   .[, .(omb = mean(tbc),
               n = .N), by = .(date, lev)] %>% 
+  .[lev != 1025] %>% 
   ggplot(aes(date, fct_rev(lev))) +
-  geom_raster(aes(fill = n)) +
+  geom_tile(aes(fill = n)) +
   scale_fill_viridis_c(trans = scales::log10_trans(),
-                       guide = guide_colourbar(barheight = 20)) +
-  scale_x_datetime(date_breaks = "12 hours", date_labels = "%b %d \n %H:%M") +
-  labs(x = NULL, fill = NULL, y = "pressure layer")
+                       guide = guide_colourbar(barheight = 18)) +
+ 
+  scale_date() +
+  labs(x = NULL, fill = NULL, y = "pressure (hPa)",
+       caption = "Number of observations") +
+  theme_minimal()
   
 ```
 
@@ -374,7 +384,6 @@ obs.type[fread(here("analysis", "data", "derived_data", "rcrv_uvt_perfil.csv")),
   ggplot(aes(nivel.error, value)) +
   geom_hline(yintercept = c(0, 1), color = "grey20") +
   geom_line(aes(color = factor(code), linetype = variable)) +
-  scale_color_brewer(palette = "Set1") +
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("Mean RCRV", "SD RCRV")) +
   scale_x_level() +
@@ -387,6 +396,33 @@ obs.type[fread(here("analysis", "data", "derived_data", "rcrv_uvt_perfil.csv")),
        color = NULL) +
  theme_minimal() 
 ```
+
+```{r rcrv-profile-rad, fig.cap="Profiles of mean and standar deviation of rcrv for radiances observations."}
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/rcrv_*_perfil.csv")[1:4]
+  
+RCRV <- purrr::map(files, function(f) {
+  fread(f)
+}) %>% 
+  rbindlist()
+
+RCRV %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  setDT() %>% 
+  melt(measure.vars = c("mean.y", "sd.y")) %>% 
+  .[, .(value = mean(value, na.rm = TRUE)), by = .(sensor, level, variable)] %>% 
+  ggplot(aes(level, value)) +
+  geom_hline(yintercept = c(0, 1), color = "grey20") +
+  geom_line(aes(color = sensor, linetype = variable)) +
+  scale_linetype_manual(values = c("dashed", "solid"),
+                         labels = c("Mean RCRV", "SD RCRV")) +
+  coord_flip() +
+  scale_x_level() +
+  labs(x = NULL, y = NULL,
+       color = NULL, linetype = NULL) +
+  theme_minimal()
+
+```
+
 
 ### Analysis comparison
 
