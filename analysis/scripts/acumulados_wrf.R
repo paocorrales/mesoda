@@ -62,7 +62,7 @@ pp_wrf_mean <- pp_wrf[, .(pp_acum = mean(pp_acum)),
 
 pp_prop <- purrr::map(q, function(f){
 
-    pp_wrf %>%
+  pp_wrf %>%
     .[, .(prop = mean(pp_acum > f)), by = .(lon, lat, x, y)] %>%
     .[, umbral := f]
 
@@ -111,7 +111,7 @@ pp_wrf <- purrr::map(lead_time, function(f) {
 
 }) %>%
   rbindlist() %>%
-.[, pp_acum := c(0, diff(PP)), by = .(ens, exp, lon, lat)] %>%
+  .[, pp_acum := c(0, diff(PP)), by = .(ens, exp, lon, lat)] %>%
   .[, PP := NULL] %>%
   .[, c("x", "y") := wrf_project(lon, lat)]
 
@@ -152,46 +152,46 @@ q <- c(1, 5, 10, 25, 50)
 dates <- seq.POSIXt(ini_date + hours(acumulado), by = "hour",
                     length.out = ciclos)
 
-fss_out <- purrr::map_dfr(dates, function(d) {
+pp_wrf_out <- purrr::map(dates, function(d) {
 
   date <- d
 
-files_wrf <-  purrr::map(seq(0, acumulado - 1), function(l) {
-  list.files(path = paste0(wrf_path, exp, "/", toupper(run), "/", format(date - hours(l), "%Y%m%d%H%M%S")),
-             full.names = TRUE,
-             recursive = TRUE,
-             pattern = "analysis.mem*")
-}) %>% unlist()
+  files_wrf <-  purrr::map(seq(0, acumulado - 1), function(l) {
+    list.files(path = paste0(wrf_path, exp, "/", toupper(run), "/", format(date - hours(l), "%Y%m%d%H%M%S")),
+               full.names = TRUE,
+               recursive = TRUE,
+               pattern = "analysis.mem*")
+  }) %>% unlist()
 
 
-pp_wrf <- purrr::map(files_wrf, function(f) {
+  pp_wrf <- purrr::map(files_wrf, function(f) {
 
-  metadatos <- unglue(basename(f), "analysis.mem0{mem}")
+    metadatos <- unglue(basename(f), "analysis.mem0{mem}")
 
-  ReadNetCDF(f, vars = c("RAINNC", "RAINC", "RAINSH",
-                         lon = "XLONG", lat = "XLAT")) %>%
-    .[, ":="(pp_acum = RAINNC + RAINC + RAINSH,
-             exp = exp,
-             date = date,
-             mem = metadatos[[1]][["mem"]])] %>%
-    .[, ":="(RAINNC = NULL,
-             RAINC = NULL,
-             RAINSH = NULL,
-             Time = NULL)]
-}) %>%
-  rbindlist() %>%
-  .[, c("x", "y") := wrf_project(lon, lat)]
+    ReadNetCDF(f, vars = c("RAINNC", "RAINC", "RAINSH",
+                           lon = "XLONG", lat = "XLAT")) %>%
+      .[, ":="(pp_acum = RAINNC + RAINC + RAINSH,
+               exp = exp,
+               date = date,
+               mem = metadatos[[1]][["mem"]])] %>%
+      .[, ":="(RAINNC = NULL,
+               RAINC = NULL,
+               RAINSH = NULL,
+               Time = NULL)]
+  }) %>%
+    rbindlist() %>%
+    .[, c("x", "y") := wrf_project(lon, lat)]
 
 }) %>%
   rbindlist()
 
-pp_wrf_mean <- pp_wrf[, .(pp_acum = mean(pp_acum)),
+pp_wrf_mean <- pp_wrf_out[, .(pp_acum = mean(pp_acum)),
                       by = .(lat, lon, x, y, exp, date)]
 
 
 pp_prop <- purrr::map(q, function(f){
 
-  pp_wrf %>%
+  pp_wrf_out %>%
     .[, .(prop = mean(pp_acum > f)), by = .(lon, lat, x, y, exp, date)] %>%
     .[, umbral := f]
 }) %>%
