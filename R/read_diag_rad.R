@@ -12,7 +12,7 @@ read_diag_rad <- function(file_list, exp) {
     if (file.size(file_list[f]) == 0) {
       return(NULL)
     }
-    meta <- unglue::unglue(basename(file_list[f]), "asim_{sensor}_{plat}_{date}.mem{mem}")
+    meta <- unglue::unglue(basename(file_list[f]), "asim_{sensor}_{plat}_{date}.{mem}")
     # print(f)
     out <- data.table::fread(file_list[f], na.strings = c("0.100000E+12"))
     # .[V10 == 1] %>%
