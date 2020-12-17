@@ -8,7 +8,7 @@ wrf_project(
   lon,
   lat,
   inverse = FALSE,
-  round = TRUE,
+  round = c(-3, -4),
   map_proj = norargentina_lambert
 )
 }

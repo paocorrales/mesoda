@@ -4,7 +4,7 @@
 \alias{calculate_fss}
 \title{Wrap para FSS}
 \usage{
-calculate_fss(fcst, obs, q, w, progress = TRUE, plan = "cluster", workers = 3)
+calculate_fss(fcst, obs, q, w)
 }
 \arguments{
 \item{fcst}{matriz con precipitación pronosticada}
@@ -13,9 +13,7 @@ calculate_fss(fcst, obs, q, w, progress = TRUE, plan = "cluster", workers = 3)
 
 \item{q}{número o vector numérico con umbrales a ser calculados}
 
-\item{w}{número o vector numérico con escalas (w2+1)}
-
-\item{progress}{lógico, muestra o no el progreso}
+\item{w}{número o vector numérico con escalas, correspondiente al ancho de la caja}
 }
 \description{
 Usa la función fss del paquete {verification} pero previamente requiere que las
