@@ -139,22 +139,24 @@ saveRDS(pp_wrf_mean, paste0(exp, "_fcst_", format(ini_date, "%Y%m%d%H"), "_mean_
 
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E4"
+exp <- "E6"
 run <- "ana"
 
 ini_date <- ymd_hms("20181120180000")
 ciclos <- 67
 
-acumulado <- 1
+acumulado <- 3
 q <- c(1, 5, 10, 25, 50)
 
 
 dates <- seq.POSIXt(ini_date + hours(acumulado), by = "hour",
-                    length.out = ciclos)
+                    length.out = ciclos - acumulado)
 
-pp_wrf_out <- purrr::map(dates, function(d) {
+pp_wrf_out <- purrr::map_dbl(dates, function(d) {
 
   date <- d
+
+  print(d)
 
   files_wrf <-  purrr::map(seq(0, acumulado - 1), function(l) {
     list.files(path = paste0(wrf_path, exp, "/", toupper(run), "/", format(date - hours(l), "%Y%m%d%H%M%S")),
@@ -180,23 +182,28 @@ pp_wrf_out <- purrr::map(dates, function(d) {
                Time = NULL)]
   }) %>%
     rbindlist() %>%
+    .[, .(pp_acum = sum(pp_acum)), by = .(exp, mem, date, lon, lat)] %>%
     .[, c("x", "y") := wrf_project(lon, lat)]
 
-}) %>%
-  rbindlist()
-
-pp_wrf_mean <- pp_wrf_out[, .(pp_acum = mean(pp_acum)),
-                      by = .(lat, lon, x, y, exp, date)]
+  pp_wrf_mean <- pp_wrf[, .(pp_acum = mean(pp_acum)),
+                            by = .(lat, lon, x, y, exp, date)]
 
 
-pp_prop <- purrr::map(q, function(f){
-
-  pp_wrf_out %>%
-    .[, .(prop = mean(pp_acum > f)), by = .(lon, lat, x, y, exp, date)] %>%
-    .[, umbral := f]
-}) %>%
-  rbindlist()
+  pp_prop <- purrr::map(q, function(f){
 
 
-saveRDS(pp_prop, paste0(exp, "_ana_", format(ini_date, "%Y%m%d%H"), "_prop_acum_1h.rds"))
-saveRDS(pp_wrf_mean, paste0(exp, "_ana_", format(ini_date, "%Y%m%d%H"), "_mean_acum_1h.rds"))
+
+    pp_wrf %>%
+      .[, .(prop = mean(pp_acum > f)), by = .(lon, lat, x, y, exp, date)] %>%
+      .[, umbral := f]
+  }) %>%
+    rbindlist()
+
+
+  saveRDS(pp_prop, paste0(exp, "_ana_", format(date, "%Y%m%d%H"), "_prop_acum_", acumulado, "h.rds"))
+  saveRDS(pp_wrf_mean, paste0(exp, "_ana_", format(date, "%Y%m%d%H"), "_mean_acum_", acumulado, "h.rds"))
+
+d
+})
+
+
