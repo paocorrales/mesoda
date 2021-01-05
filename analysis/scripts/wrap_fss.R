@@ -10,11 +10,11 @@ library(mesoda)
 #future::plan("cluster", workers = 3)
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E7"
-run <- "fcst"
+exp <- "E5"
+run <- "ana_ens"
 
-ini_date <- ymd_hms("20181122060000")
-ciclos <- 31
+ini_date <- ymd_hms("20181120180000")
+ciclos <- 67
 
 acumulado <- 3
 q <- c(1, 5, 10, 25) #10mm, para arrancar pensando en pp acumulada
@@ -63,6 +63,14 @@ fss_out <- purrr::map_dfr(dates, function(d) {
       .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)] %>%
       .[, c("x", "y") := wrf_project(lon, lat)]
 
+  } else if (run == "ana_ens") {
+
+    files_wrf <- paste0(wrf_path, "derived_data/ppacum/", exp, "_ana_", format(date, "%Y%m%d%H"), "_prop_acum_",
+                        acumulado, "h.rds")
+
+    pp_wrf <- readRDS(files_wrf)
+
+
   } else {
 
     lead_time <- as.numeric(difftime(date, ini_date, units = "hours"))
@@ -101,24 +109,40 @@ fss_out <- purrr::map_dfr(dates, function(d) {
   }
 
   # browser()
-  fcst <- pp_wrf %>%
-    .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
-                      .[, -1] %>%
-                      as.matrix())),
-      by = .(exp, date)]
 
   obs <- pp_imerg %>%
     .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
                       .[, -1] %>%
                       as.matrix()))]
 
-  fss <- fcst[, calculate_fss(pp[[1]], obs[, pp[[1]]],
-                              q = q, w = w),
-              by = .(exp, date)]
+  fss <- purrr::map(q, function(qi) {
 
+    if (run == "ana_ens") {
+      fcst <- pp_wrf[umbral == qi] %>%
+        .[, .(pp = list(dcast(.SD, x ~ y, value.var = "prop") %>%
+                          .[, -1] %>%
+                          as.matrix())),
+          by = .(exp, date)]
+
+      fss <- fcst[, calculate_fss(pp[[1]], obs[, pp[[1]]],
+                                  q = qi, w = w, binary = FALSE),
+                  by = .(exp, date)]
+    } else {
+      fcst <- pp_wrf %>%
+        .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
+                          .[, -1] %>%
+                          as.matrix())),
+          by = .(exp, date)]
+      fss <- fcst[, calculate_fss(pp[[1]], obs[, pp[[1]]],
+                                  q = qi, w = w),
+                  by = .(exp, date)]
+    }
+
+  }) %>%
+    rbindlist()
 })
 
-if (run == "ana") {
+if (run %in% c("ana", "ana_ens")) {
   fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, "new.csv"))
 
 } else {
