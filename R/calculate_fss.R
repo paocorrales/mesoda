@@ -8,21 +8,38 @@
 #' @param obs matriz con precipitación observada (mismas dimensiones que fcst)
 #' @param q número o vector numérico con umbrales a ser calculados
 #' @param w número o vector numérico con escalas, correspondiente al ancho de la caja
+#' @param binary bolean, TRUE = ambos campos son binarios.
 #'
 #' @export
-calculate_fss <- function(fcst, obs, q, w) {
-# browser()
+calculate_fss <- function(fcst, obs, q, w, binary = TRUE) {
+  # browser()
   fss <- lapply(q, function(q) {
-    fcst_b <-  fcst > q
-    fcst_b[, ] <- as.numeric(fcst_b)
 
-    obs_b <- obs > q
-    obs_b[, ] <- as.numeric(obs_b)
+    if (binary == TRUE) {
+      fcst_b <-  fcst > q
+      fcst_b[, ] <- as.numeric(fcst_b)
 
-    fss <- SpatialVx::calculate_FSSvector_from_binary_fields(fcst_b, obs_b, w)
-    data.table::data.table(w = w,
-                           fss = fss,
-                           q = rep(q, length(fss)))
+      obs_b <- obs > q
+      obs_b[, ] <- as.numeric(obs_b)
+
+      fss <- SpatialVx::calculate_FSSvector_from_binary_fields(fcst_b, obs_b, w)
+      data.table::data.table(w = w,
+                             fss = fss,
+                             q = rep(q, length(fss)))
+    } else {
+
+      if (length(q) > 1) {
+        stop("For non binary fields, q must be of lenght 1")
+      }
+
+      obs_b <- obs > q
+      obs_b[, ] <- as.numeric(obs_b)
+
+      fss <- mesoda::calculate_FSSvector_from_nonbinary_fields(fcst, obs_b, w)
+      data.table::data.table(w = w,
+                             fss = fss,
+                             q = rep(q, length(fss)))
+    }
   })
 
   data.table::rbindlist(fss)
