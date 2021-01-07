@@ -332,7 +332,10 @@ rad <- purrr::map(files, function(f) {
 rad %>% 
   .[sensor == "iasi_metop-b" & 
       channel == 335 & 
-      qc == 0 & iuse == 1] %>% 
+      errinv %between% c(0.0000316227, 1000) & 
+      qc == 0 & 
+      iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
   .[, date := factor(date)] %>% 
   ggplot(aes(ConvertLongitude(lon), lat)) +
   geom_point(aes(color = tbc)) +
@@ -348,8 +351,67 @@ rad %>%
   rad %>% 
   .[sensor == "iasi_metop-b" & 
       channel == 335 & 
-      # qc == 0 & 
-      iuse == 1] %>% 
+      errinv %between% c(0.0000316227, 1000) & 
+      qc == 0 & 
+      iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
+  dcast(lon + lat + date ~ run, value.var = c("tbc")) %>% 
+  .[, ":="(tbc = diagfiles - diagfiles_ana,
+           run = "AmB")] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_point(aes(color = tbc)) +
+  scale_color_divergent(guide = guide_colourbar(barheight = 15, barwidth = 1)) +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, color = NULL) +
+  facet_grid(run~date) +
+  theme_minimal() +
+  plot_layout(ncol = 2, widths = c(0.4, 0.6))
+```
+```{r}
+files <- c(Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121010000/diagfiles*/asim_*ensmean"), Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121130000/diagfiles*/asim_*ensmean"))
+
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121130000/diagfiles*/asim_*ensmean")
+
+files <- files[str_detect(files, "conv", negate = TRUE)]
+
+
+rad <- purrr::map(files, function(f) {
+  
+  rad <- read_diag_rad(f, "E7") %>% 
+    .[, run := basename(dirname(f))] %>% 
+    .[, wavenumber := 1/(299792458/(freq*10000000))] %>% 
+    # .[wavenumber %between% c(1367, 1422.25)] %>% 
+    satinfo[., on = c("sensor", "channel")]
+}) %>% rbindlist()
+
+rad %>% 
+  .[run == "diagfiles"] %>% 
+  .[errinv %between% c(0.0000316227, 1000) & 
+      qc == 0 & 
+      iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_point(aes(color = sensor, shape = sensor), size = 0.8) +
+  # scale_color_divergent(trans = mesoda::symlog_trans(),
+  #                       guide = guide_colourbar(barheight = 15, barwidth = 1)) +
+  scale_color_brewer(palette = "Dark2") +
+  geom_mapa() +
+  # facet_grid(run~date, labeller = labeller(run = c("diagfiles" = "OmB",
+  #                                                  "diagfiles_ana" = "OmA"))) +
+  labs(x = NULL, y = NULL, color = NULL, shape = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+  
+  
+  rad %>% 
+  .[sensor == "iasi_metop-b" & 
+      channel == 335 & 
+      errinv %between% c(0.0000316227, 1000) & 
+      qc == 0 & 
+      iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
   dcast(lon + lat + date ~ run, value.var = c("tbc")) %>% 
   .[, ":="(tbc = diagfiles - diagfiles_ana,
            run = "AmB")] %>% 
