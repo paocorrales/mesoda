@@ -4,7 +4,7 @@
 \alias{calculate_fss}
 \title{Wrap para FSS}
 \usage{
-calculate_fss(fcst, obs, q, w)
+calculate_fss(fcst, obs, q, w, binary = TRUE)
 }
 \arguments{
 \item{fcst}{matriz con precipitación pronosticada}
@@ -14,6 +14,8 @@ calculate_fss(fcst, obs, q, w)
 \item{q}{número o vector numérico con umbrales a ser calculados}
 
 \item{w}{número o vector numérico con escalas, correspondiente al ancho de la caja}
+
+\item{binary}{bolean, TRUE = ambos campos son binarios.}
 }
 \description{
 Usa la función fss del paquete {verification} pero previamente requiere que las
