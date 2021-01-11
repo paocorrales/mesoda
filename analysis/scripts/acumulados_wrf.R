@@ -139,7 +139,7 @@ saveRDS(pp_wrf_mean, paste0(exp, "_fcst_", format(ini_date, "%Y%m%d%H"), "_mean_
 
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E6"
+exp <- "E7"
 run <- "ana"
 
 ini_date <- ymd_hms("20181120180000")

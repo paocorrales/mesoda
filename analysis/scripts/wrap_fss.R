@@ -10,7 +10,7 @@ library(mesoda)
 #future::plan("cluster", workers = 3)
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E5"
+exp <- "E7"
 run <- "ana_ens"
 
 ini_date <- ymd_hms("20181120180000")
