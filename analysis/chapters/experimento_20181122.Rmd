@@ -83,7 +83,7 @@ obs.type <- tribble(
 ) %>% 
   setDT()
 
-fisica <- data.table(ens = 1:60, 
+fisica <- data.table(mem = as.character(formatC(1:60, flag = "0", width = 3)),
                      fisica = rep(c("KF-YSU", 
                                     "BMJ-YSU",
                                     "GF-YSU",
@@ -195,7 +195,7 @@ tribble(
   kable_classic_2(full_width = F)
 ```
 
-```{r mapa-obs, fig.cap="Localization of meteorological stations and ships for official prep-BUFR (orange dots) and automatic statios (green dots).", fig.height=4}
+```{r mapa-obs, fig.cap="Localization of meteorological stations and ships for official prep-BUFR (orange dots) and automatic statios (green dots)."}
 obsAUT <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_20181121120000.ensmean"), 
                 na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
   .[, c("V2", "V4") := NULL] %>% 
@@ -236,19 +236,7 @@ no_oficiales <- obsAUT %>%
   unique(by = c("stationID")) %>% 
   .[, source := "Sfc - Non-official"]
 
-rbindlist(list(oficiales, no_oficiales, ascat, sondeos, aircraf, satwnd)) %>% 
-  ggplot(aes(ConvertLongitude(lon), lat)) +
-  geom_mapa() +
-  geom_point(alpha = 1, size = 0.5,
-             aes(color = source, shape = source)) +
-  scale_color_brewer(palette = "Dark2") +
-  # khroma::scale_color_vibrant() +
-  geom_point(data = square, aes(lon, lat), size = 0.2) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  labs(x = NULL, y = NULL) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
+
 
 rbindlist(list(no_oficiales, oficiales)) %>% 
   ggplot(aes(ConvertLongitude(lon), lat)) +
@@ -258,13 +246,35 @@ rbindlist(list(no_oficiales, oficiales)) %>%
   scale_color_manual(name =  NULL, values = c("Sfc - Non-official" = "#00695c", 
                                               "Sfc - Official" = "#FD8002"),
                      breaks = c("Sfc - Non-official", "Sfc - Official"),
-                     labels = c("Non-official (N = 820)","Official (N = 327)"))+
+                     labels = c("Non-official (N = 820)","Official (N = 327)"),
+                     guide = guide_legend(override.aes = list(size = 2)))+
   geom_point(data = square, aes(lon, lat), size = 0.2) +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   labs(x = NULL, y = NULL) +
   theme_minimal() + 
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  
+  plot_spacer() +
+  
+  rbindlist(list(ascat, sondeos, aircraf, satwnd)) %>% 
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_mapa() +
+  geom_point(alpha = 1,
+             aes(color = source, shape = source, size = source)) +
+  scale_color_manual(values = c("darkorange", "purple", "cyan4", "grey70"),
+                     guide = guide_legend(override.aes = list(size = 2))) +
+  scale_size_manual(values = c(0.7, 0.5, 1.5, 0.1)) +
+  # scale_color_brewer(palette = "Dark2") +
+  # khroma::scale_color_vibrant() +
+  geom_point(data = square, aes(lon, lat), size = 0.2) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(x = NULL, y = NULL, color = NULL, shape = NULL, size = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  plot_layout(ncol = 3, widths = c(0.47, 0.06, 0.47))
 ```
 
 Figure with all type of observations (radiosonde, convencional, automatic station, aircraft, ships/buoys, satwind)
@@ -368,62 +378,97 @@ rad %>%
   theme_minimal() +
   plot_layout(ncol = 2, widths = c(0.4, 0.6))
 ```
-```{r}
-files <- c(Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121010000/diagfiles*/asim_*ensmean"), Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121130000/diagfiles*/asim_*ensmean"))
+```{r omb-qv-acum}
 
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121130000/diagfiles*/asim_*ensmean")
+global_qv_E6 <- read_rds("~/mesoda/analysis/data/derived_data/omb_acum_qv_E6.rds")
+global_qv_E7 <- read_rds("~/mesoda/analysis/data/derived_data/omb_acum_qv_E7.rds")
+
+rbind(global_qv_E6, global_qv_E7) %>%
+  # .[exp == "E7"] %>% 
+  .[, nivel := fcase(bottom_top %in% c(1:8), "1 to 8",
+                     bottom_top %in% c(9:13), "9 to 13",
+                     bottom_top %in% c(14:20), "14 to 20",
+                     bottom_top %in% c(21:38), "21 to 38")] %>%
+  .[, acum := cumsum(qv), by = .(bottom_top, exp)] %>%
+  # .[bottom_top %in% c(1:18)] %>%
+  ggplot(aes(date, acum*1000)) +
+  geom_line(aes(color = exp, linetype = exp, group = interaction(bottom_top, exp))) +
+  # geom_label(data = ~.x[date %in% sample(unique(date), 38)] %>% group_by(exp, bottom_top) %>% sample_n(size = 1),
+   geom_label(data = ~.x[date %in% unique(date)[67]],
+             aes(label = bottom_top, color = exp, 
+                 group = interaction(bottom_top, exp)),
+             size = 3, fill = "white", show.legend = FALSE,
+             label.size = NA, label.padding = unit(0.1, "lines")) +
+  scale_date() +
+  scale_linetype_manual(values = c(2, 1), labels = c(E4 = "CONV", E5 = "AUT",
+                                     E6 = "SATWND", E7 = "RAD")) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  facet_wrap(~nivel, scales = "free_y") +
+  labs(x = NULL, y = "Accumulated specific humidity (g/Kg)",
+       color = NULL, linetype = NULL) +
+  theme_minimal()
+ 
+
+```
+
+
+```{r}
+files <- Sys.glob("~/datosmunin/EXP/E7/ANA/2018112*/diagfiles/asim*.ensmean")
 
 files <- files[str_detect(files, "conv", negate = TRUE)]
 
+rad <- read_diag_rad(files, "E7") %>% 
+  satinfo[., on = c("sensor", "channel")] %>% 
+  .[,  type :=  fifelse(sensor %in% multiespectrales, "multiespectral", "otro")] %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_")
 
-rad <- purrr::map(files, function(f) {
-  
-  rad <- read_diag_rad(f, "E7") %>% 
-    .[, run := basename(dirname(f))] %>% 
-    .[, wavenumber := 1/(299792458/(freq*10000000))] %>% 
-    # .[wavenumber %between% c(1367, 1422.25)] %>% 
-    satinfo[., on = c("sensor", "channel")]
-}) %>% rbindlist()
 
-rad %>% 
-  .[run == "diagfiles"] %>% 
-  .[errinv %between% c(0.0000316227, 1000) & 
+rad[errinv %between% c(0.0000316227, 1000) & 
       qc == 0 & 
       iuse == 1 &
-      peakwt %between% c(0.001, 1200)] %>% 
-  .[, date := factor(date)] %>% 
-  ggplot(aes(ConvertLongitude(lon), lat)) +
-  geom_point(aes(color = sensor, shape = sensor), size = 0.8) +
-  # scale_color_divergent(trans = mesoda::symlog_trans(),
-  #                       guide = guide_colourbar(barheight = 15, barwidth = 1)) +
-  scale_color_brewer(palette = "Dark2") +
-  geom_mapa() +
-  # facet_grid(run~date, labeller = labeller(run = c("diagfiles" = "OmB",
-  #                                                  "diagfiles_ana" = "OmA"))) +
-  labs(x = NULL, y = NULL, color = NULL, shape = NULL) +
-  theme_minimal() +
-  theme(legend.position = "bottom")
-  
-  
-  rad %>% 
-  .[sensor == "iasi_metop-b" & 
-      channel == 335 & 
-      errinv %between% c(0.0000316227, 1000) & 
+      peakwt %between% c(0.001, 1200), 
+    .(tbc_mean = mean(tbc),
+      tbcnob_mean = mean(tbcnob)), by = .(sensor, channel, date)] %>% 
+  .[, diff := abs(tbcnob_mean) - abs(tbc_mean)] %>% 
+  # .[, range(diff, na.rm = TRUE)]
+  melt(id.vars = c("sensor", "channel", "date")) %>% 
+  ggplot(aes(value)) +
+  geom_histogram(aes(fill = variable, y = stat(density)), binwidth = 0.1,
+                 alpha= 0.3, position = "identity") +
+  geom_density(aes(color = variable, y = stat(density))) +
+  # scale_fill_manual(values = c("darkorange", "purple", "cyan4")) +
+  scale_fill_viridis_d(labels = c("OmB bc", "OmB nobc", "Difference")) +
+  scale_color_viridis_d(labels = c("OmB bc", "OmB nobc", "Difference")) +
+  geom_vline(xintercept = 0, color = "grey40") +
+  coord_cartesian(xlim = c(-5, 5)) +
+  facet_wrap(~sensor) +
+  labs(fill = NULL, x = NULL, color = NULL) +
+  theme_minimal()
+
+rad[errinv %between% c(0.0000316227, 1000) & 
       qc == 0 & 
       iuse == 1 &
-      peakwt %between% c(0.001, 1200)] %>% 
-  dcast(lon + lat + date ~ run, value.var = c("tbc")) %>% 
-  .[, ":="(tbc = diagfiles - diagfiles_ana,
-           run = "AmB")] %>% 
-  .[, date := factor(date)] %>% 
-  ggplot(aes(ConvertLongitude(lon), lat)) +
-  geom_point(aes(color = tbc)) +
-  scale_color_divergent(guide = guide_colourbar(barheight = 15, barwidth = 1)) +
-  geom_mapa() +
-  labs(x = NULL, y = NULL, color = NULL) +
-  facet_grid(run~date) +
-  theme_minimal() +
-  plot_layout(ncol = 2, widths = c(0.4, 0.6))
+      peakwt %between% c(0.001, 1200), 
+    .(tbc_mean = mean(tbc),
+      tbcnob_mean = mean(tbcnob)), by = .(sensor, channel, date)] %>% 
+  .[, diff := abs(tbcnob_mean) - abs(tbc_mean)] %>% 
+  # .[, range(diff, na.rm = TRUE)]
+  melt(id.vars = c("sensor", "channel", "date")) %>% 
+  ggplot(aes(value)) +
+  geom_histogram(aes(fill = variable, y = stat(density)), binwidth = 0.1,
+                 alpha= 0.3, position = "identity") +
+  geom_density(aes(color = variable)) +
+  # scale_fill_manual(values = c("darkorange", "purple", "cyan4")) +
+  scale_color_viridis_d(labels = c("OmB BC", "OmB NoBC", "Difference")) +
+  scale_fill_viridis_d(labels = c("OmB BC", "OmB NoBC", "Difference")) +
+  geom_vline(xintercept = 0, color = "grey40") +
+  coord_cartesian(xlim = c(-5, 5)) +
+  # facet_wrap(~sensor) +
+  labs(fill = NULL, x = NULL, color = NULL) +
+  theme_minimal()
+
+
 ```
 
 
@@ -1172,6 +1217,39 @@ conv[type %in% c(181, 187) & exp %in% c("E5", "E7") & usage.flag == 1,
 
 ```
 
+```{r omb-q-evol, fig.cap="Evolution of the mean OmB for humidity throughout the periodod"}
+files <- c(Sys.glob("~/datosmunin/EXP/E5/ANA/*/diagfiles/asim_conv_201811*.mem*"),
+           Sys.glob("~/datosmunin/EXP/E7/ANA/*/diagfiles/asim_conv_201811*.mem*"))
+
+conv <- purrr::map(files, function(f) {  
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/ANA/{date}/diagfiles/asim_conv_{date_ana}.mem{mem}")
+  read_diag_conv(f, exp = meta[[1]][["exp"]], member = meta[[1]][["mem"]], variable = c("q")) %>% 
+    .[stationID %in% oficiales$stationID] %>% 
+    .[]
+}) %>% rbindlist() %>% 
+  fisica[., on = "mem"] %>% 
+  separate(fisica,  into = c("conv", "pbl"))
+
+conv[type %in% c(181, 187) & exp %in% c("E5", "E7") & usage.flag == 1, 
+     .(mean_omb = mean(obs.guess, na.rm = TRUE),
+       n = .N), 
+     by = .(date, exp, pbl, usage.flag)] %>% 
+  ggplot(aes(date, mean_omb)) +
+  geom_line(aes(color = exp, linetype = pbl)) +
+  geom_point(aes(color = exp, size = n/60)) +
+  scale_size_area(max_size = 2) +
+  scale_linetype_manual(values = c(2, 1, 4)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  # facet_wrap(~usage.flag, labeller = labeller(usage.flag = c("1" =  "assimilated",
+  #                                                            "-1" = "rejected"))) +
+  scale_date(20181120180000, 20181123120000) +
+  labs(y = "Mean of OmB (g/g)", x = NULL, linetype = NULL,
+       color = NULL, size = "number\n of obs") +
+  theme_minimal()
+```
+
 The negative difference between RAD and SATWND in low levels (\@ref(fig:Q-diff)) and positive values over those levels can be explain by a deeper boundary layer. To explore this posibility Figure \@ref(fig:pbl-18Z) shows the zonal mean high of the PBL over the subdomain estimated for the PBL parameterization for Nov 21st, 18Z. The mean is calculated over a big area with different hights than can altered the result but but still the hight of the boundary layer for RAD is greater than in the other experiments in many areas.
 
 
@@ -1323,7 +1401,7 @@ ppacum_1h %>%
 
 #### Reflectivity
 
-```{r}
+```{r dbz-mean}
 
 dates <- rep(c("20181122100000", "20181122220000"), 1, each = 4)
 files <- paste0(derived_data, "dbz/maxdbz_ana_", experiments, "_", dates, ".nc")
@@ -1354,12 +1432,61 @@ dbz %>%
   theme_minimal()
 ```
 
+```{r dbz-ens}
 
+files <- Sys.glob(paste0(derived_data, "dbz/maxdbz_ana_E[4-7]_0*"))
+files <- files[str_detect(files, "20181122000000", negate = TRUE)]
+
+dbz <- purrr::map(files, function(f){
+  
+  meta <- unglue(basename(f), "maxdbz_ana_{exp}_{mem}_{date}.nc")
+  ReadNetCDF(f, vars = c(lon = "XLONG", lat = "XLAT", "max_dbz")) %>% 
+    .[, ":="(exp = meta[[1]][["exp"]],
+             mem = meta[[1]][["mem"]],
+             date = ymd_hms(meta[[1]][["date"]]))] %>% 
+    .[, c("x", "y") := wrf_project(lon, lat)] 
+}) %>% 
+  rbindlist() %>% 
+  fisica[., on = "mem"] %>% 
+  separate(fisica, into = c("cumulus", "pbl"))
+
+
+dbz %>% 
+  .[, .(max_dbz = mean(max_dbz, na.rm = TRUE)), by = .(cumulus, exp, date, lon, lat, x, y)] %>% 
+  .[date == unique(date)[1]] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = max_dbz, fill = stat(level_d)), 
+                    proj = norargentina_lambert,
+                    breaks = seq(0, 60, 5),) +
+  scale_color_dbz(aesthetics = "fill", super = ScaleDiscretised, 
+                  guide = guide_colorsteps(barheight = 18)) +
+  geom_mapa() +
+  facet_grid(cumulus~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                   E6 = "SATWND", E7 = "RAD"))) +
+  labs(x = NULL, y = NULL, fill = NULL) +
+  theme_minimal() +
+  
+  dbz %>% 
+  .[, .(max_dbz = mean(max_dbz, na.rm = TRUE)), by = .(cumulus, exp, date, lon, lat, x, y)] %>% 
+  .[date == unique(date)[2]] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = max_dbz, fill = stat(level_d)), 
+                    proj = norargentina_lambert,
+                    breaks = seq(0, 60, 5),) +
+  scale_color_dbz(aesthetics = "fill", super = ScaleDiscretised, 
+                  guide = guide_colorsteps(barheight = 18)) +
+  geom_mapa() +
+  facet_grid(cumulus~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                   E6 = "SATWND", E7 = "RAD"))) +
+  labs(x = NULL, y = NULL, fill = NULL) +
+  theme_minimal() +
+  plot_layout(ncol = 1)
+```
 #### FSS for the analysis
 
 
 ```{r}
-files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_E[4-7]new.csv")
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E[4-7]new.csv")
 
 fss <- purrr::map(files, function(f) {
   
@@ -1474,7 +1601,7 @@ sondeos %>%
 sondeos %>% 
   .[variable == "td" & !str_detect(site, "/") & 
       exp == "E4"] %>%, 
-  ggplot(aes(launch_time, alt/1000)) +
+ggplot(aes(launch_time, alt/1000)) +
   geom_point(aes(color = value), size = 0.5) +
   scale_color_distiller(palette = "YlOrRd", direction = 1) +
   # geom_contour(aes(z = value - fcst_value)) +
