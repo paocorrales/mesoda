@@ -39,7 +39,7 @@ coord <- fread(here("analysis", "data", "derived_data", "coordenadas.csv"))
 
 
 geom_mapa <- function(fill = NA) {
-  list(geom_sf(data = map, fill = fill, color = "black", size = 0.2, inherit.aes = FALSE),
+  list(geom_sf(data = map, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
        coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)))
 }
 
@@ -94,6 +94,10 @@ fisica <- data.table(mem = as.character(formatC(1:60, flag = "0", width = 3)),
                                     "BMJ-MYNN2",
                                     "GF-MYNN2"), length.out = 60)) %>% setDT()
 
+multiespectrales <- c("airs_aqua",
+              "iasi_metop-a",
+              "iasi_metop-b")
+
 experiments <- c("E4", "E5", "E6", "E7")
 #Color blind friendly but E4 y E7 parecidos en Desaturated
 colores_exp <- c(E4 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311") 
@@ -123,7 +127,7 @@ To run the simulations the WRF-ARW (V3.9) model with 10 km horizontal resolution
 The LETKF versión of the GSI system was choosen for the assimilation. A 60 member ensemble is initialized using random perturbations and a multi-physics squeme using 9 combinations of 3 Cumulus (Kain–Fritsch, Grell–Freitas, Betts–Miller–Janjic) and 3 PBL (Yonsei University Scheme, Mellor–Yamada–Janjic Scheme, Mellor–Yamada Nakanishi Niino) parameterizations as shown in Table \@ref(tab:fisicas).
 
 ```{r fisicas}
-fisica[, .(mem = paste(ens, collapse = ", ")), by = .(fisica)] %>% 
+fisica[, .(mem = paste(mem, collapse = ", ")), by = .(fisica)] %>% 
   kbl(col.names = c("Parameterizations", "# Member"),
       caption = "Posible Cumulus and PBL combinations and the members in each group.") %>% 
   kable_classic_2(full_width = F)
@@ -195,7 +199,7 @@ tribble(
   kable_classic_2(full_width = F)
 ```
 
-```{r mapa-obs, fig.cap="Localization of meteorological stations and ships for official prep-BUFR (orange dots) and automatic statios (green dots)."}
+```{r mapa-obs, fig.cap="Localization of meteorological stations and ships for official prep-BUFR (orange dots) and automatic statios (green dots).", fig.height=4, fig.width=8}
 obsAUT <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_20181121120000.ensmean"), 
                 na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
   .[, c("V2", "V4") := NULL] %>% 
@@ -253,7 +257,8 @@ rbindlist(list(no_oficiales, oficiales)) %>%
   scale_y_continuous(expand = c(0, 0)) +
   labs(x = NULL, y = NULL) +
   theme_minimal() + 
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom", legend.justification = "left",
+         legend.key.size = unit(0.8, "lines")) +
   
   plot_spacer() +
   
@@ -272,13 +277,15 @@ rbindlist(list(no_oficiales, oficiales)) %>%
   scale_y_continuous(expand = c(0, 0)) +
   labs(x = NULL, y = NULL, color = NULL, shape = NULL, size = NULL) +
   theme_minimal() +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom", legend.justification = "left",
+        legend.key.size = unit(0.8, "lines")) +
   
-  plot_layout(ncol = 3, widths = c(0.47, 0.06, 0.47))
+  plot_layout(ncol = 3, widths = c(0.49, 0.02, 0.49))
 ```
 
 Figure with all type of observations (radiosonde, convencional, automatic station, aircraft, ships/buoys, satwind)
 Figure with number of observation throughout the cycles for each type including riadiances.
+
 
 
 ```{r rad, fig.cap="Radiances for each 50 hPa pressure layer over time", fig.scap=c("OmB", "Number of observations")}
@@ -288,9 +295,8 @@ files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/*/diagfiles/asim*e
 files <- files[!str_detect(files, "conv")]
 
 
-rad <- read_diag_rad(files, "E7") 
-
-rad <- satinfo[rad, on = c("sensor", "channel")]
+rad <- read_diag_rad(files, "E7") %>% 
+  satinfo[., on = c("sensor", "channel")]
 
 rad %>% 
   .[qc == 0 & iuse == 1] %>% 
@@ -326,6 +332,47 @@ rad %>%
   theme_minimal()
 
 ```
+
+```{r level-rad, fig.cap="Nivel de presión asociado a las observaciones en cada ciclo de asimilación"}
+rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[sensor %in% c("airs", "iasi") &
+      # errinv %between% c(0.0000316227, 1000) & 
+      # qc == 0 & 
+      # iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
+  .[, as.list(quantile(peakwt, c(0.05, 0.5, 0.95))) %>% setNames(c("Q5", "Q50", "Q95")), by = .(sensor, channel)] %>% 
+  ggplot(aes(channel, Q50)) +
+   # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+   #             outlier.size = 0.5, size = 0.1) +
+  geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4, fill = "darkorange") +
+  geom_line(color = "darkorange") +
+  scale_y_level(name = "Pressure (hPa)") +
+  facet_wrap(~sensor, scales = "free", labeller = labeller(sensor = toupper)) +
+  labs(x = "", y = "") +
+  theme_minimal() +
+  
+rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[!sensor %in% c("airs", "iasi") &
+      # errinv %between% c(0.0000316227, 1000) & 
+      # qc == 0 & 
+      # iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
+  .[, as.list(quantile(peakwt, c(0.05, 0.5, 0.95))) %>% setNames(c("Q5", "Q50", "Q95")), by = .(sensor, channel)] %>% 
+  ggplot(aes(channel, Q50)) +
+   # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+   #             outlier.size = 0.5, size = 0.1) +
+  geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4, fill = "darkorange") +
+  geom_line(color = "darkorange") +
+  scale_y_level(name = "Pressure (hPa)") +
+  facet_wrap(~sensor, scales = "free", labeller = labeller(sensor = toupper)) +
+  labs(y = "", x = "Channel index") +
+  theme_minimal() +
+  plot_layout(ncol = 1)
+```
+
+
 ```{r rad-wv}
 files <- c(Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121020000/diagfiles*/asim_iasi*ensmean"), Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121140000/diagfiles*/asim_iasi_metop-b*ensmean"))
 
@@ -469,6 +516,10 @@ rad[errinv %between% c(0.0000316227, 1000) &
   theme_minimal()
 
 
+```
+
+```{r}
+rm(rad)
 ```
 
 
@@ -626,7 +677,7 @@ perfiles %>%
 
 AUT-CONV present a negative difference in low levels with a clear diurnal cycle (Figure \@ref(fig:T-diff)). This negative difference indicate that AUT is warmer than CONV. It also shows significant differences in the upper levels of the troposphere during the hours of maximun convection. The temperature profiles of AUT y SATWND are very similar. The difference bewteen the two experiments is smaller than +-0.1 until Nov, 22th 00Z when the convection starts to develope on the domain. The differences between RAD y SATWIND (and AUT) are smaller important in low levels at the begining of the experiment and in upper levels at the end indicating that the satellite observations have impact in several levels. 
 
-```{r T-mse, fig.cap="MSE Temperature between analysis and guess in Kelvin^2."}
+```{r T-mse, eval=FALSE, fig.cap="MSE", include=FALSE}
 
 files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/perfiles_mse*")
 
@@ -698,7 +749,7 @@ perfiles %>%
 Comparing the specific humidity (Figure \@ref(fig:Q-diff)) once again the difference between AUT and CONV is important in low levels showing the impact of assimilating the observations from automatic stations with larger spacial and temporal resolution. Between SATWND and AUT the differences are smaller and only important after Nov, 21st 18Z. The addition of satellite derived winds produce and increse of humidity around 750 hPa during Nov 21st (0.05 to 0.10 g/kg) and a decrese of humidity between surface and 750 hPa starting at 00Z Nov 22th until the end of the experiment.  
 
 The differences between RAD and SATWND and therefore the impact of the radiances have opposite sign to the impact of the observations from automatic stations but with smaller magnituded in low levels. A positive difference can also be observed between 850 and 600 hPa. 
-```{r Q-mse, fig.cap="MSE Specific humidity between analysis and guess in g/Kg^2."}
+```{r Q-mse, eval=FALSE, fig.cap="MSE", include=FALSE}
 
 perfiles_mse %>% 
   .[variable == "QVAPOR"] %>% 
@@ -806,7 +857,7 @@ Specific humidity field averaged over the first 7 levels of the model, from surf
 * RAD shows less humidity that AUT and SATWND but more than CONV. RAD seems to reverse (in part) the effect of incorporating automatic station observations in low levels. This can also be seeing in the first levels the difference between RAD and SATWND. 
 
 
-```{r q-low, warning=FALSE, fig.align="center", message=FALSE}
+```{r q-low, eval=FALSE, fig.align="center", message=FALSE, warning=FALSE, include=FALSE}
 fcsts <- expand_grid(fcsts = c("20181121180000", "20181122000000", "20181122060000"),
                      exp = c("E4", "E5", "E6", "E7"))
 
@@ -858,7 +909,7 @@ q[bottom_top %between% c(0, 7), .(q = mean(q), u = u[bottom_top == 1], v = v[bot
 
 
 
-```{r q-middle}
+```{r q-middle, eval=FALSE, include=FALSE}
 
 q[bottom_top %between% c(8, 12), .(q = mean(q), u = u[bottom_top == 1], v = v[bottom_top == 1]), 
   by = .(south_north, west_east, date, exp)] %>% 
@@ -894,7 +945,7 @@ q[bottom_top %between% c(8, 12), .(q = mean(q), u = u[bottom_top == 1], v = v[bo
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 ```
-```{r v-low}
+```{r v-low, eval=FALSE, include=FALSE}
 q[bottom_top %between% c(0, 7), .(v = mean(v)), 
   by = .(south_north, west_east, date, exp)] %>% 
   .[coord, on = c("south_north", "west_east")] %>% 
@@ -927,7 +978,8 @@ q[bottom_top %between% c(0, 7), .(v = mean(v)),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 ```
-```{r v-middle}
+
+```{r v-middle, eval=FALSE, include=FALSE}
 q[bottom_top %between% c(8, 12), .(v = mean(v)), 
   by = .(south_north, west_east, date, exp)] %>% 
   .[coord, on = c("south_north", "west_east")] %>% 
@@ -961,37 +1013,9 @@ q[bottom_top %between% c(8, 12), .(v = mean(v)),
         panel.grid = element_line(linetype = 3))
 ```
 
-```{r}
-q[date == unique(date)[1:3] & west_east %between% c(70, 180)] %>% 
-  .[, .(q_mean = mean(q),
-        v_mean = mean(v)), by = .(bottom_top, south_north, date, exp)] %>% 
-  .[, date := factor(date)] %>% 
-  ggplot(aes(south_north, bottom_top)) +
-  geom_contour_fill(aes(z = q_mean*1000, fill = stat(level_d))) +
-  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
-                       palette = "BrBG", direction = 1,
-                       # limits = c(1, 19),
-                       guide = guide_colorsteps(barwidth = 25,
-                                                barheight = 0.8)) +
-  geom_contour(aes(z = v_mean, linetype = factor(-sign(..level..))), 
-               color = "grey30", size = 0.3, binwidth = 2) +
-  geom_text_contour(aes(z = v_mean), color = "grey30", size = 4, stroke = 0.1, breaks = seq(-10, 6, 2)) +
-  scale_linetype(guide = NULL) +
-  # geom_vector(aes(x = south_north, y = bottom_top,
-  #                 mag = abs(v_mean), angle = fifelse(v_mean > 0, 0, 180)),
-  #             arrow.angle = 6, size = 0.2, skip.x = 10) +
-  # scale_mag() +
-  facet_grid(date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
-                                                     E6 = "SATWND", E7 = "RAD"))) +
-  labs(y =  "Sigma levels", x = "Grid points") +
-  theme_minimal() +
-  theme(legend.position = "bottom",
-        panel.ontop = TRUE,
-        panel.grid = element_line(linetype = 3))
-```
 
 
-```{r temp}
+```{r temp, eval=FALSE, include=FALSE}
 fcsts <- expand_grid(fcsts = c("20181121180000", "20181122000000", "20181122060000"),
                      exp = c("E4", "E5", "E6", "E7"))
 
@@ -1037,7 +1061,7 @@ t[date == unique(date)[1:3] & west_east %between% c(70, 180)] %>%
 
 ```
 
-```{r mucape}
+```{r mucape, eval=FALSE, include=FALSE}
 files <- Sys.glob(paste0(derived_data, "mucape/*")) 
 
 files <- files[!str_detect(files, c("E3"))]
@@ -1089,7 +1113,198 @@ mucape %>%
 
 ```
 
+```{r summary, fig.height=12, fig.width=10}
+files <- Sys.glob(paste0(derived_data, "pw/*")) 
+files <- files[!str_detect(files, c("E3"))]
 
+dates <- c("20181122000000")
+
+
+pw <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "pw_ana_{exp}_{date}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "pw", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      .[]
+  }
+}) %>% 
+  rbindlist() %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)]
+
+files <- Sys.glob(paste0(derived_data, "mucape/*")) 
+files <- files[!str_detect(files, c("E3"))]
+
+mucape <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "mcape_ana_{exp}_{date}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "cape_2d", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      setnames(old = "mcape_mcin_lcl_lfc", new = "variable") %>% 
+      .[]
+  }
+}) %>% 
+  rbindlist() 
+
+fcsts <- expand_grid(fcsts = c("20181122000000"),
+                     exp = c("E4", "E5", "E6", "E7"))
+
+ana <- lapply(seq_len(nrow(fcsts)), function(f) {
+
+  tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
+    .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
+    .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>% 
+    .[, theta := ReadNetCDF(paste0(derived_data, "/theta_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(th = "theta"), out = "vector")] %>%
+    .[, date :=  ymd_hms(fcsts[f, 1])] %>% 
+    .[, exp := fcsts[f, 2]] %>%  
+    .[]
+}) %>% 
+  rbindlist() 
+
+cor <- ana[bottom_top %in% c(2, 10)] %>% 
+  dcast(date + exp + south_north + west_east ~ bottom_top, value.var = c("u", "v")) %>% 
+  .[, cortante := Mag(u_10 - u_2, v_10 - v_2)] %>% 
+  .[, ":="(u_2 = NULL, 
+           u_10 = NULL,
+           v_2 = NULL,
+           v_10 = NULL)]
+
+ana[bottom_top %between% c(1, 10), .(v_mean = mean(v)), 
+  by = .(south_north, west_east, date, exp)] %>% 
+  .[pw, on = .NATURAL] %>% 
+ggplot(aes(x, y)) +
+ # geom_point(aes(color = v_mean)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)),
+                    proj = norargentina_lambert, alpha = 0.7) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "YlGn", direction = 1,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  geom_contour2(aes(z = v_mean, linetype = factor(-sign(v_mean))),
+                proj = norargentina_lambert, color = "darkorange", 
+                breaks = c(-10, -5, -2, 0, 2, 5, 10)) +
+   geom_text_contour(aes(z = v_mean), size = 4, stroke = 0.05,
+                     proj = norargentina_lambert, color = "darkorange", 
+                breaks = c(-10, -5, -2, 0, 2, 5, 10),
+                label.placement = label_placement_n(1)) +
+  scale_linetype(guide = NULL) +
+  cordillera +
+  geom_mapa() +
+  facet_grid(. ~ exp, 
+             labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E7 = "RAD"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) +
+
+
+ana[bottom_top %between% c(2, 10), .(theta_mean = mean(theta)), 
+  by = .(south_north, west_east, date, exp)] %>% 
+   .[pw, on = .NATURAL] %>% 
+ggplot(aes(x, y)) +
+ # geom_point(aes(color = v_mean)) +
+  geom_contour_fill(aes(z = theta_mean, fill = stat(level_d)),
+                    proj = norargentina_lambert, alpha = 0.7,
+                    breaks = c(-Inf, seq(290, 314, 2), Inf), limits = c(-Inf, Inf)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "RdYlBu", direction = -1,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  cordillera +
+  geom_mapa() +
+  facet_grid(. ~ exp, 
+             labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E7 = "RAD"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3),
+        strip.text = element_blank(), 
+        strip.background = element_blank()) +
+
+
+mucape %>% 
+  .[variable == "mcape"] %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  .[cor, on = .NATURAL] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)), 
+                    proj = norargentina_lambert, limits = c(500, 6000)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "YlOrRd", direction = 1,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  # geom_contour2(aes(z = cortante),
+  #               proj = norargentina_lambert, color = "black", size = 0.4,
+  #               breaks = c(10, 25)) +
+  geom_point(data = ~.x[cortante >= 10 & is.cross(x, y, skip = 1)], 
+             aes(x = lon, y = lat, 
+                 alpha = factor(cut_round(cortante, breaks = c(5, 15, 40)))),
+             size = 0.00002, shape = 20) +
+  scale_alpha_manual(values = c(0.3, 0.7), guide = NULL) +
+  cordillera +
+  geom_mapa() +
+  facet_grid(. ~ exp, 
+             labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E7 = "RAD"))) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  labs(x = NULL,
+       y = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3),
+        strip.text = element_blank(), 
+        strip.background = element_blank()) +
+  
+    plot_layout(ncol = 1, heights = c(1, 1, 1)) 
+```
+
+
+```{r}
+coord <- mucape[variable == "mcape", c("south_north", "lat")] %>% 
+  .[, .(lat = mean(lat)), by = south_north]
+
+ana[west_east %between% c(70, 180)] %>% 
+  .[, .(q_mean = mean(q),
+        v_mean = mean(v)), by = .(bottom_top, south_north, date, exp)] %>% 
+  coord[., on = "south_north"] %>% 
+  ggplot(aes(lat, bottom_top)) +
+  geom_contour_fill(aes(z = q_mean*1000, fill = stat(level_d))) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "BrBG", direction = 1,
+                       # limits = c(1, 19),
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  geom_contour2(aes(z = v_mean, linetype = factor(-sign(..level..))), 
+               color = "grey30", size = 0.3, binwidth = 2) +
+  geom_text_contour(aes(z = v_mean), color = "grey30", 
+                    size = 3, stroke = 0.05, breaks = seq(-10, 6, 2)) +
+  scale_linetype(guide = NULL) +
+  scale_x_latitude(breaks = seq(-40, -20, 5)) +
+  facet_wrap( ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                     E6 = "SATWND", E7 = "RAD"))) +
+  labs(y =  "Sigma levels", x = "Grid points") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+```
 
 Is the analysis correcting a dry bias on the model or the humidity is being transported into the domain?
 
@@ -1163,7 +1378,7 @@ This result is indicating that the model has an important dry bias and the assim
 
 TODO: it's the same for all PBL parameterizations? 
 
-```{r omb-q-evol, fig.cap="Evolution of the mean OmB for humidity throughout the periodod"}
+```{r omb-q-evol, eval=FALSE, fig.cap="Evolution", include=FALSE}
 files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E[4-7]/ANA/*/diagfiles/asim_conv_201811*.ensmean")
 
 conv <- purrr::map(files, function(f) {  
@@ -1192,6 +1407,8 @@ conv[type %in% c(181, 187) & exp %in% c("E5", "E7") & usage.flag == 1,
        color = NULL, size = "number\n of obs") +
   theme_minimal()
 
+rm(conv)
+
 # conv[usage.flag == 1 & type %in% c(181, 187) & exp %in% experiments] %>% 
 #   ggplot(aes(date, obs.guess)) +
 #   geom_point(aes(color = exp, group = date), alpha = 0.1) +
@@ -1217,7 +1434,7 @@ conv[type %in% c(181, 187) & exp %in% c("E5", "E7") & usage.flag == 1,
 
 ```
 
-```{r omb-q-evol, fig.cap="Evolution of the mean OmB for humidity throughout the periodod"}
+```{r omb-q-evol-param, eval=FALSE, fig.cap="Evolution", include=FALSE}
 files <- c(Sys.glob("~/datosmunin/EXP/E5/ANA/*/diagfiles/asim_conv_201811*.mem*"),
            Sys.glob("~/datosmunin/EXP/E7/ANA/*/diagfiles/asim_conv_201811*.mem*"))
 
@@ -1248,12 +1465,14 @@ conv[type %in% c(181, 187) & exp %in% c("E5", "E7") & usage.flag == 1,
   labs(y = "Mean of OmB (g/g)", x = NULL, linetype = NULL,
        color = NULL, size = "number\n of obs") +
   theme_minimal()
+
+rm(conv)
 ```
 
 The negative difference between RAD and SATWND in low levels (\@ref(fig:Q-diff)) and positive values over those levels can be explain by a deeper boundary layer. To explore this posibility Figure \@ref(fig:pbl-18Z) shows the zonal mean high of the PBL over the subdomain estimated for the PBL parameterization for Nov 21st, 18Z. The mean is calculated over a big area with different hights than can altered the result but but still the hight of the boundary layer for RAD is greater than in the other experiments in many areas.
 
 
-```{r pbl-18Z, fig.cap="Zonal mean high of the PBL over the subdomain estimated for the PBL parameterization for Nov 21st, 18Z"}
+```{r pbl-18Z, eval=FALSE, fig.cap="Zonal mean high of the PBL over the subdomain estimated for the PBL parameterization for Nov 21st", include=FALSE}
 pblh18 <- purrr::map(exp, function(f) {
   
   ReadNetCDF(paste0("/home/paola.corrales/datosmunin/EXP/", f, "/ANA/20181121180000/analysis.ensmean"), 
@@ -1284,7 +1503,7 @@ The deeper PBL in RAD can explain the transport of humidity to higher levels. Th
 
 TODO: Are there RAD observations on those levels to explain the humidity besides the transport from low levels? 
 
-```{r pblh, fig.cap=""}
+```{r pblh, eval=FALSE, fig.cap="", include=FALSE}
 files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E[4-7]/ANA/*/analysis.ensmean")
 
 pblh <- purrr::map(files, function(f) {
@@ -1327,35 +1546,43 @@ files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/*ana*
 
 ppacum_1h <- purrr::map(files, function(f) {
   
-  readRDS(f)
+  readRDS(f) %>% 
+    .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)]
   
 }) %>% rbindlist() %>% 
-  .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)]
+  .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] 
 
 
 readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %>% 
+  .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
   .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] %>% 
   .[end_date %between% c(as_datetime("20181120190000"), as_datetime("20181123120000"))] %>% 
-  .[, .(pp_acum = mean(pp_acum)), by = .(end_date, y)] %>% 
-  ggplot(aes(end_date, y/100000)) +
-  geom_contour(aes(z = pp_acum, color = ..level..), 
-               breaks = seq(0, 12, 0.5)) +
-  scale_color_viridis_c(guide = NULL, breaks = seq(0, 12, 0.5)) +
+  .[, .(pp_acum = mean(pp_acum),
+        lat = mean(lat)), by = .(end_date, y)] %>% 
+  ggplot(aes(end_date, lat)) +
+  geom_contour2(aes(z = pp_acum, color = ..level..), 
+               breaks = seq(1, 15, 1)) +
+  scale_color_viridis_c(guide = NULL, breaks = seq(1, 14, 1), limits = c(1, 15)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  scale_y_latitude(breaks = seq(-40, -20, 5)) +
   labs(x = NULL, y = NULL, color = "PP acum", 
        subtitle = "IMERG") +
   theme_minimal() +
   theme(legend.position = "bottom") +
   
   ppacum_1h %>% 
-  .[, .(pp_acum = mean(pp_acum)), by = .(exp, date, y)] %>% 
-  ggplot(aes(date, y/100000)) +
-  geom_contour(aes(z = pp_acum, color = ..level..), 
-               breaks = seq(0, 12, 0.5)) +
-  scale_color_viridis_c(breaks = seq(0, 12, 1), limits = c(0, 12),
-                        guide = guide_colorstrip(barwidth = 25,
+  .[, lat := lat[1], by = .(y)] %>% 
+  .[, .(pp_acum = mean(pp_acum)), by = .(exp, date, y, lat)] %>% 
+  ggplot(aes(date, lat)) +
+  # geom_raster(aes(fill = pp_acum)) +
+  geom_contour2(aes(z = pp_acum, color = ..level..),
+               breaks = seq(1, 15, 1)) +
+  scale_color_viridis_c(breaks = seq(1, 15, 1), limits = c(1, 15),
+                        guide = guide_colorstrip(inside = TRUE,
+                                                 barwidth = 25,
                                                  barheight = 1)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  scale_y_latitude(breaks = seq(-40, -20, 5)) +
   facet_wrap(~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                                 E6 = "SATWND", E7 = "RAD"))) +
   labs(x = NULL, y = NULL, color = NULL) +
@@ -1365,7 +1592,7 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   plot_layout(ncol = 2, widths = c(0.4, 0.6), guides = "collect") & theme(legend.position = 'bottom')
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/*ana*prop*")
 
 ppacum_1h <- purrr::map(files, function(f) {
@@ -1459,12 +1686,13 @@ dbz %>%
                     proj = norargentina_lambert,
                     breaks = seq(0, 60, 5),) +
   scale_color_dbz(aesthetics = "fill", super = ScaleDiscretised, 
-                  guide = guide_colorsteps(barheight = 18)) +
+                  guide = guide_colorsteps(barheight = 18, 
+                                           barwidth = 1)) +
   geom_mapa() +
   facet_grid(cumulus~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                                    E6 = "SATWND", E7 = "RAD"))) +
   labs(x = NULL, y = NULL, fill = NULL) +
-  theme_minimal() +
+  theme_minimal() 
   
   dbz %>% 
   .[, .(max_dbz = mean(max_dbz, na.rm = TRUE)), by = .(cumulus, exp, date, lon, lat, x, y)] %>% 
@@ -1474,13 +1702,14 @@ dbz %>%
                     proj = norargentina_lambert,
                     breaks = seq(0, 60, 5),) +
   scale_color_dbz(aesthetics = "fill", super = ScaleDiscretised, 
-                  guide = guide_colorsteps(barheight = 18)) +
+                  guide = guide_colorsteps(barheight = 18, barwidth = 1)) +
   geom_mapa() +
   facet_grid(cumulus~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                                    E6 = "SATWND", E7 = "RAD"))) +
   labs(x = NULL, y = NULL, fill = NULL) +
-  theme_minimal() +
-  plot_layout(ncol = 1)
+  theme_minimal() 
+  
+  rm(dbz)
 ```
 #### FSS for the analysis
 
@@ -1600,7 +1829,7 @@ sondeos %>%
 ```{r}
 sondeos %>% 
   .[variable == "td" & !str_detect(site, "/") & 
-      exp == "E4"] %>%, 
+      exp == "E4"] %>%
 ggplot(aes(launch_time, alt/1000)) +
   geom_point(aes(color = value), size = 0.5) +
   scale_color_distiller(palette = "YlOrRd", direction = 1) +
