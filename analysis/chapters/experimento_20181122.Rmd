@@ -30,8 +30,9 @@ library(unglue)
 library(knitr)
 library(kableExtra)
 
-map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
-
+map_arg <- rnaturalearth::ne_states(country = c("argentina"), 
+                                      returnclass = "sf")
+map_limitrofes <- rnaturalearth::ne_countries(country = c("Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
 
 square <- fread(here("analysis", "data", "derived_data", "dominio_square.csv"))
 square2 <- fread(here("analysis", "data", "derived_data", "dominio_square2.csv"))
@@ -39,7 +40,8 @@ coord <- fread(here("analysis", "data", "derived_data", "coordenadas.csv"))
 
 
 geom_mapa <- function(fill = NA) {
-  list(geom_sf(data = map, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+  list(geom_sf(data = map_arg, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       geom_sf(data = map_limitrofes, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
        coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)))
 }
 
@@ -222,13 +224,13 @@ oficiales <- obsCONV[type %in% c(181, 281)] %>% unique(by = c("stationID")) %>%
   .[, source := "Sfc - Official"]
 
 sondeos <- obsCONV[type == 120] %>% unique(by = c("stationID")) %>% 
-  .[, source := "Radiosonde"]
+  .[, source := "ADPUPA"]
 
 ascat <- obsCONV[type == 290] %>% unique(by = c("stationID")) %>% 
-  .[, source := "ASCAT"]
+  .[, source := "ASCATW"]
 
 aircraf <- obsCONV[type %in% c(130, 131, 133)] %>%# unique(by = c("stationID")) %>% 
-  .[, source := "AIRCRFT"]
+  .[, source := "AIRCFT /\nAIRCAR"]
 
 satwnd <- obsSATW[type %between% c(240, 260)] %>%# unique(by = c("stationID")) %>% 
   .[, source := "SATWND"]
@@ -246,11 +248,14 @@ rbindlist(list(no_oficiales, oficiales)) %>%
   ggplot(aes(ConvertLongitude(lon), lat)) +
   geom_mapa() +
   geom_point(alpha = 0.8, size = 1,
-             aes(color = source)) +
-  scale_color_manual(name =  NULL, values = c("Sfc - Non-official" = "#00695c", 
+             aes(color = source, shape = source)) +
+  scale_shape_manual(name = "Surface\nstations",  breaks = c("Sfc - Non-official", "Sfc - Official"),
+                     labels = c("ASWS","CSWS"), values = c(15, 17),
+                     guide = guide_legend(override.aes = list(size = 2))) +
+  scale_color_manual(name =  "Surface\nstations", values = c("Sfc - Non-official" = "#00695c", 
                                               "Sfc - Official" = "#FD8002"),
                      breaks = c("Sfc - Non-official", "Sfc - Official"),
-                     labels = c("Non-official (N = 820)","Official (N = 327)"),
+                     labels = c("ASWS","CSWS"),
                      guide = guide_legend(override.aes = list(size = 2)))+
   geom_point(data = square, aes(lon, lat), size = 0.2) +
   scale_x_continuous(expand = c(0, 0)) +
@@ -269,7 +274,7 @@ rbindlist(list(no_oficiales, oficiales)) %>%
              aes(color = source, shape = source, size = source)) +
   scale_color_manual(values = c("darkorange", "purple", "cyan4", "grey70"),
                      guide = guide_legend(override.aes = list(size = 2))) +
-  scale_size_manual(values = c(0.7, 0.5, 1.5, 0.1)) +
+  scale_size_manual(values = c(1.5, 0.7, 0.5, 0.1)) +
   # scale_color_brewer(palette = "Dark2") +
   # khroma::scale_color_vibrant() +
   geom_point(data = square, aes(lon, lat), size = 0.2) +
@@ -280,7 +285,8 @@ rbindlist(list(no_oficiales, oficiales)) %>%
   theme(legend.position = "bottom", legend.justification = "left",
         legend.key.size = unit(0.8, "lines")) +
   
-  plot_layout(ncol = 3, widths = c(0.49, 0.02, 0.49))
+  plot_layout(ncol = 3, widths = c(0.49, 0.02, 0.49)) +
+  plot_annotation(tag_levels = "a", tag_suffix = ")")
 ```
 
 Figure with all type of observations (radiosonde, convencional, automatic station, aircraft, ships/buoys, satwind)
@@ -323,12 +329,11 @@ rad %>%
   .[lev != 1025] %>% 
   ggplot(aes(date, fct_rev(lev))) +
   geom_tile(aes(fill = n)) +
-  scale_fill_viridis_c(trans = scales::log10_trans(),
+  scale_fill_viridis_c(trans = scales::log10_trans(), breaks = c(1, 10, 100, 1000, 10000),
                        guide = guide_colourbar(barheight = 18)) +
   
   scale_date() +
-  labs(x = NULL, fill = NULL, y = "pressure (hPa)",
-       caption = "Number of observations") +
+  labs(x = NULL, fill = NULL, y = "pressure (hPa)") +
   theme_minimal()
 
 ```
