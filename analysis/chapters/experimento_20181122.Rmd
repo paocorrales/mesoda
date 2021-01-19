@@ -255,14 +255,11 @@ rbindlist(list(no_oficiales, oficiales)) %>%
                      labels = c("ASWS","CSWS"),
                      guide = guide_legend(override.aes = list(size = 2)))+
   geom_point(data = square, aes(lon, lat), size = 0.2) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  labs(x = NULL, y = NULL) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.justification = "left",
          legend.key.size = unit(0.8, "lines")) +
   
-  plot_spacer() +
+  # plot_spacer() +
   
   rbindlist(list(ascat, sondeos, aircraf, satwnd)) %>% 
   ggplot(aes(ConvertLongitude(lon), lat)) +
@@ -275,14 +272,12 @@ rbindlist(list(no_oficiales, oficiales)) %>%
   # scale_color_brewer(palette = "Dark2") +
   # khroma::scale_color_vibrant() +
   geom_point(data = square, aes(lon, lat), size = 0.2) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  labs(x = NULL, y = NULL, color = NULL, shape = NULL, size = NULL) +
+  labs(color = NULL, shape = NULL, size = NULL) +
   theme_minimal() +
   theme(legend.position = "bottom", legend.justification = "left",
         legend.key.size = unit(0.8, "lines")) +
   
-  plot_layout(ncol = 3, widths = c(0.49, 0.02, 0.49)) +
+  plot_layout(ncol = 3, widths = c(1, 1)) +
   plot_annotation(tag_levels = "a", tag_suffix = ")")
 ```
 
@@ -327,7 +322,8 @@ rad %>%
   ggplot(aes(date, fct_rev(lev))) +
   geom_tile(aes(fill = n)) +
   scale_fill_viridis_c(trans = scales::log10_trans(), breaks = c(1, 10, 100, 1000, 10000),
-                       guide = guide_colourbar(barheight = 18)) +
+                       guide = guide_colourbar(barheight = 18,
+                                               barwidth = 0.8)) +
   
   scale_date() +
   labs(x = NULL, fill = NULL, y = "pressure (hPa)") +
@@ -550,9 +546,7 @@ fread(here("analysis", "data", "derived_data", "uvt_rcrv_box.csv")) %>%
                                               "290" = "ASCATW"),
                                  var = c("u" = "U wind",
                                          "v" = "V wind" ))) +
-  labs(x = "",
-       y = "",
-       fill = "") +
+  labs(fill = "") +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -574,9 +568,7 @@ fread(here("analysis", "data", "derived_data", "uvt_rcrv_box.csv")) %>%
                                                             "181" = "ADPSFC",
                                                             "187" = "ADPSFC\n no pressure"),
                                                var = c("t" = "Temperature"))) +
-  labs(x = "",
-       y = "",
-       fill = "") +
+  labs(fill = "") +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -592,7 +584,7 @@ obs.type[fread(here("analysis", "data", "derived_data", "rcrv_uvt_perfil.csv")),
   geom_line(aes(color = factor(code), linetype = variable)) +
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("Mean RCRV", "SD RCRV")) +
-  scale_x_level() +
+  scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
   coord_flip() +
   facet_wrap(~ var, labeller = labeller(var = c("t" = "Temperature",
                                                 "u" = "U wind",
@@ -619,10 +611,11 @@ RCRV %>%
   ggplot(aes(level, value)) +
   geom_hline(yintercept = c(0, 1), color = "grey20") +
   geom_line(aes(color = sensor, linetype = variable)) +
+  scale_color_discrete(labels = toupper) +
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("Mean RCRV", "SD RCRV")) +
   coord_flip() +
-  scale_x_level() +
+  scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
   labs(x = NULL, y = NULL,
        color = NULL, linetype = NULL) +
   theme_minimal()
@@ -664,9 +657,10 @@ perfiles %>%
                                                             barheight = 0.8)) +
   labs(subtitle = "Temperature difference (K)",
        x = NULL,
-       y = "Pressure level") +
-  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
-  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+       y = NULL) +
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  # scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
                                                          "E7_E6" = "RAD - SATWND"))) +
@@ -734,10 +728,10 @@ perfiles %>%
                                    guide = guide_colorsteps(barwidth = 25,
                                                             barheight = 0.8)) +
   
-  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
-  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
   labs(subtitle = "Specific humidity difference (g/Kg)",
-       y = "Pressure level",
+       y = NULL,
        x = NULL) +
   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
@@ -789,15 +783,16 @@ perfiles %>%
                                                             barheight = 0.8)) +
   geom_contour2(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 = E7)] %>% 
                   melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
-                breaks = seq(0, 30, 3), size = 0.3, linetype = 1, color = "grey30") +
+                breaks = seq(0, 30, 3), size = 0.2, linetype = 1, color = "grey30") +
   geom_text_contour(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 =E7)] %>% 
                       melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
-                    breaks = seq(0, 30, 3), color = "grey30", skip = 1, stroke = 0.2) +
+                    breaks = seq(0, 30, 3), color = "grey30", skip = 1, 
+                    size = 4, stroke = 0.1) +
   labs(subtitle = "U difference (m/s)",
        x = NULL,
-       y = "Pressure level") +
-  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
-  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+       y = NULL) +
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
                                                          "E7_E6" = "RAD - SATWND"))) +
@@ -826,15 +821,16 @@ perfiles %>%
                                                             barheight = 0.8)) +
   geom_contour2(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 = E7)] %>% 
                   melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
-                breaks = seq(-7, 0, 1), size = 0.3, linetype = 2, color = "grey30") +
+                breaks = seq(-7, 0, 1), size = 0.2, linetype = 2, color = "grey30") +
   geom_text_contour(data = ~.x[, .(lev, date, E5_E4 = E5, E6_E5 = E6, E7_E6 =E7)] %>% 
                       melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
-                    breaks = seq(-7, 0, 1), color = "grey30", skip = 1, stroke = 0.2) +
+                    breaks = seq(-7, 0, 1), color = "grey30", skip = 1, 
+                    size = 4, stroke = 0.1) +
   labs(subtitle = "V difference (m/s)",
        x = NULL,
-       y = "Pressure level") +
-  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
-  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+       y = NULL) +
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
                                                          "E7_E6" = "RAD - SATWND"))) +
@@ -1180,7 +1176,6 @@ ana[bottom_top %between% c(1, 10), .(v_mean = mean(v)),
   by = .(south_north, west_east, date, exp)] %>% 
   .[pw, on = .NATURAL] %>% 
 ggplot(aes(x, y)) +
- # geom_point(aes(color = v_mean)) +
   geom_contour_fill(aes(z = value, fill = stat(level_d)),
                     proj = norargentina_lambert, alpha = 0.7) +
   scale_fill_distiller(name = NULL, super = ScaleDiscretised,
@@ -1200,12 +1195,9 @@ ggplot(aes(x, y)) +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                          E6 = "SATWND", E7 = "RAD"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  labs(x = NULL,
-       y = NULL) +
   theme_minimal() +
   theme(legend.position = "bottom",
+        legend.box.spacing = margin(0, 0, 0, 0),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) +
 
@@ -1227,12 +1219,9 @@ ggplot(aes(x, y)) +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                          E6 = "SATWND", E7 = "RAD"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  labs(x = NULL,
-       y = NULL) +
   theme_minimal() +
   theme(legend.position = "bottom",
+        legend.box.spacing = margin(0, 0, 0, 0),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3),
         strip.text = element_blank(), 
@@ -1263,18 +1252,15 @@ mucape %>%
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                          E6 = "SATWND", E7 = "RAD"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  labs(x = NULL,
-       y = NULL) +
   theme_minimal() +
   theme(legend.position = "bottom",
+        legend.box.spacing = margin(0, 0, 0, 0),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3),
         strip.text = element_blank(), 
         strip.background = element_blank()) +
   
-    plot_layout(ncol = 1, heights = c(1, 1, 1)) 
+    plot_layout(ncol = 1, heights = c(1, 1, 1))
 ```
 
 
