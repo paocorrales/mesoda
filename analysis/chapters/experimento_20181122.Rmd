@@ -1172,25 +1172,25 @@ cor <- ana[bottom_top %in% c(2, 10)] %>%
            v_2 = NULL,
            v_10 = NULL)]
 
-ana[bottom_top %between% c(1, 10), .(v_mean = mean(v)), 
+ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)), 
   by = .(south_north, west_east, date, exp)] %>% 
   .[pw, on = .NATURAL] %>% 
 ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = value, fill = stat(level_d)),
-                    proj = norargentina_lambert, alpha = 0.7) +
+                    proj = norargentina_lambert) +
   scale_fill_distiller(name = NULL, super = ScaleDiscretised,
                        palette = "YlGn", direction = 1,
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
   geom_contour2(aes(z = v_mean, linetype = factor(-sign(v_mean))),
                 proj = norargentina_lambert, color = "darkorange", 
-                breaks = c(-10, -5, -2, 0, 2, 5, 10)) +
-   geom_text_contour(aes(z = v_mean), size = 4, stroke = 0.05,
+                breaks = c(-10, -5, 0), size = 0.4) +
+   geom_text_contour(aes(z = v_mean), size = 3, stroke = 0.05,
                      proj = norargentina_lambert, color = "darkorange", 
-                breaks = c(-10, -5, -2, 0, 2, 5, 10),
+                breaks = c(-10, -5, 0), skip = 0,
                 label.placement = label_placement_n(1)) +
-  scale_linetype(guide = NULL) +
-  cordillera +
+  scale_linetype_manual(guide = NULL, values = c(2, 1)) +
+  # cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
@@ -1208,13 +1208,13 @@ ana[bottom_top %between% c(2, 10), .(theta_mean = mean(theta)),
 ggplot(aes(x, y)) +
  # geom_point(aes(color = v_mean)) +
   geom_contour_fill(aes(z = theta_mean, fill = stat(level_d)),
-                    proj = norargentina_lambert, alpha = 0.7,
+                    proj = norargentina_lambert,
                     breaks = c(-Inf, seq(290, 314, 2), Inf), limits = c(-Inf, Inf)) +
   scale_fill_distiller(name = NULL, super = ScaleDiscretised,
                        palette = "RdYlBu", direction = -1,
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
-  cordillera +
+  # cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
@@ -1247,7 +1247,7 @@ mucape %>%
                  alpha = factor(cut_round(cortante, breaks = c(5, 15, 40)))),
              size = 0.00002, shape = 20) +
   scale_alpha_manual(values = c(0.3, 0.7), guide = NULL) +
-  cordillera +
+  # cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
