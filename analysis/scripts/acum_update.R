@@ -1,6 +1,6 @@
-exp <- "E7"
+exp <- "E6"
 ini_date <- ymd_hms("20181120180000")
-ciclos <- 50
+ciclos <- 67
 
 dates <- seq.POSIXt(ini_date, by = "hour",
                     length.out = ciclos)
@@ -52,8 +52,9 @@ for (d in seq_along(dates)) {
     # espacial_qv$qv <- espacial_qv$qv + update$qv
   }
 
-
 }
+
+write_rds(global_qv, paste0("~/mesoda/analysis/data/derived_data/omb_acum_qv_", exp, ".rds"))
 
 
 rbind(global_qv_E6, global_qv_E7) %>%
