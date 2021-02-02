@@ -961,13 +961,10 @@ q[bottom_top %between% c(0, 7), .(v = mean(v)),
   #             arrow.angle = 12, size = 0.3) +
   # scale_mag() +
   cordillera +
-  geom_sf(data = map, inherit.aes = FALSE, color = "black", fill = NA, size = 0.2) +
-  coord_sf(xlim = range(coord$lon), ylim = range(coord$lat)) +
+  geom_mapa() +
   facet_grid(date ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                          E6 = "SATWND", E7 = "RAD"))) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
   labs(title = "Low level meridional wind (m/s)",
        x = NULL,
        y = NULL) +
@@ -1111,7 +1108,7 @@ mucape %>%
 
 ```
 
-```{r summary, fig.height=10, fig.width=10}
+```{r summary, fig.height=10, fig.width=9}
 files <- Sys.glob(paste0(derived_data, "pw/*")) 
 files <- files[!str_detect(files, c("E3"))]
 
@@ -1182,15 +1179,18 @@ ggplot(aes(x, y)) +
                        palette = "YlGn", direction = 1,
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
-  geom_contour2(aes(z = v_mean, linetype = factor(-sign(v_mean))),
+  geom_contour2(aes(z = v_mean, size = stat(level)),
                 proj = norargentina_lambert, color = "darkorange", 
-                breaks = c(-10, -5, 0), size = 0.4) +
-   geom_text_contour(aes(z = v_mean), size = 3, stroke = 0.05,
-                     proj = norargentina_lambert, color = "darkorange", 
-                breaks = c(-10, -5, 0), skip = 0,
-                label.placement = label_placement_n(1)) +
-  scale_linetype_manual(guide = NULL, values = c(2, 1)) +
-  # cordillera +
+                breaks = c(-10, -5)) +
+  scale_size_continuous(breaks = c(-10, -5), range = c(0.8, 0.4),
+                        labels = c("-10 m/s", "-5 m/s"),
+                        name = NULL) +
+   # geom_text_contour(aes(z = v_mean), size = 3, stroke = 0.05,
+   #                   proj = norargentina_lambert, color = "darkorange", 
+   #              breaks = c(-10, -5), skip = 0,
+   #              label.placement = label_placement_n(1)) +
+  # scale_linetype_manual(guide = NULL, values = c(2, 1)) +
+  cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
@@ -1214,7 +1214,7 @@ ggplot(aes(x, y)) +
                        palette = "RdYlBu", direction = -1,
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
-  # cordillera +
+  cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
@@ -1246,8 +1246,9 @@ mucape %>%
              aes(x = lon, y = lat, 
                  alpha = factor(cut_round(cortante, breaks = c(5, 15, 40)))),
              size = 0.00002, shape = 20) +
-  scale_alpha_manual(values = c(0.3, 0.7), guide = NULL) +
-  # cordillera +
+  scale_alpha_manual(values = c(0.3, 0.7), name = NULL, labels = c(">5 m/s", ">15 m/s"),
+                     guide = guide_legend(override.aes = list(size = 2))) +
+  cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
@@ -1260,7 +1261,8 @@ mucape %>%
         strip.text = element_blank(), 
         strip.background = element_blank()) +
   
-    plot_layout(ncol = 1, heights = c(1, 1, 1))
+    plot_layout(ncol = 1, heights = c(1, 1, 1)) +
+  plot_annotation(tag_levels = "a", tag_suffix = ")")
 ```
 
 
@@ -1268,7 +1270,7 @@ mucape %>%
 coord <- mucape[variable == "mcape", c("south_north", "lat")] %>% 
   .[, .(lat = mean(lat)), by = south_north]
 
-ana[west_east %between% c(70, 180)] %>% 
+ana[west_east %between% c(70, 180) & bottom_top %between% c(1, 25)] %>% 
   .[, .(q_mean = mean(q),
         v_mean = mean(v)), by = .(bottom_top, south_north, date, exp)] %>% 
   coord[., on = "south_north"] %>% 
@@ -1282,7 +1284,8 @@ ana[west_east %between% c(70, 180)] %>%
   geom_contour2(aes(z = v_mean, linetype = factor(-sign(..level..))), 
                color = "grey30", size = 0.3, binwidth = 2) +
   geom_text_contour(aes(z = v_mean), color = "grey30", 
-                    size = 3, stroke = 0.05, breaks = seq(-10, 6, 2)) +
+                    size = 3, stroke = 0.05, breaks = seq(-10, 6, 2),
+                    label.placement = label_placement_n(1)) +
   scale_linetype(guide = NULL) +
   scale_x_latitude(breaks = seq(-40, -20, 5)) +
   facet_wrap( ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
