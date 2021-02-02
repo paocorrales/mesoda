@@ -5,6 +5,9 @@
 #'
 #' @param file_list lista de archivos
 #' @param exp nombre del experimento asociado
+#'
+#' @importFrom magrittr %>%
+#'
 #' @export
 read_diag_rad <- function(file_list, exp) {
 
@@ -25,7 +28,7 @@ read_diag_rad <- function(file_list, exp) {
     }
     out
   }) %>%
-    rbindlist()
+    data.table::rbindlist()
 
   colnames(diag) <- c("sensor", "channel", "freq", "lat", "lon", "peakwt", "press", "dhr", "tb_obs", "tbc", "tbcnob",
                       "varch", "errinv", "qc", "emis", "tlapchn", "rzen", "razi", "rlnd", "rice", "rsnw", "rcld",
@@ -34,3 +37,5 @@ read_diag_rad <- function(file_list, exp) {
 }
 
 .datatable.aware <- TRUE
+
+

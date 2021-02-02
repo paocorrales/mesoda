@@ -26,7 +26,8 @@ Imports:
     verification,
     scales,
     furrr,
-    future
+    future,
+    magrittr
 Suggests: 
     devtools,
     git2r
