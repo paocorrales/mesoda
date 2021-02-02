@@ -430,18 +430,20 @@ global_qv_E7 <- read_rds("~/mesoda/analysis/data/derived_data/omb_acum_qv_E7.rds
 
 rbind(global_qv_E6, global_qv_E7) %>%
   # .[exp == "E7"] %>% 
-  .[, nivel := fcase(bottom_top %in% c(1:8), "1 to 8",
-                     bottom_top %in% c(9:13), "9 to 13",
-                     bottom_top %in% c(14:20), "14 to 20",
+  .[, nivel := fcase(bottom_top %in% c(1:8), "lower",
+                     bottom_top %in% c(9:13), "middle",
+                     bottom_top %in% c(14:20), "upper",
                      bottom_top %in% c(21:38), "21 to 38")] %>%
+  .[ bottom_top %between% c(1, 20)] %>% 
   .[, acum := cumsum(qv), by = .(bottom_top, exp)] %>%
+  .[, acum := mean(acum), by = .(nivel, exp, date)] %>%
   # .[bottom_top %in% c(1:18)] %>%
   ggplot(aes(date, acum*1000)) +
-  geom_line(aes(color = exp, linetype = exp, group = interaction(bottom_top, exp))) +
+  geom_line(aes(color = exp, linetype = exp, group = interaction(nivel, exp))) +
   # geom_label(data = ~.x[date %in% sample(unique(date), 38)] %>% group_by(exp, bottom_top) %>% sample_n(size = 1),
    geom_label(data = ~.x[date %in% unique(date)[67]],
-             aes(label = bottom_top, color = exp, 
-                 group = interaction(bottom_top, exp)),
+             aes(label = nivel, color = exp, 
+                 group = interaction(nivel, exp)),
              size = 3, fill = "white", show.legend = FALSE,
              label.size = NA, label.padding = unit(0.1, "lines")) +
   scale_date() +
@@ -449,10 +451,11 @@ rbind(global_qv_E6, global_qv_E7) %>%
                                      E6 = "SATWND", E7 = "RAD")) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
-  facet_wrap(~nivel, scales = "free_y") +
+  # facet_wrap(~nivel, scales = "free_y") +
   labs(x = NULL, y = "Accumulated specific humidity (g/Kg)",
        color = NULL, linetype = NULL) +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position = "bottom")
  
 
 ```
