@@ -1538,7 +1538,7 @@ pblh[, .(mean = mean(PBLH)), by = .(exp, date)] %>%
 ### Verification
 
 ```{r pp-hov, fig.cap="Hövmoller of hourly acumulated precipitation (for ensemble mean) over the inner domain."}
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/*ana*mean*")
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/*ana*mean_acum_1h.rds")
 
 ppacum_1h <- purrr::map(files, function(f) {
   
@@ -1558,8 +1558,8 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
         exp = "IMERG"), by = .(end_date, y)] %>% 
   ggplot(aes(end_date, lat)) +
   geom_contour2(aes(z = pp_acum, color = ..level..), 
-               breaks = seq(1, 15, 1)) +
-  scale_color_viridis_c(guide = NULL, breaks = seq(1, 14, 1), limits = c(1, 15)) +
+               breaks = seq(1, 12, 1)) +
+  scale_color_viridis_c(guide = NULL, breaks = seq(1, 12, 1), limits = c(1, 12)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   scale_y_latitude(breaks = seq(-40, -20, 5)) +
   facet_wrap(~ exp) +
@@ -1573,8 +1573,8 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   ggplot(aes(date, lat)) +
   # geom_raster(aes(fill = pp_acum)) +
   geom_contour2(aes(z = pp_acum, color = ..level..),
-               breaks = seq(1, 15, 1)) +
-  scale_color_viridis_c(breaks = seq(1, 15, 1), limits = c(1, 15),
+               breaks = seq(1, 12, 1)) +
+  scale_color_viridis_c(breaks = seq(1, 12, 1), limits = c(1, 12),
                         guide = guide_colorstrip(inside = TRUE,
                                                  barwidth = 25,
                                                  barheight = 0.8)) +
@@ -1588,6 +1588,7 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   
   plot_layout(ncol = 2, widths = c(0.4, 0.6), guides = "collect") & theme(legend.position = 'bottom')
 ```
+
 
 ```{r eval=FALSE, include=FALSE}
 files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/*ana*prop*")
@@ -1646,10 +1647,14 @@ dbz %>%
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = max_dbz, fill = stat(level_d)), 
                     proj = norargentina_lambert,
-                    breaks = seq(0, 60, 5),) +
+                    breaks = seq(-30, 75, 5)) +
   scale_color_dbz(aesthetics = "fill", super = ScaleDiscretised, 
-                  guide = guide_colorsteps(barwidth = 0.8, 
-                                           barheight = 20)) +
+                  guide = guide_colorsteps(barwidth = 20, 
+                                           barheight = 0.8)) +
+  ggnewscale::new_scale_fill() +
+    geom_contour_fill(aes(z = max_dbz), fill = "white", 
+                    proj = norargentina_lambert,
+                    breaks = c(-Inf, 15)) +
   geom_mapa() +
   facet_grid(date~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
                                                    E6 = "SATWND", E7 = "RAD"))) +
@@ -1687,10 +1692,14 @@ dbz <- purrr::map(files, function(f){
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = max_dbz, fill = stat(level_d)), 
                     proj = norargentina_lambert,
-                    breaks = seq(0, 60, 5),) +
+                    breaks = seq(-30, 75, 5),) +
   scale_color_dbz(aesthetics = "fill", super = ScaleDiscretised, 
                   guide = guide_colorsteps(barheight = 0.8, 
                                            barwidth = 20)) +
+  ggnewscale::new_scale_fill() +
+  geom_contour_fill(aes(z = max_dbz), fill = "white", 
+                    proj = norargentina_lambert,
+                    breaks = c(-Inf, 10)) +
   geom_mapa() +
   ggh4x::facet_nested(date + cumulus ~ exp, 
                       labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
@@ -1702,7 +1711,7 @@ dbz <- purrr::map(files, function(f){
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
   
-  rm(dbz)
+  # rm(dbz)
 ```
 #### FSS for the analysis
 
@@ -1720,13 +1729,15 @@ fss <- purrr::map(files, function(f) {
 
 
 fss %>% 
+  # .[date %between% c(ymd_hms(20181122000000), ymd_hms(20181123120000))] %>% 
   ggplot(aes(date, fss)) +
   geom_hline(yintercept = 1, color = "darkgray") +
   geom_line(aes(color = exp)) +
   # geom_point(aes(color = exp)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
-  scale_date(20181121000000, 20181123000000, "12 hours") +
+  scale_date(20181122000000, 20181123000000, "12 hours") +
+  coord_cartesian(xlim = c(ymd_hms(20181122000000), ymd_hms(20181123120000))) +
   facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
                                             "10" = "10 mm", "25" = "25 mm"),
                                       w = c("5" = "50 km", "11" = "100 km", 
