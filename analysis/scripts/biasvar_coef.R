@@ -29,8 +29,8 @@ pred <- diag$predictors[, as.vector(QCmask), this_channel]
 Bdiag <- rep(.1, npred)
 
 
-  # coef_prior <- coef_gfs[sensor == paste(this_sensor, plat, sep = "_") & channel == this_channel, 7:18]
-  # coef_prior <- matrix(as.vector(t(coef_prior)))
+  coef_prior <- coef_gfs[sensor == paste(this_sensor, plat, sep = "_") & channel == this_channel, 7:18]
+  coef_prior <- matrix(as.vector(t(coef_prior)))
   coef_prior <- rep(0, npred)
 
 biasvar <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000)
@@ -42,7 +42,7 @@ for (i in seq_along(biasvar)) {
 
   coef_est <- estimate_coef(Xobs, Xmod, pred, coef_prior, Rdiag, Bdiag)
 
-  bias_est <- get_bias_correction(pred, coef_est)
+  bias_est <- get_bias_correction(pred, coef_est + coef_prior)
 
   if (i == 1) {
     dt <- data.table("xobs" = c(Xobs), "xmod" = c(Xmod), "bias" = bias_est, biasv = biasvar[i])
