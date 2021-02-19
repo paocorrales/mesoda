@@ -10,15 +10,15 @@ library(mesoda)
 #future::plan("cluster", workers = 3)
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E7"
-run <- "ana_ens"
+exp <- "E4"
+run <- "fcst_ens"
 
-ini_date <- ymd_hms("20181120180000")
-ciclos <- 67
+ini_date <- ymd_hms("20181122060000")
+ciclos <- 31
 
-acumulado <- 3
+acumulado <- 6
 q <- c(1, 5, 10, 25) #10mm, para arrancar pensando en pp acumulada
-w <- c(5, 11, 51, 101) #ancho de cada box en puntos de grilla
+w <- c(1, 5, 11, 51, 101) #ancho de cada box en puntos de grilla
 
 # Inicio
 dates <- seq.POSIXt(ini_date + hours(acumulado), by = "hour",
@@ -70,6 +70,13 @@ fss_out <- purrr::map_dfr(dates, function(d) {
 
     pp_wrf <- readRDS(files_wrf)
 
+  } else if (run == "fcst_ens") {
+
+    files_wrf <- paste0(wrf_path, "derived_data/ppacum/", exp, "_fcst_", format(ini_date, "%Y%m%d%H"), "_prop_acum_",
+                        acumulado, "h.rds")
+
+    pp_wrf <- readRDS(files_wrf) %>%
+      .[date == d]
 
   } else {
 
@@ -127,6 +134,18 @@ fss_out <- purrr::map_dfr(dates, function(d) {
       fss <- fcst[, calculate_fss(pp[[1]], obs[, pp[[1]]],
                                   q = qi, w = w, binary = FALSE),
                   by = .(exp, date)]
+    } else if (run == "fcst_ens") {
+
+      fcst <- pp_wrf[umbral == qi] %>%
+        .[, .(pp = list(dcast(.SD, x ~ y, value.var = "prop") %>%
+                          .[, -1] %>%
+                          as.matrix())),
+          by = .(exp)]
+
+      fss <- fcst[, calculate_fss(pp[[1]], obs[, pp[[1]]],
+                                  q = qi, w = w, binary = FALSE),
+                  by = .(exp)] %>%
+        .[, date := d]
     } else {
       fcst <- pp_wrf %>%
         .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
@@ -143,11 +162,11 @@ fss_out <- purrr::map_dfr(dates, function(d) {
 })
 
 if (run %in% c("ana", "ana_ens")) {
-  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, "new.csv"))
+  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, ".csv"))
 
 } else {
 
   fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_",
-                                format(ini_date, "%Y%m%d%H"), "_", exp, "new.csv"))
+                                format(ini_date, "%Y%m%d%H"), "_", exp, "_ens.csv"))
 
 }
