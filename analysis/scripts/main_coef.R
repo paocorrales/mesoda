@@ -1,4 +1,5 @@
 library(reticulate)
+library(tidyverse)
 library(data.table)
 library(ggplot2)
 
@@ -30,8 +31,8 @@ out_coef <- purrr::map(sensor_list, function(f) {
     #Sensor
     nchanl <- diag[[1]]$nuchan
 
-    out_sensor <- purrr::map(nchanl, function(n) {
-      this_channel <- n
+    out_sensor <- purrr::map(seq_along(nchanl), function(n) {
+      channel_index <- n
 
       this_sensor <- str_trim(diag[[1]]$sensor)
       plat <- str_trim(diag[[1]]$sat)
@@ -42,12 +43,12 @@ out_coef <- purrr::map(sensor_list, function(f) {
       coef_prior <- rep(0, npred)
 
       out_channel <- purrr::map(diag, function(x) {
-        QCmask <- matrix(x$qc[, this_channel] == 0)
+        QCmask <- matrix(x$qc[, channel_index] == 0)
 
-        Rdiag <- 1/x$errinv[, this_channel][QCmask]
-        Xobs <- matrix(x$tb_obs[, this_channel][QCmask])
-        Xmod <- Xobs - matrix(x$tbcnob[, this_channel][QCmask])
-        pred <- x$predictors[, as.vector(QCmask), this_channel]
+        Rdiag <- 1/x$errinv[, channel_index][QCmask]
+        Xobs <- matrix(x$tb_obs[, channel_index][QCmask])
+        Xmod <- Xobs - matrix(x$tbcnob[, channel_index][QCmask])
+        pred <- x$predictors[, as.vector(QCmask), channel_index]
 
         list(Rdiag = Rdiag, Xobs = Xobs, Xmod = Xmod, pred = pred)
       } ) %>%
@@ -58,7 +59,7 @@ out_coef <- purrr::map(sensor_list, function(f) {
 
       if (length(out_channel$Xobs) > 1) {
         coef_est <- estimate_coef(out_channel$Xobs, out_channel$Xmod,
-                                  out_channel$pred, coef_prior, out_channel$Rdiag, Bdiag)
+                                  out_channel$pred, coef_prior, out_channel$Rdiag, Bdiag) + coef_prior
 
         bias_est <- get_bias_correction(out_channel$pred, coef_est)
 
@@ -69,7 +70,7 @@ out_coef <- purrr::map(sensor_list, function(f) {
       }
 
       coef_out <- data.table(sensor = paste(this_sensor, plat, sep = "_"),
-                             channel = this_channel,
+                             channel = nchanl[channel_index],
                              tlp1 = 0,
                              tlp2 = 0,
                              nc = 999,
@@ -77,7 +78,7 @@ out_coef <- purrr::map(sensor_list, function(f) {
 
 
       est <- data.table(sensor = paste(this_sensor, plat, sep = "_"),
-                        channel = this_channel,
+                        channel = nchanl[channel_index],
                         xobs = c(out_channel$Xobs),
                         xmod = c(out_channel$Xmod),
                         bias_est) %>%
@@ -93,6 +94,8 @@ out_coef <- purrr::map(sensor_list, function(f) {
 }) %>%
   reduce(function(x, y) list(coef_out = rbind(x$coef_out, y$coef_out),
                              est = rbind(x$est, y$est)))
+
+read_rds(out_coef, "/home/paola.corrales/datosmunin/EXP/satbias_trained.rds")
 
   out_coef$est %>%
     melt(measure.vars = c("OmB_BC", "OmB")) %>%
