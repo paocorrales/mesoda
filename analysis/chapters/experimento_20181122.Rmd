@@ -1164,9 +1164,9 @@ ana <- lapply(seq_len(nrow(fcsts)), function(f) {
 }) %>% 
   rbindlist() 
 
-cor <- ana[bottom_top %in% c(2, 10)] %>% 
+cor <- ana[bottom_top %in% c(1, 16)] %>% 
   dcast(date + exp + south_north + west_east ~ bottom_top, value.var = c("u", "v")) %>% 
-  .[, cortante := Mag(u_10 - u_2, v_10 - v_2)] %>% 
+  .[, cortante := Mag(u_16 - u_1, v_16 - v_1)] %>% 
   .[, ":="(u_2 = NULL, 
            u_10 = NULL,
            v_2 = NULL,
@@ -1183,7 +1183,7 @@ ggplot(aes(x, y)) +
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
   geom_contour2(aes(z = v_mean, size = stat(level)),
-                proj = norargentina_lambert, color = "darkorange", 
+                proj = norargentina_lambert, color = "blueviolet", 
                 breaks = c(-10, -5)) +
   scale_size_continuous(breaks = c(-10, -5), range = c(0.8, 0.4),
                         labels = c("-10 m/s", "-5 m/s"),
@@ -1245,12 +1245,18 @@ mucape %>%
   # geom_contour2(aes(z = cortante),
   #               proj = norargentina_lambert, color = "black", size = 0.4,
   #               breaks = c(10, 25)) +
-  geom_point(data = ~.x[cortante >= 10 & is.cross(x, y, skip = 1)], 
-             aes(x = lon, y = lat, 
-                 alpha = factor(cut_round(cortante, breaks = c(5, 15, 40)))),
-             size = 0.00002, shape = 20) +
-  scale_alpha_manual(values = c(0.3, 0.7), name = NULL, labels = c(">5 m/s", ">15 m/s"),
-                     guide = guide_legend(override.aes = list(size = 2))) +
+  geom_contour2(aes(z = cortante, size = stat(level)),
+                proj = norargentina_lambert, color = "black", 
+                breaks = c(15, 30)) +
+  scale_size_continuous(breaks = c(15, 30), range = c(0.4, 0.8),
+                        labels = c("15 m/s", "30 m/s"),
+                        name = NULL) +
+  # geom_point(data = ~.x[cortante >= 15 & is.cross(x, y, skip = 1)], 
+  #            aes(x = lon, y = lat, 
+  #                alpha = factor(cut_round(cortante, breaks = c(15, 25, Inf)))),
+  #            size = 0.00002, shape = 20) +
+  # scale_alpha_manual(values = c(0.3, 0.7), name = NULL, #labels = c(">5 m/s", ">15 m/s"),
+  #                    guide = guide_legend(override.aes = list(size = 2))) +
   cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
@@ -1976,11 +1982,11 @@ sondeos %>%
 
 
 ```{r}
-files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_fcst_*_E[4-7]new.csv")
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_fcst_ens_*_E[4-7]_ens.csv")
 
 fss <- purrr::map(files, function(f) {
   
-  meta <- unglue(basename(f), "fss_6h_fcst_{ini_date}_{exp}new.csv")
+  meta <- unglue(basename(f), "fss_6h_fcst_ens_{ini_date}_{exp}_ens.csv")
   
   fread(f) %>% 
     .[, date := as_datetime(date)] %>% 
@@ -1995,9 +2001,11 @@ fss %>%
   # geom_point(aes(color = exp)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
+  scale_date(20181122000000, 20181123000000, "12 hours") +
   facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
                                             "10" = "10 mm", "25" = "25 mm"),
-                                      w = c("5" = "50 km", "11" = "100 km", 
+                                      w = c("1" = "1 km", "5" = "50 km", 
+                                            "11" = "100 km", 
                                             "51" = "500 km", "101" = "1000 km"))) +
   labs(color = NULL, x = NULL, linetype = NULL) +
   theme_minimal()
