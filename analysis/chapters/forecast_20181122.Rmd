@@ -1,0 +1,325 @@
+---
+title: "FCST"
+output: 
+  bookdown::html_document2: default
+  bookdown::pdf_document2: default
+bibliography: mesoda_ref.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.path = "../figures/",
+  fig.retina = TRUE,
+  # fig.height = 3,
+  dev = "png",
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 300
+)
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(here)
+library(patchwork)
+library(unglue)
+library(knitr)
+library(kableExtra)
+
+map_arg <- rnaturalearth::ne_states(country = c("argentina"), 
+                                    returnclass = "sf")
+map_limitrofes <- rnaturalearth::ne_countries(country = c("Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+square <- fread(here("analysis", "data", "derived_data", "dominio_square.csv"))
+square2 <- fread(here("analysis", "data", "derived_data", "dominio_square2.csv"))
+coord <- fread(here("analysis", "data", "derived_data", "coordenadas.csv"))
+
+
+geom_mapa <- function(fill = NA) {
+  list(geom_sf(data = map_arg, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       geom_sf(data = map_limitrofes, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)),
+       scale_x_longitude(ticks = 5),
+       scale_y_latitude(ticks = 5))
+}
+
+arg_topo <- metR::GetTopography(-75+360, -50+360, -20, -60, resolution = 1/10)
+arg_topo[, lon := metR::ConvertLongitude(lon)]
+
+cordillera <- list(
+  ggnewscale::new_scale_fill(),
+  geom_contour_fill(data = arg_topo, aes(x = lon, y = lat, 
+                                         z = h),
+                    breaks = seq(1500, 8000, by = 700)),
+  scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
+                      oob = scales::squish))
+
+scale_date <- function(ini = 20181120180000, end = 20181123120000,
+                       break_bin = "6 hour") {
+  scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin),
+                   labels = function(x) {
+                     fifelse(hour(x) == 0, format(x, "%H\n%b %d"), format(x, "%H"))
+                   }) 
+}
+
+obs.type <- tribble(
+  ~type, ~code,
+  120, "ADPUPA",
+  130, "AIRCFT-AIREP",
+  131, "AIRCFT-AMDAR",
+  133, "AIRCAR",
+  180, "SFCSHP",
+  181, "ADPSFC",
+  187, "ADPSFC\nno pressure",
+  220, "ADPUPA",
+  221, "ADPUPA-PIBAL",
+  230, "AIRCFT-AIREP",
+  231, "AIRCFT-AMDAR",
+  233, "AIRCAR",
+  280, "SFCSHP",
+  281, "ADPSFC",
+  287, "ADPSFC\nno pressure",
+  290, "ASCATW"
+) %>% 
+  setDT()
+
+fisica <- data.table(mem = as.character(formatC(1:60, flag = "0", width = 3)),
+                     fisica = rep(c("KF-YSU", 
+                                    "BMJ-YSU",
+                                    "GF-YSU",
+                                    "KF-MYJ",
+                                    "BMJ-MYJ",
+                                    "GF-MYJ",
+                                    "KF-MYNN2",
+                                    "BMJ-MYNN2",
+                                    "GF-MYNN2"), length.out = 60)) %>% setDT()
+
+multiespectrales <- c("airs_aqua",
+                      "iasi_metop-a",
+                      "iasi_metop-b")
+
+experiments <- c("E4", "E5", "E6", "E7")
+#Color blind friendly but E4 y E7 parecidos en Desaturated
+colores_exp <- c(E4 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311") 
+# colores_exp <- c(E4 = "#225555", E5 = "#CCBB44", E6 = "#CC6677", E7 = "#882255")
+satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
+
+```
+
+
+### FSS
+
+Acumulados a 6 hs
+
+```{r}
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_fcst_ens_*_E[4-7]_ens.csv")
+
+fss <- purrr::map(files, function(f) {
+  
+  meta <- unglue(basename(f), "fss_6h_fcst_ens_{ini_date}_{exp}_ens.csv")
+  
+  fread(f) %>% 
+    .[, date := as_datetime(date)] %>% 
+    .[, ini_date := ymd_h(meta[[1]][["ini_date"]])]
+}) %>% 
+  rbindlist()
+
+fss %>% 
+  ggplot(aes(date, fss)) +
+  geom_hline(yintercept = 1, color = "darkgray") +
+  geom_line(aes(color = exp, linetype = factor(ini_date))) +
+  # geom_point(aes(color = exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date(20181122000000, 20181123000000, "12 hours") +
+  facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
+                                            "10" = "10 mm", "25" = "25 mm"),
+                                      w = c("1" = "1 km", "5" = "50 km", 
+                                            "11" = "100 km", 
+                                            "51" = "500 km", "101" = "1000 km"))) +
+  labs(color = NULL, x = NULL, linetype = NULL) +
+  theme_minimal()
+
+```
+
+
+
+
+### Soundings
+
+```{r message=FALSE, warning=FALSE}
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E*/FCST/*/sondeos/*")
+files <- files[str_detect(files, "_01_")]
+
+sondeos <- purrr::map(files, function(f){
+  
+  fread(f) %>% 
+    .[, value := fifelse(variable %in% c("t", "td"), value + 273.15, value)] %>% 
+    .[, launch_time := as_datetime(launch_time)] %>% 
+    .[, fcst_exp := basename(dirname(dirname(f)))]
+  
+}) %>% 
+  rbindlist()
+
+IOP <- tribble(
+  ~iop, ~ini, ~end,
+  "IOP07", ymd_hms("20181121150000"), ymd_hms("20181121210000"),
+  "IOP08", ymd_hms("20181122140000"), ymd_hms("20181122200000")
+) %>% setDT()
+
+```
+
+```{r}
+
+sondeos %>% 
+  .[, iop := fcase(launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")), "IOP07",
+                   launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08")] %>% 
+  .[variable %in% c("t", "td", "u", "v") & !str_detect(site, "/") & !is.na(fcst_value) & !is.na(iop)] %>% 
+  .[, lev := cut_round(alt, seq(0, 20000, 1000))] %>% 
+  .[, ":="(RMSE = mean(sqrt((value - fcst_value)^2), na.rm = TRUE), 
+           BIAS = mean(value - fcst_value, na.rm = TRUE)), 
+    by = .(iop, exp, variable, lev, fcst_exp)] %>% 
+  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico", value.name = "value.est") %>% 
+  ggplot(aes(lev/1000, value.est)) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_line(aes(color = exp, linetype = estadistico)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp + iop~variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+```
+
+
+### Observaciones de superficie
+
+```{r}
+# files <- Sys.glob(paste0(derived_data, "/interp_obs/2018112206/interp*"))
+# 
+# obs <- purrr::map(files, function(f) {
+#   print(f)
+#   read_rds(f) %>% 
+#     .[, id := 1:.N, by = ens] %>% 
+#     .[, fcst_exp := "2018112206"] %>% 
+#     .[, exp := NULL] %>% 
+#     melt(measure.vars = c("E4", "E5", "E6", "E7"), 
+#          variable.name = "exp",
+#          value.name = "fcst") %>% 
+#     .[, ":="(obs = if_else(usage.flag == 1, obs, NA_real_),
+#              fcst = if_else(usage.flag == 1, fcst, NA_real_))] %>% 
+#     .[, c(list(obs = mean(obs, na.rm = TRUE),
+#                fcst = mean(fcst, na.rm = TRUE)),
+#           .SD[ens == 1]), by = .(id, exp), .SDcols = -c("obs", "fcst")] %>% 
+#     .[usage.flag == 1]
+#   
+# }) %>% 
+#   rbindlist()
+
+obs_00 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mean.rds"))
+obs_06 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean.rds"))
+
+rbind(obs_00, obs_06) %>% 
+  .[usage.flag == 1] %>% 
+  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
+        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
+  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
+  .[estadistico == "rmse"] %>% 
+  ggplot(aes(date, value)) +
+  geom_line(aes(color = exp, linetype = fcst_exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date() +
+  labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_wrap(~ var, scales = "free_y") +
+  theme_minimal()
+
+rbind(obs_00, obs_06) %>% 
+  .[usage.flag == 1] %>% 
+  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
+        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
+  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
+  .[estadistico == "bias"] %>% 
+  ggplot(aes(date, value)) +
+  geom_line(aes(color = exp, linetype = fcst_exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date() +
+  labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_wrap(~ var, scales = "free_y") +
+  theme_minimal()
+```
+
+
+### Temperatura de brillo
+
+
+```{r eval=FALSE, include=FALSE}
+
+scale_color_topes <- function(colours = hex, 
+                              limits = c(-90, 50), 
+                              breaks = seq(-90, 50, 20),
+                              guide = guide_colorbar(barheight = 15),
+                              ...) {
+  # https://github.com/garciafido/cima-goes/tree/master/src/cima/goes/img
+  topes <- data.table::fread("../../temp_R/paleta_topes")
+  colours <- rgb(topes$V2, topes$V3, topes$V4, maxColorValue = 255)
+  
+  scale_color_gradientn(colours = colours, 
+                        limits = limits, 
+                        breaks = breaks, 
+                        guide = guide, ...) 
+}
+
+purrr::walk(c(0:30), function(h) {
+  
+  file_path <- paste0("~/datosmunin/EXP/E[4-7]/FCST/2018112200/CRTM/01/G16_20181122000000_", formatC(h, flag = "0", width = 3), "_00.nc")
+  
+  files <- Sys.glob(file_path)
+  
+  crtm <- purrr::map(files, function(f) {
+    
+    meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/FCST/{fcst_exp}/CRTM/{mem}/G16_{fcst}_{hour}_{minutes}.nc")
+    
+    ReadNetCDF(f, vars = c(lat = "XLAT", lon = "XLONG", "CH10")) %>% 
+      .[, CH10 := CH10 - 273.15] %>% 
+      .[, ":="(exp = meta[[1]][["exp"]],
+               mem = meta[[1]][["mem"]],
+               fcst_exp = meta[[1]][["fcst_exp"]],
+               date = ymd_hms(meta[[1]][["fcst"]]) + 
+                 hours(as.numeric(meta[[1]][["hour"]])) +
+                 minutes(as.numeric(meta[[1]][["minutes"]])))]
+    
+  }) %>% rbindlist()
+  
+  crtm %>% 
+    ggplot(aes(lon, lat)) +
+    geom_point(aes(color = CH10), size = 0.7) +
+    # scale_color_viridis_c() +
+    scale_color_topes(guide = guide_colorbar(barheight = 20)) +
+    geom_mapa() +
+    facet_wrap(~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                 E6 = "SATWND", E7 = "RAD"))) +
+    labs(caption = crtm[,date[1]]) +
+    theme_minimal() +
+    theme(panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3)) 
+  
+  ggsave(paste0("CH10_2018112200_", format(crtm[,date[1]], "%Y%m%d%H%M"), ".png"))
+  
+})
+```
+
+
+
+
