@@ -205,25 +205,25 @@ sondeos %>%
 ### Observaciones de superficie
 
 ```{r}
-# files <- Sys.glob(paste0(derived_data, "/interp_obs/2018112206/interp*"))
+# files <- Sys.glob(paste0(derived_data, "/interp_obs/2018112200/interp*"))
 # 
 # obs <- purrr::map(files, function(f) {
 #   print(f)
-#   read_rds(f) %>% 
-#     .[, id := 1:.N, by = ens] %>% 
-#     .[, fcst_exp := "2018112206"] %>% 
-#     .[, exp := NULL] %>% 
-#     melt(measure.vars = c("E4", "E5", "E6", "E7"), 
+#   read_rds(f) %>%
+#     .[, id := 1:.N, by = ens] %>%
+#     .[, fcst_exp := "2018112200"] %>%
+#     .[, exp := NULL] %>%
+#     melt(measure.vars = c("E4", "E5", "E6", "E7"),
 #          variable.name = "exp",
-#          value.name = "fcst") %>% 
+#          value.name = "fcst") %>%
 #     .[, ":="(obs = if_else(usage.flag == 1, obs, NA_real_),
-#              fcst = if_else(usage.flag == 1, fcst, NA_real_))] %>% 
+#              fcst = if_else(usage.flag == 1, fcst, NA_real_))] %>%
 #     .[, c(list(obs = mean(obs, na.rm = TRUE),
 #                fcst = mean(fcst, na.rm = TRUE)),
-#           .SD[ens == 1]), by = .(id, exp), .SDcols = -c("obs", "fcst")] %>% 
+#           .SD[ens == 1]), by = .(id, exp), .SDcols = -c("obs", "fcst")] %>%
 #     .[usage.flag == 1]
-#   
-# }) %>% 
+# 
+# }) %>%
 #   rbindlist()
 
 obs_00 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mean.rds"))
@@ -251,6 +251,7 @@ rbind(obs_00, obs_06) %>%
   melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
   .[estadistico == "bias"] %>% 
   ggplot(aes(date, value)) +
+  geom_hline(yintercept = 0, color = "grey60") +
   geom_line(aes(color = exp, linetype = fcst_exp)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
