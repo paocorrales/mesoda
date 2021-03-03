@@ -4,7 +4,7 @@ library(tidyverse)
 library(lubridate)
 library(data.table)
 
-miembros <- 3
+miembros <- 60
 
 IOP <- tribble(
   ~iop, ~ini, ~end,
