@@ -167,6 +167,19 @@ sondeos <- purrr::map(files, function(f){
 }) %>% 
   rbindlist()
 
+miembros <- read_rds("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos_agregados.rds") %>% 
+  .[, mem := formatC(mem, width = 3, flag = "0")] %>% 
+  fisica[., on = "mem"] %>% 
+  separate(fisica, into = c("cumulus", "pbl"))
+
+
+
+media <- read_rds("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos_media.rds") %>% 
+  .[, .(RMSE = mean(sqrt((value - fcst_value)^2), na.rm = TRUE), 
+        BIAS = mean(value - fcst_value, na.rm = TRUE)), 
+    by = .(iop, exp, variable, lev, fcst_exp)] %>% 
+  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico", value.name = "value.est")
+
 IOP <- tribble(
   ~iop, ~ini, ~end,
   "IOP07", ymd_hms("20181121150000"), ymd_hms("20181121210000"),
@@ -201,6 +214,207 @@ sondeos %>%
   theme_minimal()
 ```
 
+```{r rmse-sondeos-media}
+extremos <- miembros %>% 
+  .[, .(max_rmse = max(RMSE),
+        min_rmse = min(RMSE)), by = .(exp, fcst_exp, lev, variable)]
+
+media %>% 
+  .[estadistico == "RMSE"] %>% 
+  extremos[., on = .NATURAL] %>% 
+  ggplot(aes(lev/1000, value.est)) +
+  # geom_hline(yintercept = 0, color = "grey30") +
+  geom_ribbon(aes(ymin = min_rmse, 
+                  ymax = max_rmse, fill = exp), alpha = 0.2) +
+  scale_fill_manual(guide = NULL, values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                                   E6 = "SATWND", E7 = "RAD")) +
+  geom_line(aes(color = exp, linetype = estadistico)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp + iop~variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+
+media %>% 
+  .[estadistico == "RMSE"] %>% 
+  miembros[., on = .NATURAL] %>% 
+  ggplot(aes(lev/1000, value.est)) +
+  # geom_hline(yintercept = 0, color = "grey30") +
+  geom_line(alpha = 0.1, 
+            aes(y = RMSE, color = exp, group = interaction(exp, mem))) +
+  geom_line(aes(color = exp, linetype = estadistico)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp + iop~variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+```
+
+
+```{r rmse-sondeos-param}
+pbl <- miembros[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, pbl, lev, variable)]
+
+media %>% 
+  .[estadistico == "RMSE"] %>% 
+  .[, c("exp", "variable", "lev", "fcst_exp", "RMSE" = "value.est")] %>% 
+  .[, ":="(pbl = "Mean",
+           RMSE = value.est)] %>% 
+  .[, value.est := NULL] %>% 
+  rbind(., pbl) %>% 
+  ggplot(aes(lev/1000, RMSE)) +
+  # geom_hline(yintercept = 0, color = "grey30") +
+  geom_line(aes(y = RMSE, color = exp, linetype = pbl, group = interaction(exp, pbl))) +
+  scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp ~ variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+
+
+cum <- miembros[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, cumulus, lev, variable)]
+
+media %>% 
+  .[estadistico == "RMSE"] %>% 
+  .[, c("exp", "variable", "lev", "fcst_exp", "RMSE" = "value.est")] %>% 
+  .[, ":="(cumulus = "Mean",
+           RMSE = value.est)] %>% 
+  .[, value.est := NULL] %>% 
+  rbind(., cum) %>% 
+  ggplot(aes(lev/1000, RMSE)) +
+  # geom_hline(yintercept = 0, color = "grey30") +
+  geom_line(aes(y = RMSE, color = exp, linetype = cumulus, group = interaction(exp, cumulus))) +
+  scale_linetype_manual(values = c(4, 2, 3, 1)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp ~ variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+
+```
+
+
+```{r bias-sondeos-media}
+extremos <- miembros %>% 
+  .[, .(max_bias = max(BIAS),
+        min_bias = min(BIAS)), by = .(exp, fcst_exp, lev, variable)]
+
+media %>% 
+  .[estadistico == "BIAS"] %>% 
+  extremos[., on = .NATURAL] %>% 
+  ggplot(aes(lev/1000, value.est)) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_ribbon(aes(ymin = min_bias, 
+                  ymax = max_bias, fill = exp), alpha = 0.2) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  scale_fill_manual(guide = NULL, values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                                   E6 = "SATWND", E7 = "RAD")) +
+  geom_line(aes(color = exp, linetype = estadistico)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp + iop~variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+
+media %>% 
+  .[estadistico == "BIAS"] %>% 
+  miembros[., on = .NATURAL] %>% 
+  ggplot(aes(lev/1000, value.est)) +
+  
+  geom_line(alpha = 0.1, 
+            aes(y = BIAS, color = exp, group = interaction(exp, mem))) +
+  geom_line(aes(color = exp, linetype = estadistico)) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp + iop~variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal() geom_hline(yintercept = 0, color = "grey30") +
+```
+
+
+```{r bias-sondeos-param}
+pbl <- miembros[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, pbl, lev, variable)]
+
+media %>% 
+  .[estadistico == "BIAS"] %>% 
+  .[, c("exp", "variable", "lev", "fcst_exp", "BIAS" = "value.est")] %>% 
+  .[, ":="(pbl = "Mean",
+           BIAS = value.est)] %>% 
+  .[, value.est := NULL] %>% 
+  rbind(., pbl) %>% 
+  ggplot(aes(lev/1000, BIAS)) +
+  geom_line(aes(y = BIAS, color = exp, linetype = pbl, group = interaction(exp, pbl))) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp ~ variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+
+
+cum <- miembros[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, cumulus, lev, variable)]
+
+media %>% 
+  .[estadistico == "BIAS"] %>% 
+  .[, c("exp", "variable", "lev", "fcst_exp", "BIAS" = "value.est")] %>% 
+  .[, ":="(cumulus = "Mean",
+           BIAS = value.est)] %>% 
+  .[, value.est := NULL] %>% 
+  rbind(., cum) %>% 
+  ggplot(aes(lev/1000, BIAS)) +
+  geom_line(aes(y = BIAS, color = exp, linetype = cumulus, group = interaction(exp, cumulus))) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  scale_linetype_manual(values = c(4, 2, 3, 1)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  coord_flip() +
+  facet_grid(fcst_exp ~ variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+
+```
+
 
 ### Observaciones de superficie
 
@@ -228,6 +442,10 @@ sondeos %>%
 
 obs_00 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mean.rds"))
 obs_06 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean.rds"))
+
+obs_ens_00 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mem.rds"))
+obs_ens_06 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mem.rds"))
+
 
 rbind(obs_00, obs_06) %>% 
   .[usage.flag == 1] %>% 
@@ -259,6 +477,193 @@ rbind(obs_00, obs_06) %>%
   labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
   facet_wrap(~ var, scales = "free_y") +
   theme_minimal()
+```
+
+```{r}
+
+extremos <- rbind(obs_ens_00, obs_ens_06) %>% 
+  .[, .(max_rmse = max(RMSE),
+        min_rmse = min(RMSE)), by = .(var, exp, fcst_exp, date)]
+
+
+miembros <- rbind(obs_ens_00, obs_ens_06)
+
+rbind(obs_00, obs_06) %>% 
+  .[usage.flag == 1] %>% 
+  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
+        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
+  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
+  .[estadistico == "rmse"] %>% 
+  extremos[., on = .NATURAL] %>% 
+  ggplot(aes(date, value)) +
+  geom_ribbon(aes(ymin = min_rmse, 
+                  ymax = max_rmse, fill = exp), alpha = 0.2) +
+  scale_fill_manual(guide = NULL, values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                                   E6 = "SATWND", E7 = "RAD")) +
+  geom_line(aes(color = exp, linetype = fcst_exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date() +
+  labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_wrap(~ var, scales = "free_y") +
+  theme_minimal()
+
+
+rbind(obs_00, obs_06) %>% 
+  .[usage.flag == 1] %>% 
+  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
+        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
+  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
+  .[estadistico == "rmse"] %>% 
+  miembros[., on = .NATURAL] %>% 
+  ggplot(aes(date, value)) +
+  geom_line(alpha = 0.1, 
+            aes(y = RMSE, color = exp, linetype = fcst_exp, group = interaction(exp, mem, fcst_exp))) +
+  geom_line(aes(color = exp, linetype = fcst_exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date() +
+  labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_wrap(~ var, scales = "free_y") +
+  theme_minimal()
+
+```
+
+
+```{r}
+miembros %>% 
+  .[, mean_RMSE := mean(RMSE), by =  .(exp, fcst_exp, date, var)] %>% 
+  ggplot(aes(date, RMSE)) +
+  geom_line(aes(color = exp, linetype = fcst_exp, 
+                grup = interaction(exp, fcst_exp, mem)), alpha = 0.1) +
+  geom_line(aes(y = mean_RMSE, color = exp, linetype = fcst_exp)) +
+   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date() +
+  labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_wrap(~ var, scales = "free_y") +
+  theme_minimal()
+```
+
+
+### Precipitación
+
+```{r}
+files <- Sys.glob(paste0(derived_data, "/ppacum/E[4-7]_fcst_201811220*_mean_acum_30h.rds"))
+
+pp_acum <- purrr::map(files, function(f) {
+  
+  meta <- unglue(basename(f), "{exp}_fcst_{fcst_init}_mean_acum_30h.rds")
+  
+  read_rds(f) %>% 
+    .[, pp_acum := if_else(pp_acum < 0, 0, pp_acum)] %>% 
+    .[, ":="(exp = meta[[1]][["exp"]],
+             fcst_init = meta[[1]][["fcst_init"]])]
+  
+  
+}) %>% rbindlist()
+
+pp_acum %>% 
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level_d)), 
+                    proj = norargentina_lambert,
+                    breaks = seq(20, 300, 20)) +
+  scale_fill_viridis_c(guide = guide_colorsteps(barwidth = 20,
+                                                barheight = 0.8), 
+                       super = ScaleDiscretised,
+                       limits = c(20, 300),
+                       na.value = "white") +
+  geom_point(data = square, aes(lon, lat), size = 0.1) +
+  geom_mapa() +
+  facet_grid(fcst_init ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  labs(fill = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  
+  read_rds(paste0(derived_data, "ppacum/IMERG_30h.rds")) %>% 
+  .[, run := "IMERG"] %>%
+  .[,  c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level_d)), 
+                    proj = norargentina_lambert,
+                    breaks = seq(20, 300, 20)) +
+  scale_fill_viridis_c(guide = guide_colorsteps(barwidth = 20,
+                                                barheight = 0.8), 
+                       super = ScaleDiscretised,
+                       limits = c(20, 300),
+                       na.value = "white") +
+  geom_point(data = square, aes(lon, lat), size = 0.1) +
+  geom_mapa() +
+  facet_wrap(~run) +
+  labs(fill = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  plot_layout(ncol = 2, widths = c(3, 1), guides = "collect") & theme(legend.position = 'bottom')
+
+
+```
+
+```{r}
+files <- Sys.glob(paste0(derived_data, "/ppacum/E[4-7]_fcst_201811220*_prop_acum_30h.rds"))
+
+pp_prop <- purrr::map(files, function(f) {
+  
+  meta <- unglue(basename(f), "{exp}_fcst_{fcst_init}_prop_acum_30h.rds")
+  
+  read_rds(f) %>% 
+    .[, ":="(exp = meta[[1]][["exp"]],
+             fcst_init = meta[[1]][["fcst_init"]])]
+  
+  
+}) %>% rbindlist()
+
+pp_prop %>% 
+  .[umbral == 100] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = prop*100, fill = stat(level_d)), 
+                    proj = norargentina_lambert,
+                    breaks = seq(10, 100, 10)) +
+  scale_fill_gradientn(colours = rev(Redmonder::redmonder.pal(10, name = "qMSOStd")),
+                       limits = c(10, 100),
+                       guide = guide_colorsteps(barwidth = 20,
+                                                barheight = 0.8),
+                       super = ScaleDiscretised,
+                       na.value = "white") +
+  geom_point(data = square, aes(lon, lat), size = 0.1) +
+  geom_mapa() +
+  facet_grid(fcst_init ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  labs(fill = "100 mm") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  
+  read_rds(paste0(derived_data, "ppacum/IMERG_30h.rds")) %>% 
+  .[, run := "IMERG"] %>%
+  .[,  c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level_d)), 
+                    proj = norargentina_lambert,
+                    breaks = seq(20, 300, 20)) +
+  scale_fill_viridis_c(guide = guide_colorsteps(barwidth = 20,
+                                                barheight = 0.8), 
+                       super = ScaleDiscretised,
+                       limits = c(20, 300),
+                       na.value = "white") +
+  geom_point(data = square, aes(lon, lat), size = 0.1) +
+  geom_mapa() +
+  facet_wrap(~run) +
+  labs(fill = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  plot_layout(ncol = 2, widths = c(3, 1)) & theme(legend.position = 'bottom')
+
+
 ```
 
 
