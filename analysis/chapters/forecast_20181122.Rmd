@@ -359,7 +359,7 @@ media %>%
                                               "u" = "U wind",
                                               "v" = "V wind"))) +
   labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
-  theme_minimal() geom_hline(yintercept = 0, color = "grey30") +
+  theme_minimal() 
 ```
 
 
@@ -443,16 +443,16 @@ media %>%
 obs_00 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mean.rds"))
 obs_06 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean.rds"))
 
-obs_ens_00 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mem.rds"))
-obs_ens_06 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mem.rds"))
+media <- rbind(read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mean2.rds")),
+               read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean2.rds")))
+
+miembros <- rbind(read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mem.rds")),
+                  read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mem.rds")))
 
 
-rbind(obs_00, obs_06) %>% 
-  .[usage.flag == 1] %>% 
-  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
-        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
-  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
-  .[estadistico == "rmse"] %>% 
+media %>% 
+  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico") %>% 
+  .[estadistico == "RMSE"] %>% 
   ggplot(aes(date, value)) +
   geom_line(aes(color = exp, linetype = fcst_exp)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
@@ -462,12 +462,9 @@ rbind(obs_00, obs_06) %>%
   facet_wrap(~ var, scales = "free_y") +
   theme_minimal()
 
-rbind(obs_00, obs_06) %>% 
-  .[usage.flag == 1] %>% 
-  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
-        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
-  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
-  .[estadistico == "bias"] %>% 
+media %>% 
+  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico") %>% 
+  .[estadistico == "BIAS"] %>% 
   ggplot(aes(date, value)) +
   geom_hline(yintercept = 0, color = "grey60") +
   geom_line(aes(color = exp, linetype = fcst_exp)) +
@@ -481,23 +478,16 @@ rbind(obs_00, obs_06) %>%
 
 ```{r}
 
-extremos <- rbind(obs_ens_00, obs_ens_06) %>% 
+extremos <- miembros %>% 
   .[, .(max_rmse = max(RMSE),
         min_rmse = min(RMSE)), by = .(var, exp, fcst_exp, date)]
 
-
-miembros <- rbind(obs_ens_00, obs_ens_06)
-
-rbind(obs_00, obs_06) %>% 
-  .[usage.flag == 1] %>% 
-  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
-        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
-  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
-  .[estadistico == "rmse"] %>% 
+media %>% 
   extremos[., on = .NATURAL] %>% 
-  ggplot(aes(date, value)) +
+  .[exp == "E7"] %>% 
+  ggplot(aes(date, RMSE)) +
   geom_ribbon(aes(ymin = min_rmse, 
-                  ymax = max_rmse, fill = exp), alpha = 0.2) +
+                  ymax = max_rmse, fill = exp, group = interaction(exp, fcst_exp)), alpha = 0.2) +
   scale_fill_manual(guide = NULL, values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                                    E6 = "SATWND", E7 = "RAD")) +
   geom_line(aes(color = exp, linetype = fcst_exp)) +
@@ -509,17 +499,14 @@ rbind(obs_00, obs_06) %>%
   theme_minimal()
 
 
-rbind(obs_00, obs_06) %>% 
-  .[usage.flag == 1] %>% 
-  .[, .(rmse = sqrt(mean((obs - fcst)^2, na.rm = TRUE)),
-        bias = mean(obs -  fcst, na.rm = TRUE)), by = .(var, date, exp, fcst_exp)] %>% 
-  melt(measure.vars = c("rmse", "bias"), variable.name = "estadistico") %>% 
-  .[estadistico == "rmse"] %>% 
-  miembros[., on = .NATURAL] %>% 
-  ggplot(aes(date, value)) +
-  geom_line(alpha = 0.1, 
+media %>% 
+  .[, mem := "000"] %>% 
+  rbind(., miembros) %>% 
+  .[exp == "E7"] %>% 
+  ggplot(aes(date, RMSE)) +
+  geom_line(data = ~.x[mem != "000"], alpha = 0.1, 
             aes(y = RMSE, color = exp, linetype = fcst_exp, group = interaction(exp, mem, fcst_exp))) +
-  geom_line(aes(color = exp, linetype = fcst_exp)) +
+  geom_line(data = ~.x[mem == "000"], aes(color = exp, linetype = fcst_exp)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
   scale_date() +
@@ -531,20 +518,138 @@ rbind(obs_00, obs_06) %>%
 
 
 ```{r}
-miembros %>% 
+copy(miembros) %>% 
   .[, mean_RMSE := mean(RMSE), by =  .(exp, fcst_exp, date, var)] %>% 
   ggplot(aes(date, RMSE)) +
   geom_line(aes(color = exp, linetype = fcst_exp, 
                 grup = interaction(exp, fcst_exp, mem)), alpha = 0.1) +
   geom_line(aes(y = mean_RMSE, color = exp, linetype = fcst_exp)) +
-   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
   scale_date() +
   labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
   facet_wrap(~ var, scales = "free_y") +
   theme_minimal()
 ```
+```{r}
 
+extremos <- miembros %>% 
+  .[, .(max_bias = max(BIAS),
+        min_bias = min(BIAS)), by = .(var, exp, fcst_exp, date)]
+
+media %>% 
+  extremos[., on = .NATURAL] %>% 
+  .[exp == "E7"] %>% 
+  ggplot(aes(date, BIAS)) +
+  geom_ribbon(aes(ymin = min_bias, 
+                  ymax = max_bias, fill = exp, group = interaction(exp, fcst_exp)), alpha = 0.2) +
+  scale_fill_manual(guide = NULL, values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                                   E6 = "SATWND", E7 = "RAD")) +
+  geom_line(aes(color = exp, linetype = fcst_exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date() +
+  labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_wrap(~ var, scales = "free_y") +
+  theme_minimal()
+
+
+media %>% 
+  .[, mem := "000"] %>% 
+  rbind(., miembros) %>% 
+  .[exp == "E7"] %>% 
+  ggplot(aes(date, BIAS)) +
+  geom_line(data = ~.x[mem != "000"], alpha = 0.1, 
+            aes(y = RMSE, color = exp, linetype = fcst_exp, group = interaction(exp, mem, fcst_exp))) +
+  geom_line(data = ~.x[mem == "000"], aes(color = exp, linetype = fcst_exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  scale_date() +
+  labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_wrap(~ var, scales = "free_y") +
+  theme_minimal()
+
+```
+
+
+```{r}
+cum <- fisica[miembros, on = .NATURAL] %>% 
+  separate(fisica, into = c("cumulus", "pbl")) %>% 
+  .[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, cumulus, var, date)]
+
+media %>% 
+  .[, c("exp", "var", "date", "fcst_exp", "BIAS")] %>% 
+  .[, ":="(cumulus = "Mean")] %>% 
+  rbind(., cum) %>% 
+  ggplot(aes(date, BIAS)) +
+  geom_line(aes(color = exp, linetype = cumulus)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  scale_linetype_manual(values = c(4, 2, 3, 1)) +
+  scale_date() +
+  labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_grid(var~fcst_exp, scales = "free_y") +
+  theme_minimal()
+
+cum <- fisica[miembros, on = .NATURAL] %>% 
+  separate(fisica, into = c("cumulus", "pbl")) %>% 
+  .[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, cumulus, var, date)]
+
+media %>% 
+  .[, c("exp", "var", "date", "fcst_exp", "RMSE")] %>% 
+  .[, ":="(cumulus = "Mean")] %>% 
+  rbind(., cum) %>% 
+  ggplot(aes(date, RMSE)) +
+  geom_line(aes(color = exp, linetype = cumulus)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  # geom_hline(yintercept = 0, color = "grey30") +
+  scale_linetype_manual(values = c(4, 2, 3, 1)) +
+  scale_date() +
+  labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_grid(var~fcst_exp, scales = "free_y") +
+  theme_minimal()
+```
+```{r}
+pbl <- fisica[miembros, on = .NATURAL] %>% 
+  separate(fisica, into = c("cumulus", "pbl")) %>% 
+  .[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, pbl, var, date)]
+
+media %>% 
+  .[, c("exp", "var", "date", "fcst_exp", "BIAS")] %>% 
+  .[, ":="(pbl = "Mean")] %>% 
+  rbind(., pbl) %>% 
+  ggplot(aes(date, BIAS)) +
+  geom_line(aes(color = exp, linetype = pbl)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_date() +
+  labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_grid(var~fcst_exp, scales = "free_y") +
+  theme_minimal()
+
+pbl <- fisica[miembros, on = .NATURAL] %>% 
+  separate(fisica, into = c("cumulus", "pbl")) %>% 
+  .[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, pbl, var, date)]
+
+media %>% 
+  .[, c("exp", "var", "date", "fcst_exp", "RMSE")] %>% 
+  .[, ":="(pbl = "Mean")] %>% 
+  rbind(., pbl) %>% 
+  ggplot(aes(date, RMSE)) +
+  geom_line(aes(color = exp, linetype = pbl)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  # geom_hline(yintercept = 0, color = "grey30") +
+  scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_date() +
+  labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_grid(var~fcst_exp, scales = "free_y") +
+  theme_minimal()
+```
 
 ### Precipitación
 
@@ -726,6 +831,332 @@ purrr::walk(c(0:30), function(h) {
 })
 ```
 
+### Campos de variables
+
+```{r}
+df <- data.frame(
+  lead_time = rep(c(6, 12, 18), 4),
+  exp = rep(c("E4", "E5", "E6", "E7"), each = 3)
+)
+
+files <- purrr::map2_chr(df$lead_time, df$exp, function(l, e) {
+  paste0("/home/paola.corrales/datosmunin/EXP/", e, "/FCST/2018112200/NPP/NPP_2018-11-22_00_FC", 
+         formatC(l, width = 2, flag = "0"), ".nc")
+})
+
+coord <- ReadNetCDF(files[1], vars = c("XLAT", "XLONG"))
+
+var_00 <- purrr::map(files, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/FCST/{fcst_exp}/NPP/NPP_{x}_FC{lead}.nc")
+  
+  ReadNetCDF(f, vars = c("Q", "T", "V"), subset = list(lev = c(800, 1000))) %>% 
+    .[, .(Q = mean(Q),
+          T = mean(T),
+          V = mean(V)), by = .(lat, lon)] %>% 
+    .[, ":="(exp = meta[[1]][["exp"]],
+             fcst_exp = meta[[1]][["fcst_exp"]],
+             lead_date = ymd_h(meta[[1]][["fcst_exp"]]) + hours(as.numeric(meta[[1]][["lead"]])))]
+  
+}) %>% rbindlist()
+
+mcape_00 <- purrr::map(files, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/FCST/{fcst_exp}/NPP/NPP_{x}_FC{lead}.nc")
+  
+  ReadNetCDF(f, vars = c("MCAPE", "MDBZ")) %>% 
+    .[, .(MCAPE = mean(MCAPE, na.rm = TRUE),
+          MDBZ = mean(MDBZ, na.rm = TRUE)), by = .(lat, lon)] %>% 
+    .[, ":="(exp = meta[[1]][["exp"]],
+             fcst_exp = meta[[1]][["fcst_exp"]],
+             lead_date = ymd_h(meta[[1]][["fcst_exp"]]) + hours(as.numeric(meta[[1]][["lead"]])))]
+  
+}) %>% rbindlist()
+```
+
+```{r}
+df <- data.frame(
+  lead_time = rep(c(0, 6, 12), 4),
+  exp = rep(c("E4", "E5", "E6", "E7"), each = 3)
+)
+
+files <- purrr::map2_chr(df$lead_time, df$exp, function(l, e) {
+  paste0("/home/paola.corrales/datosmunin/EXP/", e, "/FCST/2018112206/NPP/NPP_2018-11-22_06_FC", 
+         formatC(l, width = 2, flag = "0"), ".nc")
+})
+
+coord <- ReadNetCDF(files[1], vars = c("XLAT", "XLONG"))
+
+var_06 <- purrr::map(files, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/FCST/{fcst_exp}/NPP/NPP_{x}_FC{lead}.nc")
+  
+  ReadNetCDF(f, vars = c("Q", "T", "V"), subset = list(lev = c(800, 1000))) %>% 
+    .[, .(Q = mean(Q),
+          T = mean(T),
+          V = mean(V)), by = .(lat, lon)] %>% 
+    .[, ":="(exp = meta[[1]][["exp"]],
+             fcst_exp = meta[[1]][["fcst_exp"]],
+             lead_date = ymd_h(meta[[1]][["fcst_exp"]]) + hours(as.numeric(meta[[1]][["lead"]])))]
+  
+}) %>% rbindlist()
+
+mcape_06 <- purrr::map(files, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/FCST/{fcst_exp}/NPP/NPP_{x}_FC{lead}.nc")
+  
+  ReadNetCDF(f, vars = c("MCAPE", "MDBZ")) %>% 
+    .[, .(MCAPE = mean(MCAPE, na.rm = TRUE),
+          MDBZ = mean(MDBZ, na.rm = TRUE)), by = .(lat, lon)] %>% 
+    .[, ":="(exp = meta[[1]][["exp"]],
+             fcst_exp = meta[[1]][["fcst_exp"]],
+             lead_date = ymd_h(meta[[1]][["fcst_exp"]]) + hours(as.numeric(meta[[1]][["lead"]])))]
+  
+}) %>% rbindlist()
+```
 
 
+
+```{r}
+var_00 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>% 
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = Q, fill = stat(level_d)), proj = norargentina_lambert,
+                    breaks = seq(0, 20, 2)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "BrBG", direction = 1,
+                       limits = c(1, 20),
+                       guide = guide_colorsteps(#inside = FALSE,
+                         barwidth = 25,
+                         barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+var_06 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>% 
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = Q, fill = stat(level_d)), proj = norargentina_lambert,
+                    breaks = seq(0, 20, 2)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "BrBG", direction = 1,
+                       limits = c(1, 20),
+                       guide = guide_colorsteps(#inside = FALSE,
+                         barwidth = 25,
+                         barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+```{r}
+var_00 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = V, fill = stat(level_d)), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised(name = NULL,
+                                   guide = guide_colorsteps(#inside = FALSE,
+                                     barwidth = 25,
+                                     barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+var_06 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = V, fill = stat(level_d)), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised(name = NULL,
+                                   guide = guide_colorsteps(#inside = FALSE,
+                                     barwidth = 25,
+                                     barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+
+```
+
+```{r}
+var_00 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = T - 273.15, fill = stat(level_d)), proj = norargentina_lambert,
+                    breaks = seq(0, 40, 5)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "OrRd", direction = 1,
+                       limits = c(1, 40),
+                       guide = guide_colorsteps(#inside = FALSE,
+                         barwidth = 25,
+                         barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+var_06 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = T - 273.15, fill = stat(level_d)), proj = norargentina_lambert,
+                    breaks = seq(0, 40, 5)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "OrRd", direction = 1,
+                       limits = c(1, 40),
+                       guide = guide_colorsteps(#inside = FALSE,
+                         barwidth = 25,
+                         barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+```{r}
+mcape_00 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  # geom_point(aes(color = MCAPE)) +
+  geom_contour_fill(aes(z = MCAPE, fill = stat(level_d)), proj = norargentina_lambert,
+                    breaks = seq(0, 4500, 500)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "YlOrRd", direction = 1,
+                       guide = guide_colorsteps(#inside = FALSE,
+                         barwidth = 25,
+                         barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+mcape_06 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  # geom_point(aes(color = MCAPE)) +
+  geom_contour_fill(aes(z = MCAPE, fill = stat(level_d)), proj = norargentina_lambert,
+                    breaks = seq(0, 4500, 500)) +
+  scale_fill_distiller(name = NULL, super = ScaleDiscretised,
+                       palette = "YlOrRd", direction = 1,
+                       guide = guide_colorsteps(#inside = FALSE,
+                         barwidth = 25,
+                         barheight = 0.8)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+```{r}
+values <- c(-19.5, -12, -7.5, -3, 1.5, 6, 9, 12, 15, 16.5, 18, 19.5, 21, 
+22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 
+42, 43.5, 45, 46.5, 48, 49.5, 51, 52.5, 54, 55.5, 57, 58.5, 60, 
+61.5, 63, 64.5, 66, 69, 76.5)
+
+colours <- c("#3D4170", "#3D4E7C", "#3B5B84", "#3A6695", "#3672A4", "#3188BD", 
+"#2F89B9", "#2896C7", "#24A4CF", "#2AB1D6", "#53F336", "#4BE231", 
+"#44D12F", "#3FC12B", "#3AAF25", "#32A11F", "#2C881E", "#227216", 
+"#EEEF39", "#DEE539", "#D7DA35", "#CED130", "#C4C52B", "#CBAE1F", 
+"#D59716", "#DB8116", "#EC0A2E", "#CB001A", "#C20013", "#B10009", 
+"#990000", "#C3005D", "#D600A2", "#E901E9", "#CC00CC", "#B100B5", 
+"#9800A0", "#FEFFFF", "#DFF5EC", "#C5F1E0", "#B7ECD8", "#A6ECCF", 
+"#95E3C5", "#85E0BD")
+
+mcape_00 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  # geom_point(aes(color = MCAPE)) +
+  geom_contour_fill(aes(z = MDBZ, fill = stat(level)), 
+                    proj = norargentina_lambert,
+                    breaks = values) +
+  scale_fill_manual(values = colours, 
+                    drop = FALSE, guide = guide_colorsteps(barwidth = 0.8, 
+                                                                         barheight = 30)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+mcape_06 %>% 
+  coord[., on = .NATURAL] %>% 
+  .[, c("x", "y") := wrf_project(XLONG, XLAT)] %>% 
+  .[, lead_date := factor(lead_date)] %>%
+  
+  ggplot(aes(x, y)) +
+  # geom_point(aes(color = MCAPE)) +
+  geom_contour_fill(aes(z = MDBZ, fill = stat(level)), 
+                    proj = norargentina_lambert,
+                    breaks = values) +
+  scale_fill_manual(values = colours, 
+                    drop = FALSE, guide = guide_colorsteps(barwidth = 0.8, 
+                                                                         barheight = 30)) +
+  geom_mapa() +
+  cordillera +
+  facet_grid(lead_date ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                          E6 = "SATWND", E7 = "RAD"))) +
+  theme_minimal() +
+  theme(panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
 
