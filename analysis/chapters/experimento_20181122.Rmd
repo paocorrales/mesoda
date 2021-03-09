@@ -31,7 +31,7 @@ library(knitr)
 library(kableExtra)
 
 map_arg <- rnaturalearth::ne_states(country = c("argentina"), 
-                                      returnclass = "sf")
+                                    returnclass = "sf")
 map_limitrofes <- rnaturalearth::ne_countries(country = c("Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
 
 square <- fread(here("analysis", "data", "derived_data", "dominio_square.csv"))
@@ -99,8 +99,8 @@ fisica <- data.table(mem = as.character(formatC(1:60, flag = "0", width = 3)),
                                     "GF-MYNN2"), length.out = 60)) %>% setDT()
 
 multiespectrales <- c("airs_aqua",
-              "iasi_metop-a",
-              "iasi_metop-b")
+                      "iasi_metop-a",
+                      "iasi_metop-b")
 
 experiments <- c("E4", "E5", "E6", "E7")
 #Color blind friendly but E4 y E7 parecidos en Desaturated
@@ -110,6 +110,8 @@ satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>%
   setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
 derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
 
+
+proj_radar <- "+proj=tmerc +lon_0=-61.5 +lat_0=-32 +k_0=1 +ellps=WGS84"
 ```
 
 ## Case Study: November 22th, 2020
@@ -250,14 +252,14 @@ rbindlist(list(no_oficiales, oficiales)) %>%
                      labels = c("ASWS","CSWS"), values = c(15, 17),
                      guide = guide_legend(override.aes = list(size = 2))) +
   scale_color_manual(name =  "Surface\nstations", values = c("Sfc - Non-official" = "#00695c", 
-                                              "Sfc - Official" = "#FD8002"),
+                                                             "Sfc - Official" = "#FD8002"),
                      breaks = c("Sfc - Non-official", "Sfc - Official"),
                      labels = c("ASWS","CSWS"),
                      guide = guide_legend(override.aes = list(size = 2)))+
   geom_point(data = square, aes(lon, lat), size = 0.2) +
   theme_minimal() + 
   theme(legend.position = "bottom", legend.justification = "left",
-         legend.key.size = unit(0.8, "lines")) +
+        legend.key.size = unit(0.8, "lines")) +
   
   # plot_spacer() +
   
@@ -341,8 +343,8 @@ rad %>%
       peakwt %between% c(0.001, 1200)] %>% 
   .[, as.list(quantile(peakwt, c(0.05, 0.5, 0.95))) %>% setNames(c("Q5", "Q50", "Q95")), by = .(sensor, channel)] %>% 
   ggplot(aes(channel, Q50)) +
-   # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
-   #             outlier.size = 0.5, size = 0.1) +
+  # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+  #             outlier.size = 0.5, size = 0.1) +
   geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4, fill = "darkorange") +
   geom_line(color = "darkorange") +
   scale_y_level(name = "Pressure (hPa)") +
@@ -350,7 +352,7 @@ rad %>%
   labs(x = "", y = "") +
   theme_minimal() +
   
-rad %>% 
+  rad %>% 
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   .[!sensor %in% c("airs", "iasi") &
       # errinv %between% c(0.0000316227, 1000) & 
@@ -359,8 +361,8 @@ rad %>%
       peakwt %between% c(0.001, 1200)] %>% 
   .[, as.list(quantile(peakwt, c(0.05, 0.5, 0.95))) %>% setNames(c("Q5", "Q50", "Q95")), by = .(sensor, channel)] %>% 
   ggplot(aes(channel, Q50)) +
-   # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
-   #             outlier.size = 0.5, size = 0.1) +
+  # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+  #             outlier.size = 0.5, size = 0.1) +
   geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4, fill = "darkorange") +
   geom_line(color = "darkorange") +
   scale_y_level(name = "Pressure (hPa)") +
@@ -441,14 +443,14 @@ rbind(global_qv_E6, global_qv_E7) %>%
   ggplot(aes(date, acum*1000)) +
   geom_line(aes(color = exp, linetype = exp, group = interaction(nivel, exp))) +
   # geom_label(data = ~.x[date %in% sample(unique(date), 38)] %>% group_by(exp, bottom_top) %>% sample_n(size = 1),
-   geom_label(data = ~.x[date %in% unique(date)[67]],
+  geom_label(data = ~.x[date %in% unique(date)[67]],
              aes(label = nivel, color = exp, 
                  group = interaction(nivel, exp)),
              size = 3, fill = "white", show.legend = FALSE,
              label.size = NA, label.padding = unit(0.1, "lines")) +
   scale_date() +
   scale_linetype_manual(values = c(2, 1), labels = c(E4 = "CONV", E5 = "AUT",
-                                     E6 = "SATWND", E7 = "RAD")) +
+                                                     E6 = "SATWND", E7 = "RAD")) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
   # facet_wrap(~nivel, scales = "free_y") +
@@ -456,7 +458,7 @@ rbind(global_qv_E6, global_qv_E7) %>%
        color = NULL, linetype = NULL) +
   theme_minimal() +
   theme(legend.position = "bottom")
- 
+
 
 ```
 
@@ -1153,7 +1155,7 @@ fcsts <- expand_grid(fcsts = c("20181122000000"),
                      exp = c("E4", "E5", "E6", "E7"))
 
 ana <- lapply(seq_len(nrow(fcsts)), function(f) {
-
+  
   tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
     .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
     .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>% 
@@ -1173,9 +1175,9 @@ cor <- ana[bottom_top %in% c(1, 16)] %>%
            v_10 = NULL)]
 
 ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)), 
-  by = .(south_north, west_east, date, exp)] %>% 
+    by = .(south_north, west_east, date, exp)] %>% 
   .[pw, on = .NATURAL] %>% 
-ggplot(aes(x, y)) +
+  ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = value, fill = stat(level_d)),
                     proj = norargentina_lambert) +
   scale_fill_distiller(name = NULL, super = ScaleDiscretised,
@@ -1188,10 +1190,10 @@ ggplot(aes(x, y)) +
   scale_size_continuous(breaks = c(-10, -5), range = c(0.8, 0.4),
                         labels = c("-10 m/s", "-5 m/s"),
                         name = NULL) +
-   # geom_text_contour(aes(z = v_mean), size = 3, stroke = 0.05,
-   #                   proj = norargentina_lambert, color = "darkorange", 
-   #              breaks = c(-10, -5), skip = 0,
-   #              label.placement = label_placement_n(1)) +
+  # geom_text_contour(aes(z = v_mean), size = 3, stroke = 0.05,
+  #                   proj = norargentina_lambert, color = "darkorange", 
+  #              breaks = c(-10, -5), skip = 0,
+  #              label.placement = label_placement_n(1)) +
   # scale_linetype_manual(guide = NULL, values = c(2, 1)) +
   cordillera +
   geom_mapa() +
@@ -1203,13 +1205,13 @@ ggplot(aes(x, y)) +
         # legend.box.spacing = margin(0, 0, 0, 0),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) +
-
-
-ana[bottom_top %between% c(2, 10), .(theta_mean = mean(theta)), 
-  by = .(south_north, west_east, date, exp)] %>% 
-   .[pw, on = .NATURAL] %>% 
-ggplot(aes(x, y)) +
- # geom_point(aes(color = v_mean)) +
+  
+  
+  ana[bottom_top %between% c(2, 10), .(theta_mean = mean(theta)), 
+      by = .(south_north, west_east, date, exp)] %>% 
+  .[pw, on = .NATURAL] %>% 
+  ggplot(aes(x, y)) +
+  # geom_point(aes(color = v_mean)) +
   geom_contour_fill(aes(z = theta_mean, fill = stat(level_d)),
                     proj = norargentina_lambert,
                     breaks = c(-Inf, seq(290, 314, 2), Inf), limits = c(-Inf, Inf)) +
@@ -1229,9 +1231,9 @@ ggplot(aes(x, y)) +
         panel.grid = element_line(linetype = 3),
         strip.text = element_blank(), 
         strip.background = element_blank()) +
-
-
-mucape %>% 
+  
+  
+  mucape %>% 
   .[variable == "mcape"] %>% 
   .[, c("x", "y") := wrf_project(lon, lat)] %>% 
   .[cor, on = .NATURAL] %>% 
@@ -1270,7 +1272,7 @@ mucape %>%
         strip.text = element_blank(), 
         strip.background = element_blank()) +
   
-    plot_layout(ncol = 1, heights = c(1, 1, 1)) +
+  plot_layout(ncol = 1, heights = c(1, 1, 1)) +
   plot_annotation(tag_levels = "a", tag_suffix = ")")
 ```
 
@@ -1291,14 +1293,14 @@ ana[west_east %between% c(70, 180) & bottom_top %between% c(1, 25)] %>%
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
   geom_contour2(aes(z = v_mean, linetype = factor(-sign(..level..))), 
-               color = "grey30", size = 0.3, binwidth = 2) +
+                color = "grey30", size = 0.3, binwidth = 2) +
   geom_text_contour(aes(z = v_mean), color = "grey30", 
                     size = 3, stroke = 0.05, breaks = seq(-10, 6, 2),
                     label.placement = label_placement_n(1)) +
   scale_linetype(guide = NULL) +
   scale_x_latitude(breaks = seq(-40, -20, 5)) +
   facet_wrap( ~ exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
-                                                     E6 = "SATWND", E7 = "RAD"))) +
+                                                 E6 = "SATWND", E7 = "RAD"))) +
   labs(y =  "Sigma levels") +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -1564,7 +1566,7 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
         exp = "IMERG"), by = .(end_date, y)] %>% 
   ggplot(aes(end_date, lat)) +
   geom_contour2(aes(z = pp_acum, color = ..level..), 
-               breaks = seq(1, 12, 1)) +
+                breaks = seq(1, 12, 1)) +
   scale_color_viridis_c(guide = NULL, breaks = seq(1, 12, 1), limits = c(1, 12)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   scale_y_latitude(breaks = seq(-40, -20, 5)) +
@@ -1579,7 +1581,7 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   ggplot(aes(date, lat)) +
   # geom_raster(aes(fill = pp_acum)) +
   geom_contour2(aes(z = pp_acum, color = ..level..),
-               breaks = seq(1, 12, 1)) +
+                breaks = seq(1, 12, 1)) +
   scale_color_viridis_c(breaks = seq(1, 12, 1), limits = c(1, 12),
                         guide = guide_colorstrip(inside = TRUE,
                                                  barwidth = 25,
@@ -1632,13 +1634,31 @@ ppacum_1h %>%
 
 #### Reflectivity
 
-```{r dbz-mean}
+```{r dbz-read}
+
+files <- Sys.glob("/home/jruiz/share/DATA/DATOS_RADAR/MOSAICO/*.nc")[seq(1, 12, 3)]
+# Solo un par de horarios 10, 13, 16 y 19 UTC
+
+dbz_obs <- purrr::map(files, function(f) {
+  
+  
+  ReadNetCDF(f, vars = "DBZH_cor") %>%
+    .[!is.na(DBZH_cor)] %>% 
+    .[, .(DBZH_cor = max(DBZH_cor, na.rm = TRUE)), by = .(x, y)] %>% 
+    .[, max_dbz := 10 * log10(DBZH_cor)] %>% 
+    .[, ":="(date = ymd_hms(str_remove(basename(f), ".nc")),
+             DBZH_cor = NULL)] %>% 
+    .[, c("lon", "lat") := proj4::project(list(x, y), proj_radar, inverse = TRUE)]
+  
+}) %>% rbindlist() %>% 
+  .[, run := "OBSERVATIONS"]
+
 
 dates <- c("20181122100000", "20181122130000", 
            "20181122160000", "20181122190000")
 files <- paste0(derived_data, "dbz/maxdbz_ana_E7_", dates, ".nc")
 
-dbz <- purrr::map(files, function(f){
+dbz_ana <- purrr::map(files, function(f){
   
   meta <- unglue(basename(f), "maxdbz_ana_{exp}_{date}.nc")
   ReadNetCDF(f, vars = c(lon = "XLONG", lat = "XLAT", "max_dbz")) %>% 
@@ -1646,48 +1666,70 @@ dbz <- purrr::map(files, function(f){
              date = ymd_hms(meta[[1]][["date"]]))] %>% 
     .[, c("x", "y") := wrf_project(lon, lat)] 
 }) %>% 
-  rbindlist()
+  rbindlist()  %>% 
+  .[, run := "RAD"]
 
 values <- c(-19.5, -12, -7.5, -3, 1.5, 6, 9, 12, 15, 16.5, 18, 19.5, 21, 
-22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 
-42, 43.5, 45, 46.5, 48, 49.5, 51, 52.5, 54, 55.5, 57, 58.5, 60, 
-61.5, 63, 64.5, 66, 69, 76.5)
+            22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 
+            42, 43.5, 45, 46.5, 48, 49.5, 51, 52.5, 54, 55.5, 57, 58.5, 60, 
+            61.5, 63, 64.5, 66, 69, 76.5)
 
 colours <- c("#3D4170", "#3D4E7C", "#3B5B84", "#3A6695", "#3672A4", "#3188BD", 
-"#2F89B9", "#2896C7", "#24A4CF", "#2AB1D6", "#53F336", "#4BE231", 
-"#44D12F", "#3FC12B", "#3AAF25", "#32A11F", "#2C881E", "#227216", 
-"#EEEF39", "#DEE539", "#D7DA35", "#CED130", "#C4C52B", "#CBAE1F", 
-"#D59716", "#DB8116", "#EC0A2E", "#CB001A", "#C20013", "#B10009", 
-"#990000", "#C3005D", "#D600A2", "#E901E9", "#CC00CC", "#B100B5", 
-"#9800A0", "#FEFFFF", "#DFF5EC", "#C5F1E0", "#B7ECD8", "#A6ECCF", 
-"#95E3C5", "#85E0BD")
+             "#2F89B9", "#2896C7", "#24A4CF", "#2AB1D6", "#53F336", "#4BE231", 
+             "#44D12F", "#3FC12B", "#3AAF25", "#32A11F", "#2C881E", "#227216", 
+             "#EEEF39", "#DEE539", "#D7DA35", "#CED130", "#C4C52B", "#CBAE1F", 
+             "#D59716", "#DB8116", "#EC0A2E", "#CB001A", "#C20013", "#B10009", 
+             "#990000", "#C3005D", "#D600A2", "#E901E9", "#CC00CC", "#B100B5", 
+             "#9800A0", "#FEFFFF", "#DFF5EC", "#C5F1E0", "#B7ECD8", "#A6ECCF", 
+             "#95E3C5", "#85E0BD")
+```
 
-dbz %>% 
+
+```{r dbz-mean}
+dbz_obs %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = max_dbz, fill = stat(level)), 
+                    proj = proj_radar,
+                    breaks = values) +
+  scale_fill_manual(values = colours, 
+                    labels = function(x) JumpBy(x, 3, fill = ""),
+                    drop = FALSE, 
+                    guide = guide_colorsteps(barwidth = 30, 
+                                             barheight = 0.8)) +
+  geom_mapa() +
+  facet_grid(run ~ date) +
+  labs(x = NULL, y = NULL, fill = NULL, color = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        # legend.box.spacing = margin(0, 0, 0, 0),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) +
+  
+  dbz_ana %>% 
   .[, date := factor(date)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = max_dbz, fill = stat(level)), 
                     proj = norargentina_lambert,
                     breaks = values) +
-  scale_fill_manual(values = colours, labels = function(x) JumpBy(x, 3, fill = ""),
-                    drop = FALSE, guide = guide_colorsteps(barwidth = 30, 
-                                                                         barheight = 0.8)) +
+  scale_fill_manual(values = colours, 
+                    labels = function(x) JumpBy(x, 3, fill = ""),
+                    drop = FALSE, 
+                    guide = guide_colorsteps(barwidth = 30, 
+                                             barheight = 0.8)) +
   
-  # scale_color_dbz(name = NULL, aesthetics = "fill", 
-  #                 guide = guide_colorstrip(barwidth = 20, 
-  #                                          barheight = 0.8,
-  #                                          inside = TRUE)) +
-  # ggnewscale::new_scale_fill() +
-  # geom_contour_fill(aes(z = max_dbz), fill = "white", 
-  #                   proj = norargentina_lambert,
-  #                   breaks = c(-Inf, 10)) +
   geom_mapa() +
-  facet_wrap(~ date, ncol = 4) +
+  facet_grid(run ~ date) +
   labs(x = NULL, y = NULL, fill = NULL, color = NULL) +
   theme_minimal() +
   theme(legend.position = "bottom",
-        legend.box.spacing = margin(0, 0, 0, 0),
+        strip.background = element_blank(),
+        strip.text.x = element_blank(),
         panel.ontop = TRUE,
-        panel.grid = element_line(linetype = 3))
+        panel.grid = element_line(linetype = 3)) +
+  
+  plot_layout(ncol = 1, guides = "collect") & 
+  theme(legend.position = 'bottom')
 
 ```
 
@@ -1720,7 +1762,7 @@ dbz %>%
   
   geom_mapa() +
   facet_wrap(~exp, ncol = 2, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
-                                                   E6 = "SATWND", E7 = "RAD"))) +
+                                                         E6 = "SATWND", E7 = "RAD"))) +
   labs(x = NULL, y = NULL, fill = NULL) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -1746,29 +1788,29 @@ dbz <- purrr::map(files, function(f){
   separate(fisica, into = c("cumulus", "pbl"))
 
 
-  dbz %>% 
+dbz %>% 
   .[, .(max_dbz = mean(max_dbz, na.rm = TRUE)), by = .(cumulus, exp, date, lon, lat, x, y)] %>% 
-    # .[date %in% unique(date)[1:2]] %>% 
-    .[, date := factor(date)] %>% 
+  # .[date %in% unique(date)[1:2]] %>% 
+  .[, date := factor(date)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = max_dbz, fill = stat(level)), 
                     proj = norargentina_lambert,
                     breaks = values) +
   scale_fill_manual(values = colours, 
                     drop = FALSE, guide = guide_colorsteps(barwidth = 0.8, 
-                                                                         barheight = 30)) +
+                                                           barheight = 30)) +
   geom_mapa() +
   ggh4x::facet_nested(date + cumulus ~ exp, 
                       labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
-                                                   E6 = "SATWND", E7 = "RAD"))) +
+                                                  E6 = "SATWND", E7 = "RAD"))) +
   labs(fill = NULL) +
   theme_minimal() +
   theme(#legend.position = "bottom",
-        legend.box.spacing = margin(0, 0, 0, 0),
-        panel.ontop = TRUE,
-        panel.grid = element_line(linetype = 3))
-  
-  # rm(dbz)
+    legend.box.spacing = margin(0, 0, 0, 0),
+    panel.ontop = TRUE,
+    panel.grid = element_line(linetype = 3))
+
+# rm(dbz)
 ```
 #### FSS for the analysis
 
@@ -1889,7 +1931,7 @@ sondeos %>%
   .[, iop := fcase(launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")), "IOP07",
                    launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08")] %>% 
   .[variable %in% c("t", "td", "u", "v") & !str_detect(site, "/") & !is.na(fcst_value) & !is.na(iop)] %>% 
-  .[, lev := cut_round(alt, seq(0, 20000, 1000))] %>% 
+  .[, lev := cut_round(alt, c(seq(0, 3000, 500), seq(4000, 21000, 1000)))] %>% 
   .[, ":="(RMSE = mean(sqrt((value - fcst_value)^2), na.rm = TRUE), 
            BIAS = mean(value - fcst_value, na.rm = TRUE)), by = .(iop, exp, variable, lev)] %>% 
   melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico", value.name = "value.est") %>% 
@@ -1913,7 +1955,7 @@ sondeos %>%
 sondeos %>% 
   .[variable == "td" & !str_detect(site, "/") & 
       exp == "E4"] %>%
-ggplot(aes(launch_time, alt/1000)) +
+  ggplot(aes(launch_time, alt/1000)) +
   geom_point(aes(color = value), size = 0.5) +
   scale_color_distiller(palette = "YlOrRd", direction = 1) +
   # geom_contour(aes(z = value - fcst_value)) +
