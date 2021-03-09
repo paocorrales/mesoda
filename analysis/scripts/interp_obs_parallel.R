@@ -19,7 +19,7 @@ fcst_path <- "/home/paola.corrales/datosmunin/EXP"
 
 ini_date <- ymd_hms("20181122000000")
 
-lead_time <- 2
+lead_time <- 36
 
 # out <- foreach(l = 0:lead_time),
 # .packages = c("data.table", "metR", "lubridate", "interp", "dplyr"),
@@ -60,7 +60,8 @@ purrr::map_dbl(c(0:lead_time), function(l) {
     fcst_exp <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{fcst_exp}/FCST/{info}")
     fcst <- ReadNetCDF(f, vars = c("XLONG", "XLAT", p = "PSFC",
                                    t = "T2",q = "Q2", u = "U10", v = "V10")) %>%
-      .[, fcst_exp := fcst_exp[[1]][["fcst_exp"]]]
+      .[, fcst_exp := fcst_exp[[1]][["fcst_exp"]]] %>%
+      .[, q := q/1000]
 
   }) %>% rbindlist()
 
@@ -105,8 +106,7 @@ purrr::map_dbl(c(0:lead_time), function(l) {
     write_rds(temp, path_out)
 
   l
-}) %>% rbindlist()
-
+})
 
 
 
