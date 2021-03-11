@@ -154,18 +154,18 @@ fss %>%
 ### Soundings
 
 ```{r message=FALSE, warning=FALSE}
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E*/FCST/*/sondeos/*")
-files <- files[str_detect(files, "_01_")]
-
-sondeos <- purrr::map(files, function(f){
-  
-  fread(f) %>% 
-    .[, value := fifelse(variable %in% c("t", "td"), value + 273.15, value)] %>% 
-    .[, launch_time := as_datetime(launch_time)] %>% 
-    .[, fcst_exp := basename(dirname(dirname(f)))]
-  
-}) %>% 
-  rbindlist()
+# files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E*/FCST/*/sondeos/*")
+# files <- files[str_detect(files, "_01_")]
+# 
+# sondeos <- purrr::map(files, function(f){
+#   
+#   fread(f) %>% 
+#     .[, value := fifelse(variable %in% c("t", "td"), value + 273.15, value)] %>% 
+#     .[, launch_time := as_datetime(launch_time)] %>% 
+#     .[, fcst_exp := basename(dirname(dirname(f)))]
+#   
+# }) %>% 
+#   rbindlist()
 
 miembros <- read_rds("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos_agregados.rds") %>% 
   .[, mem := formatC(mem, width = 3, flag = "0")] %>% 
@@ -190,15 +190,7 @@ IOP <- tribble(
 
 ```{r}
 
-sondeos %>% 
-  .[, iop := fcase(launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")), "IOP07",
-                   launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08")] %>% 
-  .[variable %in% c("t", "td", "u", "v") & !str_detect(site, "/") & !is.na(fcst_value) & !is.na(iop)] %>% 
-  .[, lev := cut_round(alt, seq(0, 20000, 1000))] %>% 
-  .[, ":="(RMSE = mean(sqrt((value - fcst_value)^2), na.rm = TRUE), 
-           BIAS = mean(value - fcst_value, na.rm = TRUE)), 
-    by = .(iop, exp, variable, lev, fcst_exp)] %>% 
-  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico", value.name = "value.est") %>% 
+media %>% 
   ggplot(aes(lev/1000, value.est)) +
   geom_hline(yintercept = 0, color = "grey30") +
   geom_line(aes(color = exp, linetype = estadistico)) +
@@ -214,7 +206,7 @@ sondeos %>%
   theme_minimal()
 ```
 
-```{r rmse-sondeos-media}
+```{r rmse-sondeos-ensamble}
 extremos <- miembros %>% 
   .[, .(max_rmse = max(RMSE),
         min_rmse = min(RMSE)), by = .(exp, fcst_exp, lev, variable)]
@@ -262,18 +254,22 @@ media %>%
 
 
 ```{r rmse-sondeos-param}
-pbl <- miembros[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, pbl, lev, variable)]
+pbl <- miembros[, .(RMSE = mean(RMSE),
+                    tipo = "pbl"), 
+                by = .(exp, fcst_exp, pbl, lev, variable)] %>% 
+  setnames("pbl", "param")
 
 media %>% 
   .[estadistico == "RMSE"] %>% 
   .[, c("exp", "variable", "lev", "fcst_exp", "RMSE" = "value.est")] %>% 
-  .[, ":="(pbl = "Mean",
-           RMSE = value.est)] %>% 
+  .[, ":="(param = "Mean",
+           RMSE = value.est, 
+           tipo = "Mean")] %>% 
   .[, value.est := NULL] %>% 
   rbind(., pbl) %>% 
   ggplot(aes(lev/1000, RMSE)) +
   # geom_hline(yintercept = 0, color = "grey30") +
-  geom_line(aes(y = RMSE, color = exp, linetype = pbl, group = interaction(exp, pbl))) +
+  geom_line(aes(y = RMSE, color = exp, linetype = param, group = interaction(exp, param))) +
   scale_linetype_manual(values = c(1, 2, 3, 4)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
@@ -287,18 +283,22 @@ media %>%
   theme_minimal()
 
 
-cum <- miembros[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, cumulus, lev, variable)]
+cum <- miembros[, .(RMSE = mean(RMSE),
+                    tipo = "cumulus"), 
+                by = .(exp, fcst_exp, cumulus, lev, variable)] %>% 
+  setnames("cumulus", "param")
 
 media %>% 
   .[estadistico == "RMSE"] %>% 
   .[, c("exp", "variable", "lev", "fcst_exp", "RMSE" = "value.est")] %>% 
-  .[, ":="(cumulus = "Mean",
-           RMSE = value.est)] %>% 
+  .[, ":="(param = "Mean",
+           RMSE = value.est,
+           tipo = "Mean")] %>% 
   .[, value.est := NULL] %>% 
   rbind(., cum) %>% 
   ggplot(aes(lev/1000, RMSE)) +
   # geom_hline(yintercept = 0, color = "grey30") +
-  geom_line(aes(y = RMSE, color = exp, linetype = cumulus, group = interaction(exp, cumulus))) +
+  geom_line(aes(y = RMSE, color = exp, linetype = param, group = interaction(exp, param))) +
   scale_linetype_manual(values = c(4, 2, 3, 1)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
@@ -311,10 +311,42 @@ media %>%
   labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
   theme_minimal()
 
+
+rbind(pbl, cum) %>% 
+  .[, .(RMSE_mean = mean(RMSE, na.rm = TRUE)), 
+    by = .(variable, exp, param, fcst_exp)] %>% 
+  ggplot(aes(RMSE_mean)) +
+  geom_histogram(aes(fill = exp), 
+                 position = "identity", 
+                 alpha = 0.5) +
+   scale_fill_manual(values = colores_exp, 
+                     labels = c(E4 = "CONV", E5 = "AUT",
+                                E6 = "SATWND", E7 = "RAD")) +
+  facet_grid(fcst_exp ~ variable, scales = "free_x")
+
+rbind(pbl, cum) %>%
+  .[, .(RMSE_mean = mean(RMSE, na.rm = TRUE)), 
+    by = .(variable, exp, param, fcst_exp, tipo)] %>% 
+  ggplot(aes(RMSE_mean, exp)) +
+  geom_point(aes(color = exp, shape = param),
+             size = 3) +
+  scale_color_manual(guide = NULL, values = colores_exp, 
+                      labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  scale_shape_manual(values = c(19, 17, 15, 3, 0, 8)) +
+  scale_y_discrete(labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  facet_grid(fcst_exp ~ variable, scales = "free_x") +
+  labs(y = NULL, x = "mean RMSE", shape = NULL) +
+  theme_minimal() +
+  theme(aspect.ratio = 1/2,
+        panel.background = element_rect(fill = "grey98",
+                                        color = "grey98"))
+  
 ```
 
 
-```{r bias-sondeos-media}
+```{r bias-sondeos-ensamble}
 extremos <- miembros %>% 
   .[, .(max_bias = max(BIAS),
         min_bias = min(BIAS)), by = .(exp, fcst_exp, lev, variable)]
@@ -364,17 +396,21 @@ media %>%
 
 
 ```{r bias-sondeos-param}
-pbl <- miembros[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, pbl, lev, variable)]
+pbl <- miembros[, .(BIAS = mean(BIAS),
+                    tipo = "pbl"), 
+                by = .(exp, fcst_exp, pbl, lev, variable)] %>% 
+  setnames("pbl", "param")
 
 media %>% 
   .[estadistico == "BIAS"] %>% 
   .[, c("exp", "variable", "lev", "fcst_exp", "BIAS" = "value.est")] %>% 
-  .[, ":="(pbl = "Mean",
-           BIAS = value.est)] %>% 
+  .[, ":="(param = "Mean",
+           BIAS = value.est,
+           tipo = "Mean")] %>% 
   .[, value.est := NULL] %>% 
   rbind(., pbl) %>% 
   ggplot(aes(lev/1000, BIAS)) +
-  geom_line(aes(y = BIAS, color = exp, linetype = pbl, group = interaction(exp, pbl))) +
+  geom_line(aes(y = BIAS, color = exp, linetype = param, group = interaction(exp, param))) +
   geom_hline(yintercept = 0, color = "grey30") +
   scale_linetype_manual(values = c(1, 2, 3, 4)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
@@ -389,17 +425,22 @@ media %>%
   theme_minimal()
 
 
-cum <- miembros[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, cumulus, lev, variable)]
+
+cum <- miembros[, .(BIAS = mean(BIAS),
+                    tipo = "cumulus"), 
+                by = .(exp, fcst_exp, cumulus, lev, variable)] %>% 
+  setnames("cumulus", "param")
 
 media %>% 
   .[estadistico == "BIAS"] %>% 
   .[, c("exp", "variable", "lev", "fcst_exp", "BIAS" = "value.est")] %>% 
-  .[, ":="(cumulus = "Mean",
-           BIAS = value.est)] %>% 
+  .[, ":="(param = "Mean",
+           BIAS = value.est,
+           tipo = "Mean")] %>% 
   .[, value.est := NULL] %>% 
   rbind(., cum) %>% 
   ggplot(aes(lev/1000, BIAS)) +
-  geom_line(aes(y = BIAS, color = exp, linetype = cumulus, group = interaction(exp, cumulus))) +
+  geom_line(aes(y = BIAS, color = exp, linetype = param, group = interaction(exp, param))) +
   geom_hline(yintercept = 0, color = "grey30") +
   scale_linetype_manual(values = c(4, 2, 3, 1)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
@@ -412,6 +453,28 @@ media %>%
                                               "v" = "V wind"))) +
   labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
   theme_minimal()
+
+
+
+rbind(pbl, cum) %>%
+  .[, .(BIAS_mean = mean(BIAS, na.rm = TRUE)), 
+    by = .(variable, exp, param, fcst_exp, tipo)] %>% 
+  ggplot(aes(BIAS_mean, exp)) +
+  geom_vline(xintercept = 0, color = "grey70") +
+  geom_point(aes(color = exp, shape = param),
+             size = 3) +
+  scale_color_manual(guide = NULL, values = colores_exp, 
+                      labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  scale_shape_manual(values = c(19, 17, 15, 3, 0, 8)) +
+  scale_y_discrete(labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  facet_grid(fcst_exp ~ variable, scales = "free_x") +
+  labs(y = NULL, x = "mean BIAS", shape = NULL) +
+  theme_minimal() +
+  theme(aspect.ratio = 1/2,
+        panel.background = element_rect(fill = "grey98",
+                                        color = "grey98"))
 
 ```
 
@@ -444,10 +507,14 @@ obs_00 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mean.
 obs_06 <- read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean.rds"))
 
 media <- rbind(read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mean2.rds")),
-               read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean2.rds")))
+               read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean2.rds"))) %>% 
+  .[, ":="(RMSE = fifelse(var == "q", RMSE*1000, RMSE),
+           BIAS = fifelse(var == "q", BIAS*1000, BIAS))]
 
 miembros <- rbind(read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112200_mem.rds")),
-                  read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mem.rds")))
+                  read_rds(paste0(derived_data, "/interp_obs/interp_obs_2018112206_mem.rds"))) %>% 
+    .[, ":="(RMSE = fifelse(var == "q", RMSE*1000, RMSE),
+           BIAS = fifelse(var == "q", BIAS*1000, BIAS))]
 
 
 media %>% 
@@ -575,14 +642,17 @@ media %>%
 ```{r}
 cum <- fisica[miembros, on = .NATURAL] %>% 
   separate(fisica, into = c("cumulus", "pbl")) %>% 
-  .[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, cumulus, var, date)]
+  .[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, cumulus, var, date)] %>% 
+   setnames("cumulus", "param") %>% 
+  .[, tipo := "cumulus"]
 
 media %>% 
   .[, c("exp", "var", "date", "fcst_exp", "BIAS")] %>% 
-  .[, ":="(cumulus = "Mean")] %>% 
+  .[, ":="(param = "Mean",
+           tipo = "Mean")] %>% 
   rbind(., cum) %>% 
   ggplot(aes(date, BIAS)) +
-  geom_line(aes(color = exp, linetype = cumulus)) +
+  geom_line(aes(color = exp, linetype = param)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
   geom_hline(yintercept = 0, color = "grey30") +
@@ -592,55 +662,86 @@ media %>%
   facet_grid(var~fcst_exp, scales = "free_y") +
   theme_minimal()
 
+pbl <- fisica[miembros, on = .NATURAL] %>% 
+  separate(fisica, into = c("cumulus", "pbl")) %>% 
+  .[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, pbl, var, date)] %>% 
+   setnames("pbl", "param") %>% 
+  .[, tipo := "pbl"]
+
+media %>% 
+  .[, c("exp", "var", "date", "fcst_exp", "BIAS")] %>% 
+  .[, ":="(param = "Mean",
+           tipo = "Mean")] %>% 
+  rbind(., pbl) %>% 
+  ggplot(aes(date, BIAS)) +
+  geom_line(aes(color = exp, linetype = param)) +
+  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E7 = "RAD")) +
+  # geom_hline(yintercept = 0, color = "grey30") +
+  scale_linetype_manual(values = c(1, 2, 3, 4)) +
+  scale_date() +
+  labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
+  facet_grid(var~fcst_exp, scales = "free_y") +
+  theme_minimal()
+
+rbind(pbl, cum) %>%
+  .[, .(BIAS_mean = mean(BIAS, na.rm = TRUE)), 
+    by = .(var, exp, param, fcst_exp, tipo)] %>% 
+  ggplot(aes(BIAS_mean, exp)) +
+  geom_vline(xintercept = 0, color = "grey70") +
+  geom_point(aes(color = exp, shape = param),
+             size = 3) +
+  scale_color_manual(guide = NULL, values = colores_exp, 
+                      labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  scale_shape_manual(values = c(19, 17, 15, 3, 0, 8)) +
+  scale_y_discrete(labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  facet_grid(fcst_exp ~ var, scales = "free_x") +
+  labs(y = NULL, x = "mean BIAS", shape = NULL) +
+  theme_minimal() +
+  theme(aspect.ratio = 1/2,
+        panel.background = element_rect(fill = "grey98",
+                                        color = "grey98"))
+```
+
+
+```{r}
 cum <- fisica[miembros, on = .NATURAL] %>% 
   separate(fisica, into = c("cumulus", "pbl")) %>% 
-  .[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, cumulus, var, date)]
+  .[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, cumulus, var, date)] %>% 
+   setnames("cumulus", "param") %>% 
+  .[, tipo := "cumulus"]
 
 media %>% 
   .[, c("exp", "var", "date", "fcst_exp", "RMSE")] %>% 
-  .[, ":="(cumulus = "Mean")] %>% 
+  .[, ":="(param = "Mean",
+           tipo = "Mean")] %>% 
   rbind(., cum) %>% 
   ggplot(aes(date, RMSE)) +
-  geom_line(aes(color = exp, linetype = cumulus)) +
+  geom_line(aes(color = exp, linetype = param)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
-  # geom_hline(yintercept = 0, color = "grey30") +
+  geom_hline(yintercept = 0, color = "grey30") +
   scale_linetype_manual(values = c(4, 2, 3, 1)) +
   scale_date() +
   labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
   facet_grid(var~fcst_exp, scales = "free_y") +
   theme_minimal()
-```
-```{r}
-pbl <- fisica[miembros, on = .NATURAL] %>% 
-  separate(fisica, into = c("cumulus", "pbl")) %>% 
-  .[, .(BIAS = mean(BIAS)), by = .(exp, fcst_exp, pbl, var, date)]
-
-media %>% 
-  .[, c("exp", "var", "date", "fcst_exp", "BIAS")] %>% 
-  .[, ":="(pbl = "Mean")] %>% 
-  rbind(., pbl) %>% 
-  ggplot(aes(date, BIAS)) +
-  geom_line(aes(color = exp, linetype = pbl)) +
-  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
-                                                      E6 = "SATWND", E7 = "RAD")) +
-  geom_hline(yintercept = 0, color = "grey30") +
-  scale_linetype_manual(values = c(1, 2, 3, 4)) +
-  scale_date() +
-  labs(subtitle = "BIAS", x = NULL, y = NULL, linetype = NULL, color = NULL) +
-  facet_grid(var~fcst_exp, scales = "free_y") +
-  theme_minimal()
 
 pbl <- fisica[miembros, on = .NATURAL] %>% 
   separate(fisica, into = c("cumulus", "pbl")) %>% 
-  .[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, pbl, var, date)]
+  .[, .(RMSE = mean(RMSE)), by = .(exp, fcst_exp, pbl, var, date)] %>% 
+   setnames("pbl", "param") %>% 
+  .[, tipo := "pbl"]
 
 media %>% 
   .[, c("exp", "var", "date", "fcst_exp", "RMSE")] %>% 
-  .[, ":="(pbl = "Mean")] %>% 
+  .[, ":="(param = "Mean",
+           tipo = "Mean")] %>% 
   rbind(., pbl) %>% 
   ggplot(aes(date, RMSE)) +
-  geom_line(aes(color = exp, linetype = pbl)) +
+  geom_line(aes(color = exp, linetype = param)) +
   scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD")) +
   # geom_hline(yintercept = 0, color = "grey30") +
@@ -649,6 +750,25 @@ media %>%
   labs(subtitle = "RMSE", x = NULL, y = NULL, linetype = NULL, color = NULL) +
   facet_grid(var~fcst_exp, scales = "free_y") +
   theme_minimal()
+
+rbind(pbl, cum) %>%
+  .[, .(RMSE_mean = mean(RMSE, na.rm = TRUE)), 
+    by = .(var, exp, param, fcst_exp, tipo)] %>% 
+  ggplot(aes(RMSE_mean, exp)) +
+  geom_point(aes(color = exp, shape = param),
+             size = 3) +
+  scale_color_manual(guide = NULL, values = colores_exp, 
+                      labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  scale_shape_manual(values = c(19, 17, 15, 3, 0, 8)) +
+  scale_y_discrete(labels = c(E4 = "CONV", E5 = "AUT", 
+                                 E6 = "SATWND", E7 = "RAD")) +
+  facet_grid(fcst_exp ~ var, scales = "free_x") +
+  labs(y = NULL, x = "mean RMSE", shape = NULL) +
+  theme_minimal() +
+  theme(aspect.ratio = 1/2,
+        panel.background = element_rect(fill = "grey98",
+                                        color = "grey98"))
 ```
 
 ### Precipitación
