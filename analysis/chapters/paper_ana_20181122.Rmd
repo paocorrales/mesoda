@@ -114,23 +114,71 @@ derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
 
 ## Data and Methods
 
-```{r dominio, fig.cap="The horizontal domain used on the simulations (black box) and the inner domain used for the validation / evaluation (grey box). The topography in meters is also shown (filled contours).", fig.height=4}
+```{r dominio, fig.cap="The horizontal domain used on the simulations (black box) and the inner domain used for the validation / evaluation (grey box). The topography in meters is also shown (filled contours).", fig.height=5}
+
+oficiales <- fread(here("analysis", "data", "raw_data", "E4_asim_conv_20181121120000.ensmean"), 
+                   na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
+  .[, c("V2", "V4") := NULL] %>% 
+  setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>% 
+  .[type %in% c(181, 281)] %>% unique(by = c("stationID")) %>%
+  .[!str_detect(stationID, pattern = "[A-Z]")] %>% 
+  .[, source := "Sfc - Official"]
+
+no_oficiales <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_20181121120000.ensmean"), 
+                      na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
+  .[, c("V2", "V4") := NULL] %>% 
+  setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>% 
+  .[type %in% c(181, 187)] %>% 
+  .[!str_detect(stationID, "SMN")] %>%
+  .[!(stationID %in% oficiales$stationID)] %>% 
+  unique(by = c("stationID")) %>% 
+  .[, source := "Sfc - Non-official"]
+
+obs <- rbind(no_oficiales, oficiales)
 
 fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
   .[, c("x", "y") := wrf_project(lon, lat)] %>% 
-  
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
                     breaks = seq(0, 6000, 500)) +
   scale_fill_gradient(low = "#f2f2f2", high = "#333333",
                       name = NULL,
-                       breaks = seq(0, 6000, 1000),
-                       guide = guide_colorstrip(barwidth = 20,
-                                                barheight = 0.8)) +
+                      breaks = seq(0, 6000, 1000),
+                      guide = guide_colorstrip(barwidth = 20,
+                                               barheight = 0.8)) +
   geom_mapa() +
+  geom_point(data = obs, aes(ConvertLongitude(lon), lat, 
+                             color = source, shape = source), 
+             size = 0.9, alpha = 0.8) + 
+  scale_shape_manual(name = "Surface stations",  
+                     breaks = c("Sfc - Non-official", "Sfc - Official"),
+                     labels = c("ASWS","CSWS"), values = c(15, 17),
+                     guide = guide_legend(override.aes = list(size = 2))) +
+  scale_color_manual(name =  "Surface stations", 
+                     values = c("Sfc - Non-official" = "#00695c", 
+                                "Sfc - Official" = "#FD8002"),
+                     breaks = c("Sfc - Non-official", "Sfc - Official"),
+                     labels = c("ASWS","CSWS"),
+                     guide = guide_legend(override.aes = list(size = 2))) +
   geom_point(data = square, aes(lon, lat), size = 0.2) +
   geom_point(data = square2, aes(lon, lat), size = 0.2, color = "#CC3311") +
   theme_minimal() +
-  theme(legend.position = "bottom", legend.box.spacing = margin(0, 0, 0, 0)) 
+  theme(legend.position = "bottom", 
+        legend.box = "vertical",
+        legend.margin = margin(),
+        legend.box.spacing = margin(0, 0, 0, 0)) 
 ```
 
+
+```{r obs}
+tribble(
+  ~obs_type, ~conv, ~aut, ~satwnd, ~rad,
+  "PREPBUFR", "x", "x", "x", "x",
+  "AUTSFC", " ", "x", "x", "x",
+  "SATWND", " ", " ", "x", "x",
+  "RAD", " ", " ", " ", "x",
+) %>% 
+  kbl(col.names = c("Obs type", "CONV", "AUT", "SATWND", "RAD"),
+      caption = "Observation types assimilated in each experiment.") %>% 
+  kable_classic_2(full_width = F)
+```
