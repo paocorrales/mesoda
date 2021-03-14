@@ -182,3 +182,19 @@ tribble(
       caption = "Observation types assimilated in each experiment.") %>% 
   kable_classic_2(full_width = F)
 ```
+
+
+```{r}
+fread(here("analysis", "data", "derived_data", "tabla_radianzas.csv")) %>% 
+  .[, ":="(sensor = toupper(sensor),
+           plataforma = toupper(plataforma),
+           prop = scales::percent(prop/100, accuracy = 0.01, trim = TRUE))] %>% 
+  .[order(.[,'sensor']), ] %>% 
+  .[] %>% 
+  kbl(col.names = c("Sensor", "Plataform", "Number of assimilated\nchannels", "Percentage over total"),
+      caption = "List of the available sensors in several platforms, the number of accepted channels and the percentage of assimilated observations calculated over all radiance observations.") %>% 
+  collapse_rows(1) %>% 
+  kable_classic_2(full_width = F)
+```
+
+
