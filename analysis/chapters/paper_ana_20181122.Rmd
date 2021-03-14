@@ -1,0 +1,136 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  fig.path = "../figures/",
+  fig.retina = TRUE,
+  # fig.height = 3,
+  dev = "png",
+  message = FALSE,
+  warning = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  dpi = 300
+)
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(here)
+library(patchwork)
+library(unglue)
+library(knitr)
+library(kableExtra)
+
+map_arg <- rnaturalearth::ne_states(country = c("argentina"), 
+                                    returnclass = "sf")
+map_limitrofes <- rnaturalearth::ne_countries(country = c("Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+square <- fread(here("analysis", "data", "derived_data", "dominio_square.csv"))
+square2 <- fread(here("analysis", "data", "derived_data", "dominio_square2.csv"))
+coord <- fread(here("analysis", "data", "derived_data", "coordenadas.csv"))
+
+
+geom_mapa <- function(fill = NA) {
+  list(geom_sf(data = map_arg, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       geom_sf(data = map_limitrofes, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)),
+       scale_x_longitude(ticks = 5),
+       scale_y_latitude(ticks = 5))
+}
+
+arg_topo <- metR::GetTopography(-75+360, -50+360, -20, -60, resolution = 1/10)
+arg_topo[, lon := metR::ConvertLongitude(lon)]
+
+cordillera <- list(
+  ggnewscale::new_scale_fill(),
+  geom_contour_fill(data = arg_topo, aes(x = lon, y = lat, 
+                                         z = h),
+                    breaks = seq(1500, 8000, by = 700)),
+  scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
+                      oob = scales::squish))
+
+scale_date <- function(ini = 20181120180000, end = 20181123120000,
+                       break_bin = "6 hour") {
+  scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin),
+                   labels = function(x) {
+                     fifelse(hour(x) == 0, format(x, "%H\n%b %d"), format(x, "%H"))
+                   }) 
+}
+
+obs.type <- tribble(
+  ~type, ~code,
+  120, "ADPUPA",
+  130, "AIRCFT-AIREP",
+  131, "AIRCFT-AMDAR",
+  133, "AIRCAR",
+  180, "SFCSHP",
+  181, "ADPSFC",
+  187, "ADPSFC\nno pressure",
+  220, "ADPUPA",
+  221, "ADPUPA-PIBAL",
+  230, "AIRCFT-AIREP",
+  231, "AIRCFT-AMDAR",
+  233, "AIRCAR",
+  280, "SFCSHP",
+  281, "ADPSFC",
+  287, "ADPSFC\nno pressure",
+  290, "ASCATW"
+) %>% 
+  setDT()
+
+fisica <- data.table(mem = as.character(formatC(1:60, flag = "0", width = 3)),
+                     fisica = rep(c("KF-YSU", 
+                                    "BMJ-YSU",
+                                    "GF-YSU",
+                                    "KF-MYJ",
+                                    "BMJ-MYJ",
+                                    "GF-MYJ",
+                                    "KF-MYNN2",
+                                    "BMJ-MYNN2",
+                                    "GF-MYNN2"), length.out = 60)) %>% setDT()
+
+multiespectrales <- c("airs_aqua",
+                      "iasi_metop-a",
+                      "iasi_metop-b")
+
+experiments <- c("E4", "E5", "E6", "E7")
+#Color blind friendly but E4 y E7 parecidos en Desaturated
+colores_exp <- c(E4 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311") 
+# colores_exp <- c(E4 = "#225555", E5 = "#CCBB44", E6 = "#CC6677", E7 = "#882255")
+satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
+
+```
+
+## Introduction
+
+## Data and Methods
+
+```{r dominio, fig.cap="The horizontal domain used on the simulations (black box) and the inner domain used for the validation / evaluation (grey box). The topography in meters is also shown (filled contours).", fig.height=4}
+
+fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
+                    breaks = seq(0, 6000, 500)) +
+  scale_fill_gradient(low = "#f2f2f2", high = "#333333",
+                      name = NULL,
+                       breaks = seq(0, 6000, 1000),
+                       guide = guide_colorstrip(barwidth = 20,
+                                                barheight = 0.8)) +
+  geom_mapa() +
+  geom_point(data = square, aes(lon, lat), size = 0.2) +
+  geom_point(data = square2, aes(lon, lat), size = 0.2, color = "#CC3311") +
+  theme_minimal() +
+  theme(legend.position = "bottom", legend.box.spacing = margin(0, 0, 0, 0)) 
+```
+
