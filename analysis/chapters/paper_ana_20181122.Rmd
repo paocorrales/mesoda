@@ -166,7 +166,54 @@ fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>%
   theme(legend.position = "bottom", 
         legend.box = "vertical",
         legend.margin = margin(),
-        legend.box.spacing = margin(0, 0, 0, 0)) 
+        legend.box.spacing = margin(0, 0, 0, 0))
+
+lista_sondeos <- fread(here("analysis/data/derived_data/lista_sondeos.csv")) %>% 
+  .[, periodo := fcase(nominal_launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")),  "IOP07", 
+                       nominal_launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")),  "IOP08", 
+                       default = "Others")
+  ]
+
+fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
+                    breaks = seq(0, 6000, 500)) +
+  scale_fill_gradient(low = "#f2f2f2", high = "#333333",
+                      name = NULL,
+                      breaks = seq(0, 6000, 1000),
+                      guide = guide_colorstrip(barwidth = 20,
+                                               barheight = 0.8)) +
+  geom_mapa() +
+  coord_sf(ylim = c(-35.5, -29), xlim = c(-66.5, -61.5)) +
+  geom_jitter(data = lista_sondeos, aes(lon, lat, 
+                                        color = periodo,
+                                        shape = periodo), 
+              alpha = 0.5, size = 1.5, width = 0.03, height = 0.03) +
+  scale_color_brewer(palette = "Dark2",
+                     guide = guide_legend(override.aes = list(size = 2,
+                                                              alpha = 1))) +
+  # geom_point(data = obs, aes(ConvertLongitude(lon), lat, 
+  #                            color = source, shape = source), 
+  #            size = 1, alpha = 0.8) + 
+  # scale_shape_manual(name = "Surface stations",  
+  #                    breaks = c("Sfc - Non-official", "Sfc - Official"),
+  #                    labels = c("ASWS","CSWS"), values = c(15, 17),
+  #                    guide = guide_legend(override.aes = list(size = 2))) +
+  # scale_color_manual(name =  "Surface stations", 
+  #                    values = c("Sfc - Non-official" = "#00695c", 
+  #                               "Sfc - Official" = "#FD8002"),
+  #                    breaks = c("Sfc - Non-official", "Sfc - Official"),
+#                    labels = c("ASWS","CSWS"),
+#                    guide = guide_legend(override.aes = list(size = 2))) +
+# geom_point(data = square, aes(lon, lat), size = 0.2) +
+  # geom_point(data = square2, aes(lon, lat), size = 0.2, color = "#CC3311") +
+labs(color = NULL, shape = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom", 
+        legend.box = "vertical",
+        legend.margin = margin(),
+        legend.box.spacing = margin(0, 0, 0, 0))
 ```
 
 
@@ -232,7 +279,7 @@ p1 <- rbind(conv, aut, satwnd) %>%
   .[, .(obs_cycle = mean(count_obs, na.rm = TRUE)), by = .(exp, lon.box, lat.box)] %>% 
   ggplot(aes(ConvertLongitude(lon.box), lat.box)) +
   geom_raster(aes(fill = obs_cycle), alpha = 0.8) +
-  scale_fill_viridis_c(option = "E", trans = scales::log10_trans(),
+  scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
                        guide = guide_colorbar(barwidth = 20)) +
   geom_mapa() +
   facet_wrap(~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
@@ -249,7 +296,7 @@ p2 <- rbind(conv, aut, satwnd) %>%
   .[, .(obs_cycle = mean(count_obs, na.rm = TRUE)), by = .(exp, lev.box)] %>% 
   ggplot(aes(exp, lev.box)) +
   geom_tile(aes(fill = obs_cycle)) +
-  scale_fill_viridis_c(option = "E", trans = scales::log10_trans(),
+  scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
                        guide = guide_colorbar(barheight = NULL)) +
   scale_x_discrete(labels = c("CONV", "AUT", "SATWND")) +
   scale_y_reverse() +
@@ -273,13 +320,27 @@ p3 <- rbind(conv, aut, satwnd) %>%
         plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 cowplot::plot_grid(p1, NULL, p2, p3, ncol = 3,  rel_widths = c(1.3, -0.3, 1))
-                   
+
 ```
 
 
 
 ```{r}
+files <- Sys.glob(here("analysis/data/derived_data/count_obs_E*"))
 
+purrr::map(files, ~fread(.x)) %>% rbindlist() %>% 
+  .[, porcentaje := scales::percent(proporcion, accuracy = 0.01, trim = TRUE)] %>% 
+  dcast(bufr_code ~ exp, value.var = "porcentaje") %>% 
+  .[order(.[,'bufr_code']), ] %>% 
+  kbl(col.names = c("Obs type", "CONV", "AUT", "SATWND")) %>% 
+  kable_classic_2(full_width = F)
+
+purrr::map(files, ~fread(.x)) %>% rbindlist() %>% 
+  # .[, porcentaje := scales::percent(proporcion, accuracy = 0.01, trim = TRUE)] %>% 
+  dcast(bufr_code ~ exp, value.var = "N") %>% 
+  .[order(.[,'bufr_code']), ] %>% 
+  kbl(col.names = c("Obs type", "CONV", "AUT", "SATWND")) %>% 
+  kable_classic_2(full_width = F)
 ```
 
 
