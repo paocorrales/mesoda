@@ -189,3 +189,65 @@ for (d in seq_along(dates)) {
   ggsave(paste0("/home/paola.corrales/campos/T2m_", format(dates[d], "%Y%m%d%H%M%S"), ".png"), height = 6, width = 9)
 
 }
+
+
+# Obs
+
+# Td2m
+
+for (d in seq_along(dates)) {
+
+  print(dates[d])
+
+
+  files_diag <- Sys.glob(paste0(wrf_path, "E[4-7]/ANA/", format(dates[d], "%Y%m%d%H%M%S"), "/diagfiles/asim_conv_", format(dates[d], "%Y%m%d%H%M%S"), ".ensmean"))
+
+  diag <- purrr::map(files_diag, function(f) {
+
+    metadatos <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/ANA/{fecha}/diagfiles/asim_conv_{fecha2}.ensmean")
+
+
+    read_diag_conv(f, exp = metadatos[[1]][["exp"]], member = "000") %>%
+      .[, lon := ConvertLongitude(lon)]
+
+  }) %>%
+    rbindlist()
+
+  diag %>%
+    .[lat %between% c(-34.5, -28.5) & lon %between% c(-66.5, -62.5) &
+        usage.flag == 1 & rerr != 1.0e+10 & var == "v"] %>%
+    ggplot(aes(lon, lat)) +
+    geom_point(aes(color = obs), alpha = 0.7) +
+    scale_color_viridis_c(breaks = seq(-30, 30, 5), limits = c(-30, 30),
+                         guide = guide_colorsteps(barwidth = 0.5,
+                                                  barheight = 15)) +
+    geom_mapa() +
+    facet_wrap(~exp) +
+    labs(caption = paste0("OBS | ", dates[d]), color = "v") +
+    theme_minimal(base_size = 10) +
+    theme(panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3, size = 0.2)) +
+
+  diag %>%
+    .[lat %between% c(-34.5, -28.5) & lon %between% c(-66.5, -62.5) &
+      usage.flag == 1 & rerr != 1.0e+10 & var == "v"] %>%
+    ggplot(aes(lon, lat)) +
+    geom_point(aes(color = obs.guess), alpha = 0.7) +
+    scale_color_divergent(breaks = seq(-30, 30, 5), limits = c(-30, 30),
+                          guide = guide_colorsteps(barwidth = 0.5,
+                                                  barheight = 15)) +
+    geom_mapa() +
+    labs(caption = paste0("OBS - GUESS | ", dates[d]), color = "v") +
+    facet_wrap(~exp) +
+    theme_minimal(base_size = 10) +
+    theme(panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3, size = 0.2)) +
+
+    patchwork::plot_layout(ncol = 2, widths = c(1, 1))
+
+  ggsave(paste0("/home/paola.corrales/campos/v_OmB_", format(dates[d], "%Y%m%d%H%M%S"), ".png"), height = 6, width = 9)
+
+}
+
+
+
