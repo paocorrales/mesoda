@@ -11,7 +11,7 @@ coef_gfs <- mesoda::read_satbias("~/datosmunin2/nomads.ncdc.noaa.gov/GDAS/201811
 
 sensor_list <- as.character(unique(coef_gfs$sensor))
 
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/prueba_BC/*/diagfiles/diag_*.ensmean")
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/prueba_BC/ANA/*/diagfiles/diag_*.ensmean")
 
 # diag <- read_diag_sat("/home/paola.corrales/datosmunin/EXP/prueba_BC/20181112010000/diagfiles/diag_hirs4_metop-a_ges.ensmean")
 
@@ -95,7 +95,7 @@ out_coef <- purrr::map(sensor_list, function(f) {
   reduce(function(x, y) list(coef_out = rbind(x$coef_out, y$coef_out),
                              est = rbind(x$est, y$est)))
 
-read_rds(out_coef, "/home/paola.corrales/datosmunin/EXP/satbias_trained.rds")
+write_rds(out_coef, "/home/paola.corrales/datosmunin/EXP/satbias_trained.rds")
 
   out_coef$est %>%
     melt(measure.vars = c("OmB_BC", "OmB")) %>%
@@ -105,4 +105,7 @@ read_rds(out_coef, "/home/paola.corrales/datosmunin/EXP/satbias_trained.rds")
   out_coef$est %>%
     melt(measure.vars = c("OmB_BC", "OmB")) %>%
     .[, .(rmse = sqrt(mean(value^2, na.rm = TRUE)),
-          bias = mean(value, na.rm = TRUE)), by = .(variable, sensor)]
+          bias = mean(value, na.rm = TRUE)), by = .(variable, sensor)] %>%
+    ggplot(aes(bias, sensor)) +
+    geom_point(aes(color = variable)) +
+    coord_cartesian(xlim = c(-10, 10))

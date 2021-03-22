@@ -31,9 +31,9 @@ Bdiag <- rep(.0001, npred)
 for (i in seq(1:100)) {
 
   if (i == 1) {
-    # coef_prior <- coef_gfs[sensor == paste(this_sensor, plat, sep = "_") & channel == this_channel, 7:18]
-    # coef_prior <- matrix(as.vector(t(coef_prior)))
-    coef_prior <- rep(0, npred)
+    coef_prior <- coef_gfs[sensor == paste(this_sensor, plat, sep = "_") & channel == this_channel, 7:18]
+    coef_prior <- matrix(as.vector(t(coef_prior)))
+    # coef_prior <- rep(0, npred)
   } else {
     coef_prior <- coef_est
   }
@@ -59,7 +59,7 @@ dt <- dt[, ":="(OmB = xobs - xmod,
 
 dt[, .(rmse = sqrt(mean(value^2, na.rm = TRUE)),
        bias = mean(value, na.rm = TRUE)), by = .(numiter, variable)] %>%
-  .[variable == "OmB_BC"] %>%
+  # .[variable == "OmB_BC"] %>%
   ggplot(aes(numiter, bias)) +
   geom_point(aes(color = variable))
 
