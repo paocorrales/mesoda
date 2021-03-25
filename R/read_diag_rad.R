@@ -32,7 +32,7 @@ read_diag_rad <- function(file_list, exp) {
 
   colnames(diag) <- c("sensor", "channel", "freq", "lat", "lon", "peakwt", "press", "dhr", "tb_obs", "tbc", "tbcnob",
                       "varch", "errinv", "qc", "emis", "tlapchn", "rzen", "razi", "rlnd", "rice", "rsnw", "rcld",
-                      "rcldp", paste0("pred", seq(8)), "date", "mem", "exp", "id")
+                      "rcldp", paste0("pred", seq(12)), "date", "mem", "exp", "id")
   return(diag)
 }
 
