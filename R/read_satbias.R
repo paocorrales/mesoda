@@ -15,7 +15,8 @@ read_satbias <- function(file) {
     as.data.frame() %>%
     setNames(c("id", "sensor", "channel", "tlp1", "tlp2", "nc",
                paste0("coeff", seq(12)))) %>%
-    dplyr::mutate(across(channel:coeff12, ~as.numeric(as.character(.x))))
+    dplyr::mutate(across(channel:coeff12, ~as.numeric(as.character(.x)))) %>%
+    dplyr::mutate(id = as.numeric(as.character(id)))
 
   return(satbias)
 }
