@@ -6,7 +6,7 @@ library(ggplot2)
 source_python("analysis/scripts/common_diag.py")
 source_python("analysis/scripts/common_tools.py")
 
-coef_gfs <- mesoda::read_satbias("~/datosmunin2/nomads.ncdc.noaa.gov/GDAS/201811/20181120/gdas.t18z.abias") %>%
+coef_gfs <- mesoda::read_satbias("~/datosmunin2/nomads.ncdc.noaa.gov/GDAS/201811/20181111/gdas.t18z.abias") %>%
   setDT()
 
 sensor_list <- as.character(unique(coef_gfs$sensor))
@@ -33,14 +33,16 @@ out_coef <- purrr::map(sensor_list, function(f) {
 
     out_sensor <- purrr::map(seq_along(nchanl), function(n) {
       channel_index <- n
-
+print(n)
       this_sensor <- str_trim(diag[[1]]$sensor)
       plat <- str_trim(diag[[1]]$sat)
 
       #Fijos
       npred <- diag[[1]]$npred
       Bdiag <- rep(.0001, npred)
-      coef_prior <- rep(0, npred)
+      # coef_prior <- rep(0, npred)
+      coef_prior <- coef_gfs[sensor == paste(this_sensor, plat, sep = "_") & channel == nchanl[channel_index], 7:18]
+      coef_prior <- as.vector(t(coef_prior))
 
       out_channel <- purrr::map(diag, function(x) {
         QCmask <- matrix(x$qc[, channel_index] == 0)
@@ -69,18 +71,20 @@ out_coef <- purrr::map(sensor_list, function(f) {
         bias_est <- rep(0, length(out_channel$Xobs))
       }
 
-      coef_out <- data.table(sensor = paste(this_sensor, plat, sep = "_"),
+      coef_out <- data.table(id = n,
+                             sensor = paste(this_sensor, plat, sep = "_"),
                              channel = nchanl[channel_index],
                              tlp1 = 0,
                              tlp2 = 0,
                              nc = 999,
-                             coeff = t(coef_est))
+                             coeff = t(coef_est)) %>%
+        setnames(old = paste0("coeff.V", 1:12), new = paste0("coeff", 1:12))
 
 
       est <- data.table(sensor = paste(this_sensor, plat, sep = "_"),
                         channel = nchanl[channel_index],
-                        xobs = c(out_channel$Xobs),
-                        xmod = c(out_channel$Xmod),
+                        xobs = c(out_channel$Xobs), #obs
+                        xmod = c(out_channel$Xmod), #guess
                         bias_est) %>%
         .[, ":="(OmB_BC = xobs - bias_est - xmod,
                  OmB = xobs - xmod)]
@@ -95,17 +99,35 @@ out_coef <- purrr::map(sensor_list, function(f) {
   reduce(function(x, y) list(coef_out = rbind(x$coef_out, y$coef_out),
                              est = rbind(x$est, y$est)))
 
-write_rds(out_coef, "/home/paola.corrales/datosmunin/EXP/satbias_trained.rds")
+write_rds(out_coef, "/home/paola.corrales/datosmunin/EXP/satbias_trained_zero-init.rds")
 
-  out_coef$est %>%
+
+rbind(out_sensor$coef_out[, run := "off_line"], coef_gfs[sensor == "iasi_metop-a"][, run := "gfs"]) %>%
+  iasi_asim[., on = .NATURAL] %>%
+  .[!is.na(iuse)] %>%
+  melt(measure.vars = paste0("coeff", 1:12)) %>%
+  dcast(sensor + channel + variable ~ run) %>%
+  ggplot(aes(gfs, off_line)) +
+    geom_point(aes(color = factor(variable))) +
+  facet_wrap(~variable, scales = "free")
+
+  out_sensor$est %>%
     melt(measure.vars = c("OmB_BC", "OmB")) %>%
     ggplot(aes(value)) +
     geom_density(aes(color = variable))
 
-  out_coef$est %>%
+  out_sensor$est %>%
     melt(measure.vars = c("OmB_BC", "OmB")) %>%
     .[, .(rmse = sqrt(mean(value^2, na.rm = TRUE)),
           bias = mean(value, na.rm = TRUE)), by = .(variable, sensor)] %>%
     ggplot(aes(bias, sensor)) +
-    geom_point(aes(color = variable)) +
+    geom_point(aes(color = variable))
     coord_cartesian(xlim = c(-10, 10))
+
+  out_sensor$est %>%
+    melt(measure.vars = c("OmB_BC", "OmB")) %>%
+    .[, .(rmse = sqrt(mean(value^2, na.rm = TRUE)),
+          bias = mean(value, na.rm = TRUE)), by = .(variable, channel)] %>%
+    ggplot(aes(channel, bias)) +
+    geom_point(aes(color = variable))
+    geom_point(aes(y = OmB_BC), color = "red")
