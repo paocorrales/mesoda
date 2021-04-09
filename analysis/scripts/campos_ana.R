@@ -70,9 +70,9 @@ for (d in seq_along(dates)) {
     ggplot(aes(x, y)) +
     geom_contour_fill(aes(z = td2, fill = stat(level_d)),
                       proj = norargentina_lambert,
-                      breaks = seq(0, 30, 2)) +
+                      breaks = seq(-6, 26, 2)) +
     scale_fill_viridis_c(super = ScaleDiscretised,
-                         limits = c(1, 30),
+                         limits = c(-6, 26),
                          guide = guide_colorsteps(barwidth = 0.5,
                                                   barheight = 15)) +
     geom_mapa() +
@@ -89,7 +89,7 @@ for (d in seq_along(dates)) {
     ggplot(aes(x, y)) +
     geom_contour_fill(aes(z = diff, fill = stat(level_d)),
                       proj = norargentina_lambert,
-                      breaks = seq(-4, 4, 0.5)) +
+                      breaks = seq(-5, 5, 0.5)) +
     scale_fill_divergent(super = ScaleDiscretised,
                          #                      # limits = c(1, 30),
                          guide = guide_colorsteps(barwidth = 0.5,
@@ -122,10 +122,10 @@ for (d in seq_along(dates)) {
     metadatos <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/ANA/{fecha}/analysis.ensmean")
 
 
-    ReadNetCDF(f, vars = c(t = "T",
+    ReadNetCDF(f, vars = c(t = "T", p = "P", "PB",
                            lon = "XLONG", lat = "XLAT"),
                subset = list(bottom_top = c(1:3))) %>%
-      .[, ":="(t = t + 290 - 273.15,
+      .[, ":="(t = tk(t, p + PB, T_BASE = 290) - 273.15,
                exp = metadatos[[1]][["exp"]],
                date = metadatos[[1]][["fecha"]])] %>%
       .[, .(t2 = mean(t)), by = .(lon, lat, exp, date)]
@@ -137,10 +137,10 @@ for (d in seq_along(dates)) {
 
     metadatos <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/GUESS/{fecha}/wrfarw.ensmean")
 
-    ReadNetCDF(f, vars = c(t = "T",
+    ReadNetCDF(f, vars = c(t = "T", p = "P", "PB",
                            lon = "XLONG", lat = "XLAT"),
                subset = list(bottom_top = c(1:3))) %>%
-      .[, ":="(t = t + 290 - 273.15,
+      .[, ":="(t = tk(t, p + PB, T_BASE = 290) - 273.15,
                exp = metadatos[[1]][["exp"]],
                date = metadatos[[1]][["fecha"]])] %>%
       .[, .(t2 = mean(t)), by = .(lon, lat, exp, date)]
@@ -154,7 +154,7 @@ for (d in seq_along(dates)) {
     ggplot(aes(x, y)) +
     geom_contour_fill(aes(z = t2, fill = stat(level_d)),
                       proj = norargentina_lambert,
-                      breaks = seq(10, 34, 2)) +
+                      breaks = seq(0, 30, 2)) +
     scale_fill_viridis_c(super = ScaleDiscretised,
                          guide = guide_colorsteps(barwidth = 0.5,
                                                   barheight = 15)) +
@@ -172,7 +172,7 @@ for (d in seq_along(dates)) {
     ggplot(aes(x, y)) +
     geom_contour_fill(aes(z = diff, fill = stat(level_d)),
                       proj = norargentina_lambert,
-                      breaks = seq(-4, 4, 0.5)) +
+                      breaks = seq(-5, 5, 0.5)) +
     scale_fill_divergent(super = ScaleDiscretised,
                          #                      # limits = c(1, 30),
                          guide = guide_colorsteps(barwidth = 0.5,
