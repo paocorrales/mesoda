@@ -45,19 +45,22 @@ print(n)
       coef_prior <- as.vector(t(coef_prior))
 
       out_channel <- purrr::map(diag, function(x) {
-        QCmask <- matrix(x$qc[, channel_index] == 0)
+        QCmask <- matrix(x$qc[, channel_index] == 0 & x$tb_obs[, channel_index] < 400)
+        #matrix(x$qc[, channel_index] == 0)
 
         Rdiag <- 1/x$errinv[, channel_index][QCmask]
         Xobs <- matrix(x$tb_obs[, channel_index][QCmask])
         Xmod <- Xobs - matrix(x$tbcnob[, channel_index][QCmask])
         pred <- x$predictors[, as.vector(QCmask), channel_index]
+        date <- rep(x$date, length(as.vector(Xobs)))
 
-        list(Rdiag = Rdiag, Xobs = Xobs, Xmod = Xmod, pred = pred)
+        list(Rdiag = Rdiag, Xobs = Xobs, Xmod = Xmod, pred = pred, date = date)
       } ) %>%
         reduce(function(x, y) list(Rdiag = c(x$Rdiag, y$Rdiag),
                                    Xobs = rbind(x$Xobs, y$Xobs),
                                    Xmod = rbind(x$Xmod, y$Xmod),
-                                   pred = cbind(x$pred, y$pred)))
+                                   pred = cbind(x$pred, y$pred),
+                                   date = c(x$date, y$date)))
 
       if (length(out_channel$Xobs) > 1) {
         coef_est <- estimate_coef(out_channel$Xobs, out_channel$Xmod,
@@ -85,6 +88,7 @@ print(n)
                         channel = nchanl[channel_index],
                         xobs = c(out_channel$Xobs), #obs
                         xmod = c(out_channel$Xmod), #guess
+                        date = c(out_channel$date),
                         bias_est) %>%
         .[, ":="(OmB_BC = xobs - bias_est - xmod,
                  OmB = xobs - xmod)]
@@ -129,5 +133,18 @@ rbind(out_sensor$coef_out[, run := "off_line"], coef_gfs[sensor == "iasi_metop-a
     .[, .(rmse = sqrt(mean(value^2, na.rm = TRUE)),
           bias = mean(value, na.rm = TRUE)), by = .(variable, channel)] %>%
     ggplot(aes(channel, bias)) +
+    geom_hline(yintercept = 0) +
     geom_point(aes(color = variable))
     geom_point(aes(y = OmB_BC), color = "red")
+
+
+    out_sensor$est %>%
+      .[channel == 12] %>%
+      ggplot(aes(OmB, OmB_BC)) +
+      geom_point(aes(color = factor(date)), size = 0.7) +
+      geom_abline(slope = 1, intercept = 0, color = "red") +
+      facet_wrap(~date)
+
+      melt(measure.vars = c("OmB_BC", "OmB")) %>%
+      ggplot(aes(value)) +
+      geom_density(aes(color = variable))

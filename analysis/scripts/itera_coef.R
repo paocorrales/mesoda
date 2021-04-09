@@ -5,10 +5,10 @@ library(ggplot2)
 source_python("analysis/scripts/common_diag.py")
 source_python("analysis/scripts/common_tools.py")
 
-coef_gfs <- mesoda::read_satbias("~/datosmunin2/nomads.ncdc.noaa.gov/GDAS/201811/20181120/gdas.t18z.abias") %>%
+coef_gfs <- mesoda::read_satbias("~/datosmunin2/nomads.ncdc.noaa.gov/GDAS/201811/20181111/gdas.t18z.abias") %>%
   setDT()
 
-diag <- read_diag_sat("/home/paola.corrales/datosmunin/EXP/prueba_BC/20181112010000/diagfiles/diag_hirs4_metop-a_ges.ensmean")
+diag <- read_diag_sat("/home/paola.corrales/datosmunin/EXP/prueba_BC/ANA/20181111230000/diagfiles/diag_amsua_n15_ges.ensmean")
 
 # diag <- read_diag_sat("/home/paola.corrales/diag_atms_n20_ges.ensmean")
 
@@ -28,7 +28,7 @@ pred <- diag$predictors[, as.vector(QCmask), this_channel]
 Bdiag <- rep(.0001, npred)
 
 
-for (i in seq(1:100)) {
+for (i in seq(1:1)) {
 
   if (i == 1) {
     coef_prior <- coef_gfs[sensor == paste(this_sensor, plat, sep = "_") & channel == this_channel, 7:18]

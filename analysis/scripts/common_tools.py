@@ -42,7 +42,6 @@ def estimate_coef( x_obs , x_mod , Pred , Coef_Prior , RDiag , BDiag , MinObs=10
         coef = NObs / ( np.log10( NObs / MinObs ) +  1.0 )
         RDiag = np.array(RDiag) / coef
     
-    
     bias = get_bias_correction( Pred , Coef_Prior )
 
     d = (x_obs - x_mod - bias)[:,0]
