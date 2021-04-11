@@ -219,7 +219,8 @@ obsSATW <- fread(here("analysis", "data", "raw_data", "E6_asim_conv_201811211200
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr"))
 
 
-oficiales <- obsCONV[type %in% c(181, 281)] %>% unique(by = c("stationID")) %>% 
+oficiales <- obsCONV[type %in% c(181, 281)] %>% unique(by = c("stationID")) %>%
+  .[!str_detect(stationID, pattern = "[A-Z]")] %>% 
   .[, source := "Sfc - Official"]
 
 sondeos <- obsCONV[type == 120] %>% unique(by = c("stationID")) %>% 
@@ -237,7 +238,7 @@ satwnd <- obsSATW[type %between% c(240, 260)] %>%# unique(by = c("stationID")) %
 no_oficiales <- obsAUT %>% 
   .[type %in% c(181, 187)] %>% 
   .[!str_detect(stationID, "SMN")] %>%
-  .[!stationID %in% oficiales$stationID] %>% 
+  .[!(stationID %in% oficiales$stationID)] %>% 
   unique(by = c("stationID")) %>% 
   .[, source := "Sfc - Non-official"]
 
@@ -374,7 +375,7 @@ rad %>%
 
 
 ```{r rad-wv}
-files <- c(Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121020000/diagfiles*/asim_iasi*ensmean"), Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181121140000/diagfiles*/asim_iasi_metop-b*ensmean"))
+files <- c(Sys.glob("/home/paola.corrales/datosmunin/EXP/E8/ANA/20181121020000/diagfiles*/asim_iasi*ensmean"), Sys.glob("/home/paola.corrales/datosmunin/EXP/E8/ANA/20181121140000/diagfiles*/asim_iasi_metop-b*ensmean"))
 
 
 rad <- purrr::map(files, function(f) {
@@ -388,7 +389,7 @@ rad <- purrr::map(files, function(f) {
 
 rad %>% 
   .[sensor == "iasi_metop-b" & 
-      channel == 335 & 
+      channel == 3049 & 
       errinv %between% c(0.0000316227, 1000) & 
       qc == 0 & 
       iuse == 1 &
@@ -407,7 +408,7 @@ rad %>%
   
   rad %>% 
   .[sensor == "iasi_metop-b" & 
-      channel == 335 & 
+      channel == 3049 & 
       errinv %between% c(0.0000316227, 1000) & 
       qc == 0 & 
       iuse == 1 &
@@ -464,11 +465,11 @@ rbind(global_qv_E6, global_qv_E7) %>%
 
 
 ```{r}
-files <- Sys.glob("~/datosmunin/EXP/E7/ANA/2018112*/diagfiles/asim*.ensmean")
+files <- Sys.glob("~/datosmunin/EXP/E8/ANA/2018112*/diagfiles/asim*.ensmean")
 
 files <- files[str_detect(files, "conv", negate = TRUE)]
 
-rad <- read_diag_rad(files, "E7") %>% 
+rad <- read_diag_rad(files, "E8") %>% 
   satinfo[., on = c("sensor", "channel")] %>% 
   .[,  type :=  fifelse(sensor %in% multiespectrales, "multiespectral", "otro")] %>% 
   separate(sensor, into = c("sensor", "plat"), sep = "_")
@@ -487,6 +488,7 @@ rad[errinv %between% c(0.0000316227, 1000) &
   geom_histogram(aes(fill = variable, y = stat(density)), binwidth = 0.1,
                  alpha= 0.3, position = "identity") +
   geom_density(aes(color = variable, y = stat(density))) +
+  geom_rug(data = ~.x[variable == "diff"]) +
   # scale_fill_manual(values = c("darkorange", "purple", "cyan4")) +
   scale_fill_viridis_d(labels = c("OmB bc", "OmB nobc", "Difference")) +
   scale_color_viridis_d(labels = c("OmB bc", "OmB nobc", "Difference")) +
@@ -509,6 +511,7 @@ rad[errinv %between% c(0.0000316227, 1000) &
   geom_histogram(aes(fill = variable, y = stat(density)), binwidth = 0.1,
                  alpha= 0.3, position = "identity") +
   geom_density(aes(color = variable)) +
+  geom_rug(data = ~.x[variable == "diff"]) +
   # scale_fill_manual(values = c("darkorange", "purple", "cyan4")) +
   scale_color_viridis_d(labels = c("OmB BC", "OmB NoBC", "Difference")) +
   scale_fill_viridis_d(labels = c("OmB BC", "OmB NoBC", "Difference")) +
@@ -653,8 +656,9 @@ perfiles %>%
   dcast(lev + date ~ exp, value.var = "T") %>% 
   .[, ":="(E5_E4 = E5 - E4,
            E6_E5 = E6 - E5,
-           E7_E6 = E7 - E6)] %>% 
-  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+           E7_E6 = E7 - E6,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6", "E8_E6")) %>% 
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value, fill = stat(level))) +
   scale_fill_divergent_discretised(name = NULL,
@@ -666,9 +670,11 @@ perfiles %>%
   scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   # scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
-  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+  facet_wrap(~variable, ncol = 2,
+             labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
-                                                         "E7_E6" = "RAD - SATWND"))) +
+                                                         "E7_E6" = "RAD - SATWND",
+                                                         "E8_E6" = "NEW RAD - SATWND"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -724,8 +730,9 @@ perfiles %>%
   dcast(lev + date ~ exp, value.var = "QVAPOR") %>% 
   .[, ":="(E5_E4 = E5 - E4,
            E6_E5 = E6 - E5,
-           E7_E6 = E7 - E5)] %>% 
-  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+           E7_E6 = E7 - E6,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6", "E8_E6")) %>% 
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value*1000, fill = stat(level)), 
                     breaks = c(seq(-1, 1.6, 0.2), Inf)) +
@@ -738,9 +745,11 @@ perfiles %>%
   labs(subtitle = "Specific humidity difference (g/Kg)",
        y = NULL,
        x = NULL) +
-  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+ facet_wrap(~variable, ncol = 2,
+             labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
-                                                         "E7_E6" = "RAD - SATWND"))) +
+                                                         "E7_E6" = "RAD - SATWND",
+                                                         "E8_E6" = "NEW RAD - SATWND"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -778,8 +787,9 @@ perfiles %>%
   dcast(lev + date ~ exp, value.var = "U") %>% 
   .[, ":="(E5_E4 = E5 - E4,
            E6_E5 = E6 - E5,
-           E7_E6 = E7 - E6)] %>% 
-  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+           E7_E6 = E7 - E6,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6", "E8_E6")) %>% 
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value, fill = stat(level)), breaks = c(seq(-1.6, 2, 0.2), Inf)) +
   scale_fill_divergent_discretised(name = NULL,
@@ -798,10 +808,11 @@ perfiles %>%
        y = NULL) +
   scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
-  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+  facet_wrap(~variable, ncol = 2,
+             labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
-                                                         "E7_E6" = "RAD - SATWND"))) +
-  theme_minimal() +
+                                                         "E7_E6" = "RAD - SATWND",
+                                                         "E8_E6" = "NEW RAD - SATWND"))) +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
@@ -816,8 +827,9 @@ perfiles %>%
   dcast(lev + date ~ exp, value.var = "V") %>% 
   .[, ":="(E5_E4 = E5 - E4,
            E6_E5 = E6 - E5,
-           E7_E6 = E7 - E6)] %>% 
-  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6")) %>% 
+           E7_E6 = E7 - E6,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E4", "E6_E5", "E7_E6", "E8_E6")) %>% 
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value, fill = stat(level)), 
                     breaks = c(-Inf, seq(-1.6, 1.2, 0.2), Inf)) +
@@ -836,9 +848,11 @@ perfiles %>%
        y = NULL) +
   scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
-  facet_wrap(~variable, labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
+  facet_wrap(~variable, ncol = 2,
+             labeller = labeller(variable = c("E5_E4" = "AUT - CONV",
                                                          "E6_E5" = "SATWND - AUT",
-                                                         "E7_E6" = "RAD - SATWND"))) +
+                                                         "E7_E6" = "RAD - SATWND",
+                                                         "E8_E6" = "NEW RAD - SATWND"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
