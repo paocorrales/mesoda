@@ -1,6 +1,8 @@
 ---
 title: "Untitled"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 
@@ -102,7 +104,7 @@ multiespectrales <- c("airs_aqua",
 
 experiments <- c("E4", "E5", "E6", "E7")
 #Color blind friendly but E4 y E7 parecidos en Desaturated
-colores_exp <- c(E4 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311") 
+colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311") 
 # colores_exp <- c(E4 = "#225555", E5 = "#CCBB44", E6 = "#CC6677", E7 = "#882255")
 satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
   setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
@@ -114,9 +116,9 @@ derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
 
 ## Data and Methods
 
-```{r dominio, fig.cap="The horizontal domain used on the simulations (black box) and the inner domain used for the validation / evaluation (grey box). The topography in meters is also shown (filled contours).", fig.height=5}
+```{r dominio, fig.cap="Figure 1. a) The horizontal domain used on the simulations (black box) and the inner domain used for the experiment comparison (red box) and the locations of Automatic Surface Weather Stations (ASWS, green squares) and Conventional Surface Weather Stations (CSWS, orange triangles) . b) Locations of radiosonde launches during the experiment. The topography in meters is also shown (filled contours).", fig.height=5}
 
-oficiales <- fread(here("analysis", "data", "raw_data", "E4_asim_conv_20181121120000.ensmean"), 
+oficiales <- fread(here("analysis", "data", "raw_data", "E2_asim_conv_20181121120000.ensmean"), 
                    na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
   .[, c("V2", "V4") := NULL] %>% 
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>% 
@@ -136,8 +138,16 @@ no_oficiales <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_2018112
 
 obs <- rbind(no_oficiales, oficiales)
 
-fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
-  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+lista_sondeos <- fread(here("analysis/data/derived_data/lista_sondeos.csv")) %>% 
+  .[, periodo := fcase(nominal_launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")),  "IOP07", 
+                       nominal_launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")),  "IOP08", 
+                       default = "Others")
+  ]
+
+dominio <- fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)]
+
+dominio %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
                     breaks = seq(0, 6000, 500)) +
@@ -150,11 +160,11 @@ fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>%
   geom_point(data = obs, aes(ConvertLongitude(lon), lat, 
                              color = source, shape = source), 
              size = 1, alpha = 0.8) + 
-  scale_shape_manual(name = "Surface stations",  
+  scale_shape_manual(name = "a) Surface stations",  
                      breaks = c("Sfc - Non-official", "Sfc - Official"),
                      labels = c("ASWS","CSWS"), values = c(15, 17),
                      guide = guide_legend(override.aes = list(size = 2))) +
-  scale_color_manual(name =  "Surface stations", 
+  scale_color_manual(name =  "a) Surface stations", 
                      values = c("Sfc - Non-official" = "#00695c", 
                                 "Sfc - Official" = "#FD8002"),
                      breaks = c("Sfc - Non-official", "Sfc - Official"),
@@ -164,18 +174,12 @@ fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>%
   geom_point(data = square2, aes(lon, lat), size = 0.2, color = "#CC3311") +
   theme_minimal() +
   theme(legend.position = "bottom", 
-        legend.box = "vertical",
-        legend.margin = margin(),
-        legend.box.spacing = margin(0, 0, 0, 0))
-
-lista_sondeos <- fread(here("analysis/data/derived_data/lista_sondeos.csv")) %>% 
-  .[, periodo := fcase(nominal_launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")),  "IOP07", 
-                       nominal_launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")),  "IOP08", 
-                       default = "Others")
-  ]
-
-fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
-  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+        legend.box = "vertical") +
+        # ,
+        # legend.margin = margin(),
+        # legend.box.spacing = margin(0, 0, 0, 0)) +
+        # 
+dominio %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
                     breaks = seq(0, 6000, 500)) +
@@ -193,29 +197,21 @@ fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>%
   scale_color_brewer(palette = "Dark2",
                      guide = guide_legend(override.aes = list(size = 2,
                                                               alpha = 1))) +
-  # geom_point(data = obs, aes(ConvertLongitude(lon), lat, 
-  #                            color = source, shape = source), 
-  #            size = 1, alpha = 0.8) + 
-  # scale_shape_manual(name = "Surface stations",  
-  #                    breaks = c("Sfc - Non-official", "Sfc - Official"),
-  #                    labels = c("ASWS","CSWS"), values = c(15, 17),
-  #                    guide = guide_legend(override.aes = list(size = 2))) +
-  # scale_color_manual(name =  "Surface stations", 
-  #                    values = c("Sfc - Non-official" = "#00695c", 
-  #                               "Sfc - Official" = "#FD8002"),
-  #                    breaks = c("Sfc - Non-official", "Sfc - Official"),
-#                    labels = c("ASWS","CSWS"),
-#                    guide = guide_legend(override.aes = list(size = 2))) +
-# geom_point(data = square, aes(lon, lat), size = 0.2) +
-  # geom_point(data = square2, aes(lon, lat), size = 0.2, color = "#CC3311") +
-labs(color = NULL, shape = NULL) +
+  labs(color = "b) Soundings", shape = "b) Soundings") +
   theme_minimal() +
   theme(legend.position = "bottom", 
-        legend.box = "vertical",
-        legend.margin = margin(),
-        legend.box.spacing = margin(0, 0, 0, 0))
+        legend.box = "vertical") +
+# ,
+#         legend.margin = margin(),
+#         legend.box.spacing = margin(0, 0, 0, 0)) +
+  plot_layout(ncol = 2, guides = "collect") +
+  plot_annotation(tag_levels = 'a', tag_suffix = ')') & 
+  theme(legend.position = 'bottom', legend.box = "vertical")
 ```
 
+```{r ciclo, fig.cap="Diagram of analysis cycles between Nov 20th, 18 UTC and Nov 23rd 12 UTC plus and spin up period of 6 hours. The zoomed figure shows assimilation in one-hour centered window and new boundary conditions from GFSD every 6 hours.", out.height=400, out.width=800, fig.align="center"}
+knitr::include_graphics(here("analysis", "figures", "analysis_cycle.svg"))
+```
 
 ```{r obs}
 tribble(
@@ -231,10 +227,10 @@ tribble(
 ```
 
 
-```{r}
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E4/ANA/*/diagfiles/asim*ensmean")[1:67]
+```{r count_obs, fig.height=6, fig.width=10}
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E2/ANA/*/diagfiles/asim*ensmean")[1:67]
 
-conv <- read_diag_conv(files, exp = "E4", member = "000") 
+conv <- read_diag_conv(files, exp = "E2", member = "000") 
 
 conv[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
                           type %in% c(120, 220, 221), "ADPUPA",
@@ -282,7 +278,7 @@ p1 <- rbind(conv, aut, satwnd) %>%
   scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
                        guide = guide_colorbar(barwidth = 20)) +
   geom_mapa() +
-  facet_wrap(~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+  facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
                                                E6 = "SATWND", E7 = "RAD"))) +
   labs(fill = "Mean number of\nobs per cycle") +
   theme_minimal() +
@@ -294,26 +290,41 @@ p2 <- rbind(conv, aut, satwnd) %>%
   .[, ":="(lev.box = cut_round(pressure, breaks = seq(50, 1050, 50)))] %>% 
   .[, .(count_obs = .N), by = .(exp, lev.box, date)] %>% 
   .[, .(obs_cycle = mean(count_obs, na.rm = TRUE)), by = .(exp, lev.box)] %>% 
-  ggplot(aes(exp, lev.box)) +
-  geom_tile(aes(fill = obs_cycle)) +
-  scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
-                       guide = guide_colorbar(barheight = NULL)) +
-  scale_x_discrete(labels = c("CONV", "AUT", "SATWND")) +
-  scale_y_reverse() +
-  labs(x = NULL, y = "Pressure level (hPa)", fill = "Mean number of\nobs per cycle") +
+  ggplot(aes(lev.box, obs_cycle)) +
+  geom_line(aes(color = exp)) +
+  geom_point(aes(color = exp, shape = exp), size = 2) +
+    scale_color_manual(values = colores_exp, 
+                     labels = c(E2 = "CONV", E5 = "AUT", 
+                                E6 = "SATWND", E7 = "RAD")) +
+  scale_shape_manual(values = c(15, 16, 17), labels = c(E2 = "CONV", E5 = "AUT", 
+                                E6 = "SATWND", E7 = "RAD")) +
+  # geom_tile(aes(fill = obs_cycle)) +
+  # scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
+  #                      guide = guide_colorbar(barheight = NULL)) +
+  scale_y_log10() +
+  scale_x_reverse() +
+  coord_flip() +
+  labs(color = NULL, shape = NULL,
+       x = "Pressure level (hPa)", y = "Mean number of\nobs per cycle") +
   theme_minimal() +
-  theme(aspect.ratio = 2.5/1, plot.margin = unit(c(0, 0, 0, 0), "cm"))
+  theme(aspect.ratio = 2.5/1, 
+        legend.position = "bottom",
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 p3 <- rbind(conv, aut, satwnd) %>% 
   .[usage.flag == 1 & rerr != 1.0e+10] %>% 
   .[, .(count_obs = .N), by = .(exp, date)] %>% 
   ggplot(aes(date, count_obs)) +
   geom_line(aes(color = exp)) +
+  geom_point(aes(color = exp, shape = exp), size = 2) +
   scale_color_manual(values = colores_exp, 
-                     labels = c(E4 = "CONV", E5 = "AUT", 
+                     labels = c(E2 = "CONV", E5 = "AUT", 
+                                E6 = "SATWND", E7 = "RAD")) +
+  scale_shape_manual(values = c(15, 16, 17), labels = c(E2 = "CONV", E5 = "AUT", 
                                 E6 = "SATWND", E7 = "RAD")) +
   scale_date() +
-  labs(y = "Mean number of obs per cycle", color = NULL, x = NULL) +
+  labs(y = "Number of obs per cycle", x = NULL,
+       color = NULL, shape = NULL) +
   theme_minimal() +
   theme(aspect.ratio = 1/2,
         legend.position = "bottom", 
@@ -326,7 +337,7 @@ cowplot::plot_grid(p1, NULL, p2, p3, ncol = 3,  rel_widths = c(1.3, -0.3, 1))
 
 
 ```{r}
-files <- Sys.glob(here("analysis/data/derived_data/count_obs_E*"))
+files <- Sys.glob(here("analysis/data/derived_data/count_obs_E*"))[c(1, 3, 4)]
 
 purrr::map(files, ~fread(.x)) %>% rbindlist() %>% 
   .[, porcentaje := scales::percent(proporcion, accuracy = 0.01, trim = TRUE)] %>% 
@@ -355,8 +366,140 @@ fread(here("analysis", "data", "derived_data", "tabla_radianzas.csv")) %>%
   .[] %>% 
   kbl(col.names = c("Sensor", "Plataform", "Number of assimilated\nchannels", "Percentage over total"),
       caption = "List of the available sensors in several platforms, the number of accepted channels and the percentage of assimilated observations calculated over all radiance observations.") %>% 
-  collapse_rows(1) %>% 
+  collapse_rows(1,valign = "top") %>% 
+  # column_spec(1, width = "3cm", latex_valign = "p") %>% 
   kable_classic_2(full_width = F)
+```
+
+
+```{r rad, fig.cap="Number of radiance observations for each 50 hPa pressure layer over time"}
+
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E8/ANA/*/diagfiles/asim*ensmean")
+
+files <- files[!str_detect(files, "conv")]
+
+
+rad <- read_diag_rad(files, "E8") %>% 
+  satinfo[., on = c("sensor", "channel")]
+
+rad %>% 
+  .[qc == 0 & iuse == 1] %>% 
+  .[, lev := factor(cut_round(peakwt, breaks = seq(0, 1050, 50)))] %>% 
+  .[, .(omb = mean(tbc),
+        n = .N), by = .(date, lev)] %>% 
+  .[lev != 1025] %>% 
+  ggplot(aes(date, fct_rev(lev))) +
+  geom_tile(aes(fill = n)) +
+  scale_fill_viridis_c(trans = scales::log10_trans(), breaks = c(1, 10, 100, 1000, 10000),
+                       guide = guide_colourbar(barheight = 18,
+                                               barwidth = 0.8)) +
+  
+  scale_date() +
+  labs(x = NULL, fill = NULL, y = "pressure (hPa)") +
+  theme_minimal()
+
+```
+```{r level-rad, fig.cap="Nivel de presión asociado a las observaciones en cada ciclo de asimilación"}
+
+rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[sensor %in% c("airs", "iasi") &
+      # errinv %between% c(0.0000316227, 1000) & 
+      # qc == 0 & 
+      # iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
+  .[, as.list(quantile(peakwt, c(0.05, 0.5, 0.95))) %>% setNames(c("Q5", "Q50", "Q95")), by = .(sensor, channel)] %>% 
+  ggplot(aes(channel, Q50)) +
+  # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+  #             outlier.size = 0.5, size = 0.1) +
+  geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4, fill = "darkorange") +
+  geom_line(color = "darkorange") +
+  scale_y_level(name = "Pressure (hPa)") +
+  facet_wrap(~sensor, scales = "free", labeller = labeller(sensor = toupper)) +
+  labs(x = "", y = "") +
+  theme_minimal() +
+  
+  rad %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  .[!sensor %in% c("airs", "iasi") &
+      # errinv %between% c(0.0000316227, 1000) & 
+      # qc == 0 & 
+      # iuse == 1 &
+      peakwt %between% c(0.001, 1200)] %>% 
+  .[, as.list(quantile(peakwt, c(0.05, 0.5, 0.95))) %>% setNames(c("Q5", "Q50", "Q95")), by = .(sensor, channel)] %>% 
+  ggplot(aes(channel, Q50)) +
+  # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
+  #             outlier.size = 0.5, size = 0.1) +
+  geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4, fill = "darkorange") +
+  geom_line(color = "darkorange") +
+  scale_y_level(name = "Pressure (hPa)") +
+  facet_wrap(~sensor, scales = "free", labeller = labeller(sensor = toupper)) +
+  labs(y = "", x = "Channel index") +
+  theme_minimal() +
+  plot_layout(ncol = 1)
+```
+
+
+## Results
+
+### Ensemble reliability
+
+```{r rcrv-sfc, fig.cap="Standar deviation of rcrv calculate for surface observations included in boxes of 2.5 degree", fig.scap=c("Wind", "Temperature")}
+
+rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
+      fread(here("analysis", "data", "derived_data", "rcrv_t_box.csv"))) %>%   
+  # .[var %in% c("u", "v") & type %in% c(281, 287)] %>% 
+  .[, type.obs := type] %>% 
+  .[, type.obs := fcase(type.obs == 181, 281,
+                        type.obs == 187, 287,
+                        type.obs == 281, 281,
+                        type.obs == 287, 287)] %>% 
+  ggplot(aes(ConvertLongitude(lon.box), lat.box)) +
+  geom_raster(aes(fill = sd.y)) +
+  geom_mapa() +
+  scale_fill_viridis_c(breaks = seq(0, 5, 0.5),
+                       limits = c(0, 5),
+                       direction = -1,
+                       guide = guide_colorstrip(inside = TRUE,
+                                                barwidth = 20,
+                                                barheight = 0.8)) +
+  facet_grid(var~type.obs, 
+             labeller = labeller(type.obs = c("281" = "ADPSFC",
+                                              "287" = "ADPSFC\n no pressure",
+                                              "181" = "ADPSFC",
+                                              "187" = "ADPSFC\n no pressure"),
+                                 var = c("v" = "Wind",
+                                         "t" = "Temperature"))) +
+  labs(fill = "") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+```
+
+
+```{r rcrv-profile, fig.cap="Profiles of mean and standar deviation of rcrv for sounding and aircraft observations."}
+
+rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")), 
+      fread(here("analysis", "data", "derived_data", "rcrv_t_perfil.csv"))) %>% 
+  obs.type[., on = "type"] %>%   
+  .[type != 130] %>%
+  melt(measure.vars = c("mean.y", "sd.y")) %>% 
+  ggplot(aes(error.level, value)) +
+  geom_hline(yintercept = c(0, 1), color = "grey20") +
+  geom_line(aes(color = factor(code), linetype = variable)) +
+  scale_linetype_manual(values = c("dashed", "solid"),
+                        labels = c("Mean RCRV", "SD RCRV")) +
+  scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
+  coord_flip() +
+  facet_wrap(~ var, labeller = labeller(var = c("t" = "Temperature",
+                                                "u" = "U wind",
+                                                "v" = "Wind"))) +
+  labs(y = NULL,
+       linetype = "",
+       color = NULL) +
+  theme_minimal() 
 ```
 
 
