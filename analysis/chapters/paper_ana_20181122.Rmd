@@ -29,6 +29,7 @@ library(patchwork)
 library(unglue)
 library(knitr)
 library(kableExtra)
+library(tagger)
 
 map_arg <- rnaturalearth::ne_states(country = c("argentina"), 
                                     returnclass = "sf")
@@ -175,11 +176,11 @@ dominio %>%
   theme_minimal() +
   theme(legend.position = "bottom", 
         legend.box = "vertical") +
-        # ,
-        # legend.margin = margin(),
-        # legend.box.spacing = margin(0, 0, 0, 0)) +
-        # 
-dominio %>% 
+  # ,
+  # legend.margin = margin(),
+  # legend.box.spacing = margin(0, 0, 0, 0)) +
+  # 
+  dominio %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
                     breaks = seq(0, 6000, 500)) +
@@ -201,9 +202,9 @@ dominio %>%
   theme_minimal() +
   theme(legend.position = "bottom", 
         legend.box = "vertical") +
-# ,
-#         legend.margin = margin(),
-#         legend.box.spacing = margin(0, 0, 0, 0)) +
+  # ,
+  #         legend.margin = margin(),
+  #         legend.box.spacing = margin(0, 0, 0, 0)) +
   plot_layout(ncol = 2, guides = "collect") +
   plot_annotation(tag_levels = 'a', tag_suffix = ')') & 
   theme(legend.position = 'bottom', legend.box = "vertical")
@@ -293,11 +294,11 @@ p2 <- rbind(conv, aut, satwnd) %>%
   ggplot(aes(lev.box, obs_cycle)) +
   geom_line(aes(color = exp)) +
   geom_point(aes(color = exp, shape = exp), size = 2) +
-    scale_color_manual(values = colores_exp, 
+  scale_color_manual(values = colores_exp, 
                      labels = c(E2 = "CONV", E5 = "AUT", 
                                 E6 = "SATWND", E7 = "RAD")) +
   scale_shape_manual(values = c(15, 16, 17), labels = c(E2 = "CONV", E5 = "AUT", 
-                                E6 = "SATWND", E7 = "RAD")) +
+                                                        E6 = "SATWND", E7 = "RAD")) +
   # geom_tile(aes(fill = obs_cycle)) +
   # scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
   #                      guide = guide_colorbar(barheight = NULL)) +
@@ -321,7 +322,7 @@ p3 <- rbind(conv, aut, satwnd) %>%
                      labels = c(E2 = "CONV", E5 = "AUT", 
                                 E6 = "SATWND", E7 = "RAD")) +
   scale_shape_manual(values = c(15, 16, 17), labels = c(E2 = "CONV", E5 = "AUT", 
-                                E6 = "SATWND", E7 = "RAD")) +
+                                                        E6 = "SATWND", E7 = "RAD")) +
   scale_date() +
   labs(y = "Number of obs per cycle", x = NULL,
        color = NULL, shape = NULL) +
@@ -444,7 +445,7 @@ rad %>%
 
 ### Ensemble reliability
 
-```{r rcrv-sfc, fig.cap="Standar deviation of rcrv calculate for surface observations included in boxes of 2.5 degree", fig.scap=c("Wind", "Temperature")}
+```{r rcrv-sfc, fig.cap="Standar deviation of rcrv calculate for surface observations included in boxes of 2.5 degree"}
 
 rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
       fread(here("analysis", "data", "derived_data", "rcrv_t_box.csv"))) %>%   
@@ -454,6 +455,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
                         type.obs == 187, 287,
                         type.obs == 281, 281,
                         type.obs == 287, 287)] %>% 
+  .[, var := factor(var, levels = c("v", "t"))] %>% 
   ggplot(aes(ConvertLongitude(lon.box), lat.box)) +
   geom_raster(aes(fill = sd.y)) +
   geom_mapa() +
@@ -470,6 +472,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
                                               "187" = "ADPSFC\n no pressure"),
                                  var = c("v" = "Wind",
                                          "t" = "Temperature"))) +
+  tag_facets() +
   labs(fill = "") +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -479,7 +482,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
 ```
 
 
-```{r rcrv-profile, fig.cap="Profiles of mean and standar deviation of rcrv for sounding and aircraft observations."}
+```{r rcrv-profile, fig.cap="Profiles of the mean and standard deviation of RCRV for upper-air observations.", fig.subcap=c("Sounding and aircraft observations.", "Satellite-derived wind.", "Radiances observations.")}
 
 rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")), 
       fread(here("analysis", "data", "derived_data", "rcrv_t_perfil.csv"))) %>% 
@@ -494,12 +497,415 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
   coord_flip() +
   facet_wrap(~ var, labeller = labeller(var = c("t" = "Temperature",
-                                                "u" = "U wind",
                                                 "v" = "Wind"))) +
+  tag_facets() +
   labs(y = NULL,
        linetype = "",
        color = NULL) +
-  theme_minimal() 
+  theme_minimal() +
+  theme(legend.position = "bottom", 
+        legend.box = "vertical",
+        aspect.ratio = 2/1)
+
+
+read_csv(here::here("analysis", "data", "derived_data", "rcrv_satwind.csv")) %>% 
+  melt(measure.vars = c("mean.y", "sd.y")) %>%
+  ggplot(aes(nivel.error, value)) +
+  geom_hline(yintercept = c(0, 1), color = "darkgrey") +
+  geom_line(aes(color = factor(sat_type), linetype = variable)) +
+  scale_color_brewer(palette = "Set1") +
+  scale_linetype_manual(values = c("dashed", "solid"),
+                        labels = c("Mean RCRV", "SD RCRV")) +
+  scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
+  coord_flip() +
+  facet_wrap(~ var, scales = "free_x", labeller = labeller(var = c("u" = "U wind",
+                                                                   "v" = "V wind"))) +
+  labs(linetype = NULL,
+       color = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom", 
+        legend.box = "vertical",
+        aspect.ratio = 2/1)
+
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/rcrv_*_perfil.csv")[1:6]
+
+RCRV <- purrr::map(files, function(f) {
+  meta <- unglue::unglue(basename(f), "rcrv_{sensor}_perfil.csv")
+  
+  fread(f) %>%
+    .[, sensor := meta[[1]][["sensor"]]]
+}) %>%
+  rbindlist()
+
+RCRV %>% 
+  separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
+  setDT() %>% 
+  melt(measure.vars = c("mean.y", "sd.y")) %>% 
+  .[, .(value = mean(value, na.rm = TRUE)), by = .(sensor, level, variable)] %>% 
+  ggplot(aes(level, value)) +
+  geom_hline(yintercept = c(0, 1), color = "grey20") +
+  geom_line(aes(color = sensor, linetype = variable)) +
+  scale_color_discrete(labels = toupper) +
+  scale_linetype_manual(values = c("dashed", "solid"),
+                        labels = c("Mean RCRV", "SD RCRV")) +
+  coord_flip() +
+  scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
+  labs(x = NULL, y = NULL,
+       color = NULL, linetype = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom", 
+        legend.box = "vertical",
+        aspect.ratio = 2/1)
+
+
 ```
+
+### Impacts of assimilated observations 
+
+
+```{r TQ-diff, fig.cap="Difference between experiments for the average vertical profile of variables over time.", fig.scap=c("Temperature (°C).", "Specific Humidity (g/kg)."), fig.height=3.5}
+files <- list.files(derived_data, recursive = TRUE, full.names = TRUE,
+                    pattern = "perfiles_ana")
+
+perfiles <- purrr::map(files, function(f) {
+  exp <- unglue(basename(f), "perfiles_{run}_{exp}.csv")
+  fread(f) %>% 
+    .[, exp := exp[[1]][["exp"]]]
+  
+}) %>% 
+  rbindlist() %>% 
+  .[, date := as_datetime(date)] %>% 
+  .[date %between% c(as_datetime("2018-11-20 18:00:00"),
+                     as_datetime("2018-11-23 12:00:00"))]
+
+
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "T") %>% 
+  .[, ":="(E5_E2 = E5 - E2,
+           E6_E5 = E6 - E5,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E2", "E6_E5", "E8_E6")) %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = value, fill = stat(level)),
+                         breaks = c(seq(-2, 2, 0.2), Inf)) +
+  scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
+                                                            barheight = 0.8)) +
+  labs(fill = "Temperature (K)",
+       x = NULL,
+       y = NULL) +
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  facet_wrap(~variable, ncol = 3,
+             labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E8_E6" = "RAD - SATWND"))) +
+  tag_facets(position = list(x = 0.1, y = 0.96)) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+
+
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "QVAPOR") %>% 
+  .[, ":="(E5_E2 = E5 - E2,
+           E6_E5 = E6 - E5,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E2", "E6_E5", "E8_E6")) %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = value*1000, fill = stat(level)), 
+                    breaks = c(seq(-1.6, 1.6, 0.2), Inf)) +
+  scale_fill_divergent_discretised(limits = c(-1.6, 1.6),
+                                   guide = guide_colorsteps(barwidth = 25,
+                                                            barheight = 0.8)) +
+  
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  labs(fill = "Specific humidity (g/Kg)",
+       y = NULL,
+       x = NULL) +
+ facet_wrap(~variable, ncol = 3,
+             labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E8_E6" = "RAD - SATWND"))) +
+  tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+```
+
+```{r UV-diff, fig.cap="Difference between experiments for the average vertical profile of wind over time (shaded) and U and V (only northerly wind) profiles for the experiment with more observations (contours).", fig.height=3.5}
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "U") %>% 
+  .[, ":="(E5_E2 = E5 - E2,
+           E6_E5 = E6 - E5,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E2", "E6_E5", "E8_E6")) %>% 
+  ggplot(aes(date, lev)) +
+  # geom_contour(aes(z = value)) +
+  geom_contour_fill(aes(z = value, fill = stat(level)), breaks = c(seq(-2, 2, 0.2), Inf)) +
+  scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
+                                                            barheight = 0.8)) +
+  geom_contour2(data = ~.x[, .(lev, date, E5_E2 = E5, E6_E5 = E6, E8_E6 = E8)] %>%
+                  melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value),
+                breaks = seq(0, 30, 3), size = 0.2, linetype = 1, color = "grey30") +
+  geom_text_contour(data = ~.x[, .(lev, date, E5_E2 = E5, E6_E5 = E6, E8_E6 = E8)] %>%
+                      melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value),
+                    breaks = seq(0, 30, 3), color = "grey30", skip = 1,
+                    size = 4, stroke = 0.1) +
+  labs(fill = "U (m/s)",
+       x = NULL,
+       y = NULL) +
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  facet_wrap(~variable, ncol = 3,
+             labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E8_E6" = "RAD - SATWND"))) +
+   tag_facets(position = list(x = 0.1, y = 0.96)) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+
+perfiles %>% 
+  dcast(lev + date ~ exp, value.var = "V") %>% 
+  .[, ":="(E5_E2 = E5 - E2,
+           E6_E5 = E6 - E5,
+           E8_E6 = E8 - E6)] %>% 
+  melt(measure.vars = c("E5_E2", "E6_E5", "E8_E6")) %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = value, fill = stat(level)), 
+                    breaks = c(-Inf, seq(-1.6, 1.6, 0.2), Inf)) +
+  scale_fill_divergent_discretised(limits = c(-1.6, 1.6),
+                                   guide = guide_colorsteps(barwidth = 25,
+                                                            barheight = 0.8)) +
+  geom_contour2(data = ~.x[, .(lev, date, E5_E2 = E5, E6_E5 = E6, E8_E6 = E8)] %>% 
+                  melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
+                breaks = seq(-9, 0, 1), size = 0.2, linetype = 2, color = "grey30") +
+  geom_text_contour(data = ~.x[, .(lev, date, E5_E2 = E5, E6_E5 = E6, E8_E6 = E8)] %>% 
+                      melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
+                    breaks = seq(-9, 0, 1), color = "grey30", skip = 1, 
+                    size = 4, stroke = 0.1) +
+  labs(fill = "V (m/s)",
+       x = NULL,
+       y = NULL) +
+  scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  facet_wrap(~variable, ncol = 3,
+             labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
+                                                         "E6_E5" = "SATWND - AUT",
+                                                         "E8_E6" = "RAD - SATWND"))) +
+  tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+
+```
+
+```{r summary-fields, fig.cap="a) Precipitable water (shaded) and northerly wind (contours, m/s), b) Average potential temperature for the PBL and c) Maximum CAPE and ~0-6 km wind shear over 15 m/s and 30 m/s for each experiment. All fields correspond to 00 UTC Nov, 22.", fig.height=10, fig.width=9}
+
+files <- Sys.glob(paste0(derived_data, "pw/*"))[c(1, 4, 5, 7)]
+
+dates <- c("20181122000000")
+
+pw <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "pw_ana_{exp}_{date}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "pw", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      .[]
+  }
+}) %>% 
+  rbindlist() %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)]
+
+files <- Sys.glob(paste0(derived_data, "mucape/mcape_ana_E*_20181122000000.nc"))[c(1, 4, 5, 7)]
+
+mucape <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "mcape_ana_{exp}_{date}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "cape_2d", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      setnames(old = "mcape_mcin_lcl_lfc", new = "variable") %>% 
+      .[]
+  }
+}) %>% 
+  rbindlist() 
+
+fcsts <- expand_grid(fcsts = c("20181122000000"),
+                     exp = c("E2", "E5", "E6", "E8"))
+
+ana <- lapply(seq_len(nrow(fcsts)), function(f) {
+  
+  tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
+    .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
+    .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>% 
+    .[, theta := ReadNetCDF(paste0(derived_data, "/theta_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(th = "theta"), out = "vector")] %>%
+    .[, date :=  ymd_hms(fcsts[f, 1])] %>% 
+    .[, exp := fcsts[f, 2]] %>%  
+    .[]
+}) %>% 
+  rbindlist() 
+
+cor <- ana[bottom_top %in% c(1, 16)] %>% 
+  dcast(date + exp + south_north + west_east ~ bottom_top, value.var = c("u", "v")) %>% 
+  .[, cortante := Mag(u_16 - u_1, v_16 - v_1)] %>% 
+  .[, ":="(u_1 = NULL, 
+           u_16 = NULL,
+           v_1 = NULL,
+           v_16 = NULL)]
+
+ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)), 
+    by = .(south_north, west_east, date, exp)] %>% 
+  .[pw, on = .NATURAL] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)),
+                    proj = norargentina_lambert) +
+  scale_fill_continuous_divergingx(super = ScaleDiscretised,
+                       palette = "PRGn", mid = 25,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  geom_contour2(aes(z = v_mean, size = stat(level)),
+                proj = norargentina_lambert, color = "black", 
+                breaks = c(-10, -5)) +
+  scale_size_continuous(breaks = c(-10, -5), range = c(0.8, 0.4),
+                        labels = c("-10", "-5")) +
+  # geom_text_contour(aes(z = v_mean), size = 3, stroke = 0.05,
+  #                   proj = norargentina_lambert, color = "darkorange", 
+  #              breaks = c(-10, -5), skip = 0,
+  #              label.placement = label_placement_n(1)) +
+  # scale_linetype_manual(guide = NULL, values = c(2, 1)) +
+  labs(fill = "Precipitable\nwater (Kg/m²)", size = "V (m/s)") +
+  cordillera +
+  geom_mapa() +
+  facet_grid(. ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E8 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        # legend.box.spacing = margin(0, 0, 0, 0),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) +
+  
+  
+  ana[bottom_top %between% c(2, 10), .(theta_mean = mean(theta)), 
+      by = .(south_north, west_east, date, exp)] %>% 
+  .[pw, on = .NATURAL] %>% 
+  ggplot(aes(x, y)) +
+  # geom_point(aes(color = v_mean)) +
+  geom_contour_fill(aes(z = theta_mean, fill = stat(level_d)),
+                    proj = norargentina_lambert,
+                    breaks = c(-Inf, seq(290, 314, 2), Inf), limits = c(-Inf, Inf)) +
+  scale_fill_distiller(super = ScaleDiscretised,
+                       palette = "RdYlBu", direction = -1,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  labs(fill = "Potential\ntemperature (K)") +
+  cordillera +
+  geom_mapa() +
+  facet_grid(. ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E8 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        # legend.box.spacing = margin(0, 0, 0, 0),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3),
+        strip.text = element_blank(), 
+        strip.background = element_blank()) +
+  
+  
+  mucape %>% 
+  .[variable == "mcape"] %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  .[cor, on = .NATURAL] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)), 
+                    proj = norargentina_lambert, limits = c(500, 6000)) +
+  scale_fill_distiller(super = ScaleDiscretised,
+                       palette = "YlOrRd", direction = 1,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  # geom_contour2(aes(z = cortante),
+  #               proj = norargentina_lambert, color = "black", size = 0.4,
+  #               breaks = c(10, 25)) +
+  geom_contour2(aes(z = cortante, size = stat(level)),
+                proj = norargentina_lambert, color = "black", 
+                breaks = c(15, 30)) +
+  scale_size_continuous(breaks = c(15, 30), range = c(0.8, 0.4),
+                        labels = c("15", "30")) +
+  # geom_point(data = ~.x[cortante >= 15 & is.cross(x, y, skip = 1)], 
+  #            aes(x = lon, y = lat, 
+  #                alpha = factor(cut_round(cortante, breaks = c(15, 25, Inf)))),
+  #            size = 0.00002, shape = 20) +
+  # scale_alpha_manual(values = c(0.3, 0.7), name = NULL, #labels = c(">5 m/s", ">15 m/s"),
+  #                    guide = guide_legend(override.aes = list(size = 2))) +
+  labs(fill = "MCAPE (J/Kg)", size = "Wind\nshear (m/s)") +
+  cordillera +
+  geom_mapa() +
+  facet_grid(. ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E8 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        # legend.box.spacing = margin(1, 1, 1, 1),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3),
+        strip.text = element_blank(), 
+        strip.background = element_blank()) +
+  
+  plot_layout(ncol = 1, heights = c(1, 1, 1)) +
+  plot_annotation(tag_levels = "a", tag_suffix = ")")
+```
+
+```{r q_vert, fig.cap="Specific humidity (g/kg, shaded) and meridional wind (m/s, contours) average over the inner domain for each latitude for 00 UTC Nov, 22."}
+
+coord <- mucape[variable == "mcape", c("south_north", "lat")] %>% 
+  .[, .(lat = mean(lat)), by = south_north]
+
+ana[west_east %between% c(70, 180) & bottom_top %between% c(1, 25)] %>% 
+  .[, .(q_mean = mean(q),
+        v_mean = mean(v)), by = .(bottom_top, south_north, date, exp)] %>% 
+  coord[., on = "south_north"] %>% 
+  ggplot(aes(lat, bottom_top)) +
+  geom_contour_fill(aes(z = q_mean*1000, fill = stat(level_d))) +
+  scale_fill_distiller(super = ScaleDiscretised,
+                       palette = "BrBG", direction = 1,
+                       # limits = c(1, 19),
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  geom_contour2(aes(z = v_mean, linetype = factor(-sign(..level..))), 
+                color = "grey30", size = 0.3, binwidth = 2) +
+  geom_text_contour(aes(z = v_mean), color = "grey30", 
+                    size = 3, stroke = 0.05, breaks = seq(-10, 6, 2),
+                    label.placement = label_placement_n(1)) +
+  scale_linetype(guide = NULL) +
+  scale_x_latitude(breaks = seq(-40, -20, 5)) +
+  facet_wrap( ~ exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                                 E6 = "SATWND", E8 = "RAD"))) +
+  labs(y =  "Sigma levels", fill = "Specific\nhumidity (g/Kg)") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        legend.box.spacing = margin(0, 0, 0, 0),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+```
+
+
+
+
+
+
 
 
