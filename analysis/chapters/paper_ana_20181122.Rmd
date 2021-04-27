@@ -105,7 +105,7 @@ multiespectrales <- c("airs_aqua",
 
 experiments <- c("E4", "E5", "E6", "E7")
 #Color blind friendly but E4 y E7 parecidos en Desaturated
-colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311") 
+colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E8 = "#CC3311") 
 # colores_exp <- c(E4 = "#225555", E5 = "#CCBB44", E6 = "#CC6677", E7 = "#882255")
 satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
   setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
@@ -280,7 +280,7 @@ p1 <- rbind(conv, aut, satwnd) %>%
                        guide = guide_colorbar(barwidth = 20)) +
   geom_mapa() +
   facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
-                                               E6 = "SATWND", E7 = "RAD"))) +
+                                               E6 = "SATWND", E8 = "RAD"))) +
   labs(fill = "Mean number of\nobs per cycle") +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -296,7 +296,7 @@ p2 <- rbind(conv, aut, satwnd) %>%
   geom_point(aes(color = exp, shape = exp), size = 2) +
   scale_color_manual(values = colores_exp, 
                      labels = c(E2 = "CONV", E5 = "AUT", 
-                                E6 = "SATWND", E7 = "RAD")) +
+                                E6 = "SATWND", E8 = "RAD")) +
   scale_shape_manual(values = c(15, 16, 17), labels = c(E2 = "CONV", E5 = "AUT", 
                                                         E6 = "SATWND", E7 = "RAD")) +
   # geom_tile(aes(fill = obs_cycle)) +
@@ -587,7 +587,7 @@ perfiles %>%
   melt(measure.vars = c("E5_E2", "E6_E5", "E8_E6")) %>% 
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value, fill = stat(level)),
-                         breaks = c(seq(-2, 2, 0.2), Inf)) +
+                    breaks = c(seq(-2, 2, 0.2), Inf)) +
   scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
                                                             barheight = 0.8)) +
   labs(fill = "Temperature (K)",
@@ -597,8 +597,8 @@ perfiles %>%
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, ncol = 3,
              labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
-                                                         "E6_E5" = "SATWND - AUT",
-                                                         "E8_E6" = "RAD - SATWND"))) +
+                                              "E6_E5" = "SATWND - AUT",
+                                              "E8_E6" = "RAD - SATWND"))) +
   tag_facets(position = list(x = 0.1, y = 0.96)) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -624,10 +624,10 @@ perfiles %>%
   labs(fill = "Specific humidity (g/Kg)",
        y = NULL,
        x = NULL) +
- facet_wrap(~variable, ncol = 3,
+  facet_wrap(~variable, ncol = 3,
              labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
-                                                         "E6_E5" = "SATWND - AUT",
-                                                         "E8_E6" = "RAD - SATWND"))) +
+                                              "E6_E5" = "SATWND - AUT",
+                                              "E8_E6" = "RAD - SATWND"))) +
   tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -662,9 +662,9 @@ perfiles %>%
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, ncol = 3,
              labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
-                                                         "E6_E5" = "SATWND - AUT",
-                                                         "E8_E6" = "RAD - SATWND"))) +
-   tag_facets(position = list(x = 0.1, y = 0.96)) +
+                                              "E6_E5" = "SATWND - AUT",
+                                              "E8_E6" = "RAD - SATWND"))) +
+  tag_facets(position = list(x = 0.1, y = 0.96)) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -697,8 +697,8 @@ perfiles %>%
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, ncol = 3,
              labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
-                                                         "E6_E5" = "SATWND - AUT",
-                                                         "E8_E6" = "RAD - SATWND"))) +
+                                              "E6_E5" = "SATWND - AUT",
+                                              "E8_E6" = "RAD - SATWND"))) +
   tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -773,9 +773,9 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   geom_contour_fill(aes(z = value, fill = stat(level_d)),
                     proj = norargentina_lambert) +
   scale_fill_continuous_divergingx(super = ScaleDiscretised,
-                       palette = "PRGn", mid = 25,
-                       guide = guide_colorsteps(barwidth = 25,
-                                                barheight = 0.8)) +
+                                   palette = "PRGn", mid = 25,
+                                   guide = guide_colorsteps(barwidth = 25,
+                                                            barheight = 0.8)) +
   geom_contour2(aes(z = v_mean, size = stat(level)),
                 proj = norargentina_lambert, color = "black", 
                 breaks = c(-10, -5)) +
@@ -902,7 +902,141 @@ ana[west_east %between% c(70, 180) & bottom_top %between% c(1, 25)] %>%
         panel.grid = element_line(linetype = 3)) 
 ```
 
+### Verification
 
+```{r pp-hov, fig.cap="Hövmoller of mean hourly accumulated precipitation for each latitude band observed (left) and simulated (right, for the ensemble mean) over the inner domain."}
+
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/*ana*mean_acum_1h.rds")
+
+ppacum_1h <- purrr::map(files, function(f) {
+  
+  readRDS(f) %>% 
+    .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)]
+  
+}) %>% rbindlist() %>% 
+  .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] 
+}
+
+readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %>% 
+  .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
+  .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] %>% 
+  .[end_date %between% c(as_datetime("20181120190000"), as_datetime("20181123120000"))] %>% 
+  .[, .(pp_acum = mean(pp_acum),
+        lat = mean(lat),
+        exp = "IMERG"), by = .(end_date, y)] %>% 
+  ggplot(aes(end_date, lat)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level)), breaks = c(seq(1, 13, 1), Inf)) +
+  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(1, 13, 1)) +
+  # scale_fill_viridis_c(option = "A",
+  scale_fill_distiller(palette = "YlGnBu",
+                       direction = 1,
+                       super = ScaleDiscretised,
+                       guide = guide_colorsteps(inside = TRUE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  scale_y_latitude(breaks = seq(-40, -20, 5)) +
+  facet_wrap(~ exp) +
+  labs(x = NULL, y = NULL, fill = "Acumulated\nprecipitation (mm/h)") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  ppacum_1h %>% 
+  .[exp %in% c("E2", "E5", "E6", "E8")] %>%
+  .[, lat := lat[1], by = .(y)] %>% 
+  .[, .(pp_acum = mean(pp_acum)), by = .(exp, date, y, lat)] %>% 
+  ggplot(aes(date, lat)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level)), breaks = c(seq(1, 13, 1), Inf)) +
+  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(1, 13, 1)) +
+   # scale_fill_viridis_c(option = "A",
+  scale_fill_distiller(palette = "YlGnBu",
+                       direction = 1,
+                       super = ScaleDiscretised,
+                       guide = guide_colorsteps(inside = TRUE,
+                                                barwidth = 25,
+                                                barheight = 0.8)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  scale_y_latitude(breaks = seq(-40, -20, 5), labels = NULL) +
+  facet_wrap(~ exp, ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                                E6 = "SATWND", E8 = "RAD"))) +
+  labs(x = NULL, y = NULL, fill = "Acumulated\nprecipitation (mm/h)") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  
+  plot_layout(ncol = 2, widths = c(0.2, 0.8), guides = "collect") & theme(legend.position = 'bottom')
+```
+
+```{r fss, fig.cap="FSS calculated over a 6-hours moving window for different thresholds and scales."}
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E[2-8].csv")
+
+fss <- purrr::map(files, function(f) {
+  
+  fread(f) %>% 
+    .[, date := as_datetime(date)]
+}) %>% 
+  rbindlist()
+
+fss %>% 
+  .[w %in% c(1, 11) & q %in% c(1, 25) & exp %in% c("E2", "E5", "E6", "E8")] %>% 
+  # .[date %between% c(ymd_hms(20181122000000), ymd_hms(20181123120000))] %>% 
+  ggplot(aes(date, fss)) +
+  geom_hline(yintercept = 1, color = "darkgray") +
+  geom_line(aes(color = exp)) +
+  # geom_point(aes(color = exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E2 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E8 = "RAD")) +
+  scale_date(20181122000000, 20181123000000, "12 hours") +
+  coord_cartesian(xlim = c(ymd_hms(20181122000000), ymd_hms(20181123120000))) +
+  facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
+                                            "10" = "10 mm", "25" = "25 mm"),
+                                      w = c("1" = "10 km", "5" = "50 km", "11" = "100 km", 
+                                            "51" = "500 km", "101" = "1000 km"))) +
+  labs(color = NULL, x = NULL, y = "FSS") +
+  theme_minimal()
+```
+
+```{r soundings, fig.cap="RMSE and Bias of temperature, dew point temperature and wind components calculated by comparing each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8."}
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos/ANA/sondeo_E[2568]*")
+
+sondeos <- purrr::map(files, function(f){
+  
+  fread(f) %>% 
+    .[, value := fifelse(variable %in% c("t", "td"), value + 273.15, value)] %>% 
+    .[, launch_time := as_datetime(launch_time)]
+  
+}) %>% 
+  rbindlist()
+
+IOP <- tribble(
+  ~iop, ~ini, ~end,
+  "IOP07", ymd_hms("20181121150000"), ymd_hms("20181121210000"),
+  "IOP08", ymd_hms("20181122140000"), ymd_hms("20181122200000")
+) %>% setDT()
+
+
+sondeos %>% 
+  .[, iop := fcase(launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")), "IOP07",
+                   launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08")] %>% 
+  .[variable %in% c("t", "td", "u", "v") & !str_detect(site, "/") & !is.na(fcst_value) & !is.na(iop)] %>% 
+  .[site != "Sao Borja, Brazil"] %>% 
+  .[, lev := cut_round(alt, c(seq(0, 3000, 500), seq(4000, 21000, 1000)))] %>% 
+  .[, ":="(RMSE = mean(sqrt((value - fcst_value)^2), na.rm = TRUE), 
+           BIAS = mean(value - fcst_value, na.rm = TRUE)), by = .(iop, exp, variable, lev)] %>% 
+  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico", value.name = "value.est") %>% 
+  ggplot(aes(lev/1000, value.est)) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_line(aes(color = exp, linetype = estadistico)) +
+  scale_color_manual(values = c(colores_exp, "black"), labels = c(E2 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E8 = "RAD")) +
+  coord_flip() +
+  facet_grid(iop~variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+```
 
 
 
