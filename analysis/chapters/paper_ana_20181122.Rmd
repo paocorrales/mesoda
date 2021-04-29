@@ -413,8 +413,8 @@ rad %>%
   ggplot(aes(channel, Q50)) +
   # geom_boxplot(aes(group = factor(channel)), outlier.color = "darkorange", 
   #             outlier.size = 0.5, size = 0.1) +
-  geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4, fill = "darkorange") +
-  geom_line(color = "darkorange") +
+  geom_ribbon(aes(ymin = Q5, ymax = Q95), alpha = 0.4) +
+  geom_line() +
   scale_y_level(name = "Pressure (hPa)") +
   facet_wrap(~sensor, scales = "free", labeller = labeller(sensor = toupper)) +
   labs(x = "", y = "") +
@@ -491,71 +491,73 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   melt(measure.vars = c("mean.y", "sd.y")) %>% 
   ggplot(aes(error.level, value)) +
   geom_hline(yintercept = c(0, 1), color = "grey20") +
-  geom_line(aes(color = factor(code), linetype = variable)) +
+  geom_line(aes(linetype = variable, color = code)) +
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("Mean RCRV", "SD RCRV")) +
+  scale_color_brewer(palette = "Dark2") +
+  guides(linetype = guide_legend(order = 1),
+        color = guide_legend(order = 10)) +
+  # scale_color_discrete() +
   scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
   coord_flip() +
   facet_wrap(~ var, labeller = labeller(var = c("t" = "Temperature",
                                                 "v" = "Wind"))) +
   tag_facets() +
-  labs(y = NULL,
-       linetype = "",
-       color = NULL) +
+  labs(x = NULL, y = NULL,
+      linetype = NULL, color = "Upper air\nobservations") +
   theme_minimal() +
-  theme(legend.position = "bottom", 
-        legend.box = "vertical",
-        aspect.ratio = 2/1)
-
-
-read_csv(here::here("analysis", "data", "derived_data", "rcrv_satwind.csv")) %>% 
+  theme(legend.box = "vertical",
+    aspect.ratio = 4/1) +
+  
+  
+  read_csv(here::here("analysis", "data", "derived_data", "rcrv_satwind.csv")) %>% 
   melt(measure.vars = c("mean.y", "sd.y")) %>%
-  ggplot(aes(nivel.error, value)) +
-  geom_hline(yintercept = c(0, 1), color = "darkgrey") +
-  geom_line(aes(color = factor(sat_type), linetype = variable)) +
-  scale_color_brewer(palette = "Set1") +
+  ggplot(aes(error.level, value)) +
+  geom_hline(yintercept = c(0, 1), color = "grey20") +
+  geom_line(aes(color = sat_type, linetype = variable)) +
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("Mean RCRV", "SD RCRV")) +
+  scale_color_brewer(palette = "Set1") +
   scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
   coord_flip() +
   facet_wrap(~ var, scales = "free_x", labeller = labeller(var = c("u" = "U wind",
-                                                                   "v" = "V wind"))) +
-  labs(linetype = NULL,
-       color = NULL) +
+                                                                   "v" = "Wind"))) +
+  tag_facets(tag_pool = c("c")) +
+  labs(x = NULL, y = NULL,
+      linetype = NULL, color = "Satellite-derived\nwind") +
   theme_minimal() +
-  theme(legend.position = "bottom", 
-        legend.box = "vertical",
-        aspect.ratio = 2/1)
-
-files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/rcrv_*_perfil.csv")[1:6]
-
-RCRV <- purrr::map(files, function(f) {
-  meta <- unglue::unglue(basename(f), "rcrv_{sensor}_perfil.csv")
+  theme(legend.box = "vertical",
+    aspect.ratio = 2/1) +
   
-  fread(f) %>%
-    .[, sensor := meta[[1]][["sensor"]]]
-}) %>%
-  rbindlist()
-
-RCRV %>% 
+  purrr::map(Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/rcrv_*_perfil.csv")[1:6], function(f) {
+    meta <- unglue::unglue(basename(f), "rcrv_{sensor}_perfil.csv")
+        fread(f) %>%
+      .[, sensor := meta[[1]][["sensor"]]]
+  }) %>%
+  rbindlist() %>% 
   separate(sensor, into = c("sensor", "plat"), sep = "_") %>% 
   setDT() %>% 
   melt(measure.vars = c("mean.y", "sd.y")) %>% 
-  .[, .(value = mean(value, na.rm = TRUE)), by = .(sensor, level, variable)] %>% 
+  .[, .(value = mean(value, na.rm = TRUE),
+        var = "Brightness\ntemperature"), by = .(sensor, level, variable)] %>% 
   ggplot(aes(level, value)) +
   geom_hline(yintercept = c(0, 1), color = "grey20") +
   geom_line(aes(color = sensor, linetype = variable)) +
-  scale_color_discrete(labels = toupper) +
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("Mean RCRV", "SD RCRV")) +
+  scale_color_discrete(labels = toupper) +
   coord_flip() +
   scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
+  facet_wrap(~ var, scales = "free_x") +
+  tag_facets(tag_pool = c("d")) +
   labs(x = NULL, y = NULL,
-       color = NULL, linetype = NULL) +
+      linetype = NULL, color = "Radiances\nobservations") +
   theme_minimal() +
-  theme(legend.position = "bottom", 
-        legend.box = "vertical",
-        aspect.ratio = 2/1)
+  theme(#legend.position = "bottom", 
+    legend.box = "vertical",
+    aspect.ratio = 2/1) +
+  
+  plot_layout(ncol = 3, widths = c(1, 1, 1), guides = "collect") & theme(legend.box = "vertical")
 
 
 ```
@@ -772,10 +774,10 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = value, fill = stat(level_d)),
                     proj = norargentina_lambert) +
-  scale_fill_continuous_divergingx(super = ScaleDiscretised,
-                                   palette = "PRGn", mid = 25,
-                                   guide = guide_colorsteps(barwidth = 25,
-                                                            barheight = 0.8)) +
+  colorspace::scale_fill_continuous_divergingx(super = ScaleDiscretised,
+                                               palette = "PRGn", mid = 25,
+                                               guide = guide_colorsteps(barwidth = 25,
+                                                                        barheight = 0.8)) +
   geom_contour2(aes(z = v_mean, size = stat(level)),
                 proj = norargentina_lambert, color = "black", 
                 breaks = c(-10, -5)) +
@@ -1124,8 +1126,8 @@ dbz_obs %>%
                     drop = FALSE, 
                     guide = guide_colorsteps(barwidth = 30, 
                                              barheight = 0.8)) +
-    # geom_point(data = rad_loc, aes(lon, lat, color = factor(nradar)), size = 2) +
- geom_path(data = rad_loc, aes(lon, lat, group = ID), size = 0.4) +
+  # geom_point(data = rad_loc, aes(lon, lat, color = factor(nradar)), size = 2) +
+  geom_path(data = rad_loc, aes(lon, lat, group = ID), size = 0.4) +
   geom_mapa() +
   facet_grid(run ~ date) +
   labs(x = NULL, y = NULL, fill = "COLMAX (dBZ)") +
