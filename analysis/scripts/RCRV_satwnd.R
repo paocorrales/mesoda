@@ -1,10 +1,19 @@
-source("help_functions.R")
+library(tidyverse)
+library(data.table)
+library(mesoda)
+library(metR)
+
+source(here::here("temp_R", "help_functions.R"))
 path <- "/home/paola.corrales/datosmunin/EXP/E6/ANA/*/diagfiles/asim_conv_2018112*"
 
 perfiles <- read_diag(path, variable = c("uv")) %>%
-  .[, c("error", "nivel.error") := input_obs_error(var, type, pressure)]
+  .[, c("error", "nivel.error") := input_obs_error(var, type, pressure, path_to_errtable = "analysis/data/raw_data/errtable.csv")]
 
-RCRV <- get_RCRV(perfiles[type %between% c(240, 260)], tipo = c("perfil")) %>%
+perfiles <- perfiles[type %between% c(240, 260)] %>%
+  .[, var := "v"] %>%
+  setnames("nivel.error", "error.level")
+
+RCRV <- get_RCRV(perfiles[type %between% c(240, 260)], tipo.var = c("perfil"), calculo = "total") %>%
   .[, sat_type := case_when(
     type == 240 ~ "GOES SW winds",
     type == 241 ~ "India",
@@ -26,15 +35,17 @@ RCRV <- get_RCRV(perfiles[type %between% c(240, 260)], tipo = c("perfil")) %>%
     type == 259 ~ "MODIS WV deep layer winds",
     type == 260 ~ "VIIR IR winds")]
 
+write_csv(na.omit(RCRV), here::here("analysis", "data", "derived_data", "rcrv_satwind.csv"))
+
 RCRV %>%
   melt(measure.vars = c("mean.y", "sd.y")) %>%
-  ggplot(aes(nivel.error, value)) +
+  ggplot(aes(error.level, value)) +
   geom_hline(yintercept = c(0, 1), color = "darkgrey") +
   geom_line(aes(color = factor(sat_type), linetype = variable)) +
   scale_color_brewer(palette = "Set1") +
   scale_x_level() +
   coord_flip() +
-  facet_wrap(~ var, scales = "free_x") +
+  # facet_wrap(~ var, scales = "free_x") +
   labs(title = "Reduced Centered Random Variable",
        subtitle = "Satellite wind",
        linetype = "",
