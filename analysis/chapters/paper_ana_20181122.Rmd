@@ -1,8 +1,43 @@
 ---
-title: "Untitled"
+title: Assimilation of conventional and satellite observations in a deep convection
+  case during RELAMPAGO using the WRF-GSI-LETFK system.
+author:
+- name: Paola Belén Corrales
+  email: paola.corrales@cima.fcen.uba.ar
+  affiliation: Some Institute of Technology
+  footnote: 1
+- name: Bob Security
+  email: bob@example.com
+  affiliation: Another University
+- name: Cat Memes
+  email: cat@example.com
+  affiliation: Another University
+  footnote: 2
+- name: Derek Zoolander
+  email: derek@example.com
+  affiliation: Some Institute of Technology
+  footnote: 2
+date: "`r Sys.Date()`"
 output:
-  html_document: default
-  pdf_document: default
+  rticles::elsevier_article: 
+    keep_tex: true
+abstract: |
+  This is the abstract.
+  It consists of two paragraphs.
+journal: Atmospheric Research
+layout: preprint
+address:
+- code: Some Institute of Technology
+  address: Department, Street, City, State, Zip
+- code: Another University
+  address: Department, Street, City, State, Zip
+bibliography: mybibfile.bib
+csl: elsevier-harvard.csl
+footnote:
+- code: 1
+  text: Corresponding Author
+- code: 2
+  text: Equal contribution
 ---
 
 
@@ -210,8 +245,8 @@ dominio %>%
   theme(legend.position = 'bottom', legend.box = "vertical")
 ```
 
-```{r ciclo, fig.cap="Diagram of analysis cycles between Nov 20th, 18 UTC and Nov 23rd 12 UTC plus and spin up period of 6 hours. The zoomed figure shows assimilation in one-hour centered window and new boundary conditions from GFSD every 6 hours.", out.height=400, out.width=800, fig.align="center"}
-knitr::include_graphics(here("analysis", "figures", "analysis_cycle.svg"))
+```{r ciclo, fig.cap="Diagram of analysis cycles between Nov 20th, 18 UTC and Nov 23rd 12 UTC plus and spin up period of 6 hours. The zoomed figure shows assimilation in one-hour centered window and new boundary conditions from GFSD every 6 hours."}
+knitr::include_graphics(here("analysis", "figures", "analysis_cycle.pdf"))
 ```
 
 ```{r obs}
@@ -908,7 +943,7 @@ ana[west_east %between% c(70, 180) & bottom_top %between% c(1, 25)] %>%
 
 ```{r pp-hov, fig.cap="Hövmoller of mean hourly accumulated precipitation for each latitude band observed (left) and simulated (right, for the ensemble mean) over the inner domain."}
 
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/*ana*mean_acum_1h.rds")
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/ppacum/E[2568]_ana*mean_acum_1h.rds")
 
 ppacum_1h <- purrr::map(files, function(f) {
   
@@ -917,7 +952,7 @@ ppacum_1h <- purrr::map(files, function(f) {
   
 }) %>% rbindlist() %>% 
   .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] 
-}
+
 
 readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %>% 
   .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
@@ -997,51 +1032,10 @@ fss %>%
   theme_minimal()
 ```
 
-```{r soundings, fig.cap="RMSE and Bias of temperature, dew point temperature and wind components calculated by comparing each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8."}
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos/ANA/sondeo_E[2568]*")
-
-sondeos <- purrr::map(files, function(f){
-  
-  fread(f) %>% 
-    .[, value := fifelse(variable %in% c("t", "td"), value + 273.15, value)] %>% 
-    .[, launch_time := as_datetime(launch_time)]
-  
-}) %>% 
-  rbindlist()
-
-IOP <- tribble(
-  ~iop, ~ini, ~end,
-  "IOP07", ymd_hms("20181121150000"), ymd_hms("20181121210000"),
-  "IOP08", ymd_hms("20181122140000"), ymd_hms("20181122200000")
-) %>% setDT()
 
 
-sondeos %>% 
-  .[, iop := fcase(launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")), "IOP07",
-                   launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08")] %>% 
-  .[variable %in% c("t", "td", "u", "v") & !str_detect(site, "/") & !is.na(fcst_value) & !is.na(iop)] %>% 
-  .[site != "Sao Borja, Brazil"] %>% 
-  .[, lev := cut_round(alt, c(seq(0, 3000, 500), seq(4000, 21000, 1000)))] %>% 
-  .[, ":="(RMSE = mean(sqrt((value - fcst_value)^2), na.rm = TRUE), 
-           BIAS = mean(value - fcst_value, na.rm = TRUE)), by = .(iop, exp, variable, lev)] %>% 
-  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico", value.name = "value.est") %>% 
-  ggplot(aes(lev/1000, value.est)) +
-  geom_hline(yintercept = 0, color = "grey30") +
-  geom_line(aes(color = exp, linetype = estadistico)) +
-  scale_color_manual(values = c(colores_exp, "black"), labels = c(E2 = "CONV", E5 = "AUT", 
-                                                                  E6 = "SATWND", E8 = "RAD")) +
-  coord_flip() +
-  facet_grid(iop~variable, scales = "free_x", 
-             labeller = labeller(variable = c("t" = "Temperature",
-                                              "td" = "Dew point\ntemperature",
-                                              "u" = "U wind",
-                                              "v" = "V wind"))) +
-  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
-  theme_minimal()
-```
-
-
-```{r dbz-mean}
+```{r dbz-mean, fig.cap="Figure 14. Observed maximum reflectivity in the column (upper row) and ensemble mean maximum reflectivity for CONV and RAD at different times (bottom two rows)."}
+proj_radar <- "+proj=tmerc +lon_0=-61.5 +lat_0=-32 +k_0=1 +ellps=WGS84"
 
 rad_loc <- read_csv(here("analysis", "data", "derived_data", "radar_loc.csv"))
 
@@ -1064,7 +1058,7 @@ dbz_obs <- purrr::map(files, function(f) {
 
 dates <- c("20181122100000", "20181122130000", 
            "20181122160000", "20181122190000")
-files <- paste0(derived_data, "dbz/maxdbz_ana_E8_", dates, ".nc")
+files <- Sys.glob(paste0(derived_data, "dbz/maxdbz_ana_E[28]_", dates, ".nc"))
 
 dbz_ana <- purrr::map(files, function(f){
   
@@ -1075,7 +1069,7 @@ dbz_ana <- purrr::map(files, function(f){
     .[, c("x", "y") := wrf_project(lon, lat)] 
 }) %>% 
   rbindlist()  %>% 
-  .[, run := "RAD"]
+  .[, run := fifelse(exp == "E8", "RAD", "CONV")]
 
 values <- c(-19.5, -12, -7.5, -3, 1.5, 6, 9, 12, 15, 16.5, 18, 19.5, 21, 
             22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 
@@ -1138,11 +1132,53 @@ dbz_obs %>%
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) +
   
-  plot_layout(ncol = 1, guides = "collect") & 
+  plot_layout(ncol = 1, heights = c(1, 2), guides = "collect") & 
   theme(legend.position = 'bottom')
 
 ```
 
+```{r soundings, fig.cap="RMSE and Bias of temperature, dew point temperature and wind components calculated by comparing each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8."}
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos/ANA/sondeo_E[2568]*")
+
+sondeos <- purrr::map(files, function(f){
+  
+  fread(f) %>% 
+    .[, value := fifelse(variable %in% c("t", "td"), value + 273.15, value)] %>% 
+    .[, launch_time := as_datetime(launch_time)]
+  
+}) %>% 
+  rbindlist()
+
+IOP <- tribble(
+  ~iop, ~ini, ~end,
+  "IOP07", ymd_hms("20181121150000"), ymd_hms("20181121210000"),
+  "IOP08", ymd_hms("20181122140000"), ymd_hms("20181122200000")
+) %>% setDT()
+
+
+sondeos %>% 
+  .[, iop := fcase(launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")), "IOP07",
+                   launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08")] %>% 
+  .[variable %in% c("t", "td", "u", "v") & !str_detect(site, "/") & !is.na(fcst_value) & !is.na(iop)] %>% 
+  .[site != "Sao Borja, Brazil"] %>% 
+  .[, lev := cut_round(alt, c(seq(0, 3000, 500), seq(4000, 21000, 1000)))] %>% 
+  .[, ":="(RMSE = mean(sqrt((value - fcst_value)^2), na.rm = TRUE), 
+           BIAS = mean(value - fcst_value, na.rm = TRUE)), by = .(iop, exp, variable, lev)] %>% 
+  melt(measure.vars = c("RMSE", "BIAS"), variable.name = "estadistico", value.name = "value.est") %>% 
+  ggplot(aes(lev/1000, value.est)) +
+  geom_hline(yintercept = 0, color = "grey30") +
+  geom_line(aes(color = exp, linetype = estadistico)) +
+  scale_color_manual(values = c(colores_exp, "black"), labels = c(E2 = "CONV", E5 = "AUT", 
+                                                                  E6 = "SATWND", E8 = "RAD")) +
+  coord_flip() +
+  facet_grid(iop~variable, scales = "free_x", 
+             labeller = labeller(variable = c("t" = "Temperature",
+                                              "td" = "Dew point\ntemperature",
+                                              "u" = "U wind",
+                                              "v" = "V wind"))) +
+  labs(y = NULL, x = "Height (Km)", color = NULL, linetype = NULL) +
+  theme_minimal()
+```
 
 
 
