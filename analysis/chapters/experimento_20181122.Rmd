@@ -1673,7 +1673,7 @@ dbz_obs <- purrr::map(files, function(f) {
 
 dates <- c("20181122100000", "20181122130000", 
            "20181122160000", "20181122190000")
-files <- paste0(derived_data, "dbz/maxdbz_ana_E8_", dates, ".nc")
+files <- Sys.glob(paste0(derived_data, "dbz/maxdbz_ana_E[2568]_", dates, ".nc"))
 
 dbz_ana <- purrr::map(files, function(f){
   
@@ -1681,10 +1681,11 @@ dbz_ana <- purrr::map(files, function(f){
   ReadNetCDF(f, vars = c(lon = "XLONG", lat = "XLAT", "max_dbz")) %>% 
     .[, ":="(exp = meta[[1]][["exp"]],
              date = ymd_hms(meta[[1]][["date"]]))] %>% 
-    .[, c("x", "y") := wrf_project(lon, lat)] 
+    .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[, run := meta[[1]][["exp"]]]
 }) %>% 
-  rbindlist()  %>% 
-  .[, run := "RAD"]
+  rbindlist() 
+  
 
 values <- c(-19.5, -12, -7.5, -3, 1.5, 6, 9, 12, 15, 16.5, 18, 19.5, 21, 
             22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 
@@ -1714,6 +1715,7 @@ dbz_obs %>%
                     drop = FALSE, 
                     guide = guide_colorsteps(barwidth = 30, 
                                              barheight = 0.8)) +
+  geom_path(data = rad_loc, aes(lon, lat, group = ID), size = 0.4) +
   geom_mapa() +
   facet_grid(run ~ date) +
   labs(x = NULL, y = NULL, fill = NULL, color = NULL) +
@@ -1734,6 +1736,7 @@ dbz_obs %>%
                     drop = FALSE, 
                     guide = guide_colorsteps(barwidth = 30, 
                                              barheight = 0.8)) +
+  geom_path(data = rad_loc, aes(lon, lat, group = ID), size = 0.4) +
   
   geom_mapa() +
   facet_grid(run ~ date) +
@@ -1838,7 +1841,7 @@ dbz %>%
 
 
 ```{r}
-files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E[4-8].csv")
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E[2-8].csv")
 
 fss <- purrr::map(files, function(f) {
   
@@ -1855,7 +1858,7 @@ fss %>%
   geom_hline(yintercept = 1, color = "darkgray") +
   geom_line(aes(color = exp)) +
   # geom_point(aes(color = exp)) +
-  scale_color_manual(values = c(colores_exp, "black"), labels = c(E4 = "CONV", E5 = "AUT", 
+  scale_color_manual(values = c("purple", colores_exp, "black"), labels = c(E4 = "CONV", E5 = "AUT", 
                                                       E6 = "SATWND", E7 = "RAD", E8 = "NEW RAD")) +
   scale_date(20181122000000, 20181123000000, "12 hours") +
   coord_cartesian(xlim = c(ymd_hms(20181122000000), ymd_hms(20181123120000))) +
