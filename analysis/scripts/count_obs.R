@@ -38,11 +38,13 @@ multiespectrales <- c("airs_aqua",
                       "iasi_metop-a",
                       "iasi_metop-b")
 
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E7/ANA/*/diagfiles/asim*ensmean")
+asimilable <- satinfo[iuse == 1, .N, by = sensor]
+
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E8/ANA/*/diagfiles/asim*ensmean")
 
 files <- files[str_detect(files, "conv", negate = TRUE)]
 
-diag <- read_diag_rad(files, "E7")
+diag <- read_diag_rad(files, "E8")
 
 diag[, tipo := fifelse(sensor %in% multiespectrales, "multiespectral", "no-multiespectral")] %>%
   satinfo[., on = c("sensor", "channel")] %>%
@@ -50,19 +52,35 @@ diag[, tipo := fifelse(sensor %in% multiespectrales, "multiespectral", "no-multi
   qc == 0 &
   iuse == 1 &
   peakwt %between% c(0.001, 1200)] %>%
-  .[, .(prop = round(.N*100/201100, 2)), by = sensor] %>%
+  .[, .(prop = round(.N*100/456774, 2)), by = sensor] %>%
   asimilable[., on = c("sensor")] %>%
  separate(sensor, into = c("sensor", "plataforma"), sep = "_") %>%
   write_csv("analysis/data/derived_data/tabla_radianzas.csv")
 
-
-asimilable <- satinfo[iuse == 1, .N, by = sensor]
 
 diag[tipo == "no-multiespectral", unique(sensor)]
 
 
 
 # Porcentaje de obs por experimento ---------------------------------------
+
+files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E2/ANA/*/diagfiles/asim*ensmean")[1:67]
+
+conv <- mesoda::read_diag_conv(files, exp = "E2", member = "000")
+
+conv[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
+                          type %in% c(120, 220, 221), "ADPUPA",
+                          type %in% c(130, 131, 133, 230, 231, 233), "AIRCFT",
+                          type %in% c(290), "ASCATW",
+                          type %in% c(180, 280, 183, 283, 184, 284), "SFCSHP",
+                          type %in% c(240:260), "SATWND")]
+
+conv[usage.flag == 1 & rerr != 1.0e+10] %>%
+  .[, N := .N] %>%
+  .[, .(exp = "E2",
+        N = .N,
+        proporcion = .N/unique(N)), by = bufr_code] %>%
+  fwrite(here::here("analysis/data/derived_data/count_obs_E2.csv"))
 
 files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E4/ANA/*/diagfiles/asim*ensmean")[1:67]
 
