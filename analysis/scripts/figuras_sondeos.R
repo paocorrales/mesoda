@@ -12,13 +12,23 @@
 #   .[, c("site", "lon", "lat", "nominal_launch_time")] %>%
 #   fwrite("analysis/data/derived_data/lista_sondeos.csv")
 
-run <- "ANA"
+run <- "GUESS"
 
-colores_exp <- c(E4 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311")
+colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E8 = "#CC3311")
 
-files <- Sys.glob(paste0("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos/", run, "/*"))
+files <- Sys.glob(paste0("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos/", run, "/sondeo_E[2,5.6,8]*"))
 
-sondeos <- purrr::map(files, ~ fread(.x)) %>%
+sondeos <- purrr::map(files, function(x) {
+
+  out <- fread(x)
+
+  if (ncol(out) == 26) {
+    out <- out[, member := NULL]
+  } else {
+    out
+  }
+
+}) %>%
   rbindlist() %>%
   .[, value := fifelse(variable %in% c("t", "td"), value + 273.15, value)] %>%
   .[, var_type := fcase(variable %in% c("t", "td"), "temperatura",
@@ -28,27 +38,27 @@ lista_sondeos <- fread("analysis/data/derived_data/lista_sondeos.csv")
 
 for (s in seq_len(nrow(lista_sondeos))) {
 
-# s <- 70
-print(s)
-this_site <- lista_sondeos$site[s]
-this_lauch_time <- lista_sondeos$nominal_launch_time[s]
+  # s <- 70
+  print(s)
+  this_site <- lista_sondeos$site[s]
+  this_lauch_time <- lista_sondeos$nominal_launch_time[s]
 
 
-sondeos[site == this_site & nominal_launch_time == as_datetime(this_lauch_time) &
-          !is.na(var_type) & alt %between% c(0, 5000)]  %>%
-  ggplot(aes(alt, value)) +
-  geom_line(data = ~.x[exp == "E7"], aes(linetype = variable)) +
-  geom_line(aes(y = fcst_value, color = exp, linetype = variable)) +
-  scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT",
-                                                      E6 = "SATWND", E7 = "RAD")) +
-  scale_linetype_manual(values = c(1, 2, 1, 2)) +
-  facet_wrap(~var_type, scales = "free_x") +
-  coord_flip() +
-  labs(caption = paste0(run, " | ", this_site, " | ", this_lauch_time),
-       color = NULL, linetype = NULL, x = "Altura (m)", y = NULL) +
-  theme_minimal()
+  sondeos[site == this_site & nominal_launch_time == as_datetime(this_lauch_time) &
+            !is.na(var_type) & alt %between% c(0, 5000)]  %>%
+    ggplot(aes(alt, value)) +
+    geom_line(data = ~.x[exp == "E6"], aes(linetype = variable)) +
+    geom_line(aes(y = fcst_value, color = exp, linetype = variable)) +
+    scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT",
+                                                        E6 = "SATWND", E7 = "RAD")) +
+    scale_linetype_manual(values = c(1, 2, 1, 2)) +
+    facet_wrap(~var_type, scales = "free_x") +
+    coord_flip() +
+    labs(caption = paste0(run, " | ", this_site, " | ", this_lauch_time),
+         color = NULL, linetype = NULL, x = "Altura (m)", y = NULL) +
+    theme_minimal()
 
-ggsave(paste0("/home/paola.corrales/sondeos/", run, "/sondeo_", formatC(s, width = 3, flag = 0), "_", run, ".png"))
+  ggsave(paste0("/home/paola.corrales/sondeos/", run, "/sondeo_", formatC(s, width = 3, flag = 0), "_", run, ".png"))
 
 }
 
@@ -84,6 +94,6 @@ lista_sondeos %>%
 
   coord_sf(ylim = c(-34, -29), xlim = c(-66, -63)) +
   facet_wrap(~dia, ncol = 4)
-  theme_minimal()
+theme_minimal()
 
 
