@@ -27,7 +27,8 @@ Imports:
     scales,
     furrr,
     future,
-    magrittr
+    magrittr,
+    ncdf4
 Suggests: 
     devtools,
     git2r

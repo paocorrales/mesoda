@@ -10,7 +10,7 @@ read_diag <- function(path, variable) {
 
   files <- Sys.glob(paste0(path, ".mem*"))
 
-  myCluster <- makeCluster(20)
+  myCluster <- makeCluster(10)
   registerDoParallel(myCluster)
 
   obs <- foreach(f = 1:length(files),
@@ -368,7 +368,7 @@ cut_round <- function(x, breaks) {
 library(data.table)
 library(dplyr)
 
-read_radiosonde_relampago <- function(file){
+read_radiosondeo_relampago <- function(file){
   # Leo línea por línea
   lines <- readLines(file)
 
