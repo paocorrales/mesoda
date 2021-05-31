@@ -12,11 +12,11 @@
 #   .[, c("site", "lon", "lat", "nominal_launch_time")] %>%
 #   fwrite("analysis/data/derived_data/lista_sondeos.csv")
 
-run <- "GUESS"
+run <- "ANA"
 
 colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E8 = "#CC3311")
 
-files <- Sys.glob(paste0("/home/paola.corrales/datosmunin/EXP/derived_data/sondeos/", run, "/sondeo_E[2,5.6,8]*"))
+files <- Sys.glob(paste0("/home/paola.corrales/datosmunin3/EXP/derived_data/sondeos/", run, "/sondeo_E[2,5.6,8]_ana*"))
 
 sondeos <- purrr::map(files, function(x) {
 
@@ -49,8 +49,8 @@ for (s in seq_len(nrow(lista_sondeos))) {
     ggplot(aes(alt, value)) +
     geom_line(data = ~.x[exp == "E6"], aes(linetype = variable)) +
     geom_line(aes(y = fcst_value, color = exp, linetype = variable)) +
-    scale_color_manual(values = colores_exp, labels = c(E4 = "CONV", E5 = "AUT",
-                                                        E6 = "SATWND", E7 = "RAD")) +
+    scale_color_manual(values = colores_exp, labels = c(E2 = "CONV", E5 = "AUT",
+                                                        E6 = "SATWND", E8 = "RAD")) +
     scale_linetype_manual(values = c(1, 2, 1, 2)) +
     facet_wrap(~var_type, scales = "free_x") +
     coord_flip() +

@@ -98,11 +98,11 @@ for (d in seq_along(dates)) {
     ggplot(aes(x, y)) +
     geom_contour_fill(aes(z = diff, fill = stat(level_d)),
                       proj = norargentina_lambert,
-                      breaks = seq(-6, 6, 1)) +
+                      breaks = seq(-6, 6, 0.5)) +
     geom_contour2(aes(z = diff),
                   color = "grey70", size = 0.2,
                       proj = norargentina_lambert,
-                      breaks = seq(-6, 6, 1)) +
+                      breaks = seq(-6, 6, 0.5)) +
     scale_fill_divergent(super = ScaleDiscretised,
                          #                      # limits = c(1, 30),
                          guide = guide_colorsteps(barwidth = 0.5,
@@ -139,7 +139,7 @@ for (d in seq_along(dates)) {
 
     ReadNetCDF(f, vars = c(t = "T", p = "P", "PB",
                            lon = "XLONG", lat = "XLAT"),
-               subset = list(bottom_top = c(1:3))) %>%
+               subset = list(bottom_top = 1)) %>%
       .[, ":="(t = tk(t, p + PB, T_BASE = 290) - 273.15,
                exp = metadatos[[1]][["exp"]],
                date = metadatos[[1]][["fecha"]])] %>%
@@ -154,7 +154,7 @@ for (d in seq_along(dates)) {
 
     ReadNetCDF(f, vars = c(t = "T", p = "P", "PB",
                            lon = "XLONG", lat = "XLAT"),
-               subset = list(bottom_top = c(1:3))) %>%
+               subset = list(bottom_top = 1)) %>%
       .[, ":="(t = tk(t, p + PB, T_BASE = 290) - 273.15,
                exp = metadatos[[1]][["exp"]],
                date = metadatos[[1]][["fecha"]])] %>%
@@ -169,10 +169,10 @@ for (d in seq_along(dates)) {
     ggplot(aes(x, y)) +
     geom_contour_fill(aes(z = t2, fill = stat(level_d)),
                       proj = norargentina_lambert,
-                      breaks = seq(0, 30, 2)) +
+                      breaks = seq(0, 36, 2)) +
     geom_contour2(aes(z = t2),
                   proj = norargentina_lambert,
-                  breaks = seq(0, 30, 2), color = "white", size = 0.2) +
+                  breaks = seq(0, 36, 2), color = "white", size = 0.2) +
     scale_fill_viridis_c(super = ScaleDiscretised,
                          guide = guide_colorsteps(barwidth = 0.5,
                                                   barheight = 15)) +
@@ -190,11 +190,11 @@ for (d in seq_along(dates)) {
     ggplot(aes(x, y)) +
     geom_contour_fill(aes(z = diff, fill = stat(level_d)),
                       proj = norargentina_lambert,
-                      breaks = seq(-6, 6, 1)) +
+                      breaks = seq(-6, 6, 0.5)) +
     geom_contour2(aes(z = diff),
                   color = "grey70", size = 0.2,
                   proj = norargentina_lambert,
-                  breaks = seq(-6, 6, 1)) +
+                  breaks = seq(-6, 6, 0.5)) +
     scale_fill_divergent(super = ScaleDiscretised,
                          #                      # limits = c(1, 30),
                          guide = guide_colorsteps(barwidth = 0.5,
@@ -209,6 +209,92 @@ for (d in seq_along(dates)) {
     patchwork::plot_layout(ncol = 2, widths = c(1, 1))
 
   ggsave(paste0("/home/paola.corrales/campos/T2m_", format(dates[d], "%Y%m%d%H%M%S"), ".png"), height = 6, width = 9)
+
+}
+
+# Viento meridional
+for (d in seq_along(dates)) {
+
+  print(dates[d])
+
+
+  files_ana <- Sys.glob(paste0(wrf_path, "E[2,5,6,8]/ANA/", format(dates[d], "%Y%m%d%H%M%S"), "/analysis.ensmean"))
+
+  files_gue <- Sys.glob(paste0(wrf_path, "E[2,5,6,8]/GUESS/", format(dates[d], "%Y%m%d%H%M%S"), "/wrfarw.ensmean"))
+
+  ana <- purrr::map(files_ana, function(f) {
+
+    metadatos <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/ANA/{fecha}/analysis.ensmean")
+
+
+    ReadNetCDF(f, vars = c(lon = "XLONG", lat = "XLAT", u = "P")) %>%
+      .[, c("u", "v") := uvmet(f)] %>%
+      .[, ":="(exp = metadatos[[1]][["exp"]],
+               date = metadatos[[1]][["fecha"]])] %>%
+      .[bottom_top == 1]
+  }) %>%
+    rbindlist() %>%
+    .[, c("x", "y") := wrf_project(lon, lat)]
+
+  guess <- purrr::map(files_gue, function(f) {
+
+    metadatos <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/GUESS/{fecha}/wrfarw.ensmean")
+
+    ReadNetCDF(f, vars = c(lon = "XLONG", lat = "XLAT", u = "P")) %>%
+      .[, c("u", "v") := uvmet(f)] %>%
+      .[, ":="(exp = metadatos[[1]][["exp"]],
+               date = metadatos[[1]][["fecha"]])] %>%
+      .[bottom_top == 1]
+  }) %>%
+    rbindlist() %>%
+    .[, c("x", "y") := wrf_project(lon, lat)] %>%
+    setnames(c("u", "v"), c("u_guess", "v_guess"))
+
+  ana %>%
+    # .[lat %between% c(-34.5, -28.5) & lon %between% c(-66.5, -62.5)] %>%
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = v, fill = stat(level_d)),
+                      proj = norargentina_lambert,
+                      breaks = seq(-20, 10, 3)) +
+    geom_contour2(aes(z = v),
+                  proj = norargentina_lambert,
+                  breaks = seq(-20, 10, 3), color = "white", size = 0.1) +
+    scale_fill_divergent(super = ScaleDiscretised,
+                         guide = guide_colorsteps(barwidth = 0.5,
+                                                  barheight = 15)) +
+    geom_mapa() +
+    facet_wrap(~exp) +
+    labs(caption = paste0("ANA | ", dates[d]), fill = "v (s = 1)") +
+    theme_minimal(base_size = 10) +
+    theme(panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3, size = 0.2)) +
+
+    guess %>%
+    ana[, on = .NATURAL] %>%
+    .[, diff := v - v_guess] %>%
+    # .[lat %between% c(-34.5, -28.5) & lon %between% c(-66.5, -62.5)] %>%
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = diff, fill = stat(level_d)),
+                      proj = norargentina_lambert,
+                      breaks = seq(-7, 7, 1)) +
+    geom_contour2(aes(z = diff),
+                  color = "white", size = 0.1,
+                  proj = norargentina_lambert,
+                  breaks = seq(-7, 7, 1)) +
+    scale_fill_divergent(super = ScaleDiscretised,
+                         #                      # limits = c(1, 30),
+                         guide = guide_colorsteps(barwidth = 0.5,
+                                                  barheight = 15)) +
+    geom_mapa() +
+    labs(caption = paste0("ANA - GUESS | ", dates[d]), fill = "v (s = 1)") +
+    facet_wrap(~exp) +
+    theme_minimal(base_size = 10) +
+    theme(panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3, size = 0.2)) +
+
+    patchwork::plot_layout(ncol = 2, widths = c(1, 1))
+
+  ggsave(paste0("/home/paola.corrales/campos/Vs1_", format(dates[d], "%Y%m%d%H%M%S"), ".png"), height = 4, width = 8)
 
 }
 
@@ -331,6 +417,62 @@ for (d in seq_along(dates)) {
     patchwork::plot_layout(ncol = 2, widths = c(1, 1))
 
   ggsave(paste0("/home/paola.corrales/campos/td_OmB_", format(dates[d], "%Y%m%d%H%M%S"), ".png"), height = 6, width = 9)
+
+}
+
+# T
+
+for (d in seq_along(dates)) {
+
+  print(dates[d])
+
+
+  files_diag <- Sys.glob(paste0(wrf_path, "E[2,5,6,8]/ANA/", format(dates[d], "%Y%m%d%H%M%S"), "/diagfiles/asim_conv_", format(dates[d], "%Y%m%d%H%M%S"), ".ensmean"))
+
+  diag <- purrr::map(files_diag, function(f) {
+
+    metadatos <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{exp}/ANA/{fecha}/diagfiles/asim_conv_{fecha2}.ensmean")
+
+
+    read_diag_conv(f, exp = metadatos[[1]][["exp"]], member = "000") %>%
+      .[, lon := ConvertLongitude(lon)]
+
+  }) %>%
+    rbindlist()
+
+  diag %>%
+    .[lat %between% c(-34.5, -28.5) & lon %between% c(-66.5, -62.5) &
+        usage.flag == 1 & rerr < 1.0e+9 & var == "t"] %>%
+    ggplot(aes(lon, lat)) +
+    geom_point(aes(color = obs - 273.15), alpha = 0.7) +
+    scale_color_viridis_c(breaks = seq(0, 36, 2), limits = c(0, 36),
+                          guide = guide_colorsteps(barwidth = 0.5,
+                                                   barheight = 15)) +
+    geom_mapa() +
+    facet_wrap(~exp) +
+    labs(caption = paste0("OBS | ", dates[d]), color = "T2m") +
+    theme_minimal(base_size = 10) +
+    theme(panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3, size = 0.2)) +
+
+    diag %>%
+    .[lat %between% c(-34.5, -28.5) & lon %between% c(-66.5, -62.5) &
+        usage.flag == 1 & rerr != 1.0e+10 & var == "t"] %>%
+    ggplot(aes(lon, lat)) +
+    geom_point(aes(color = obs.guess ), alpha = 0.7) +
+    scale_color_divergent(breaks = seq(-6, 6, 1), limits = c(-6, 6),
+                          guide = guide_colorsteps(barwidth = 0.5,
+                                                   barheight = 15)) +
+    geom_mapa() +
+    labs(caption = paste0("OBS - GUESS | ", dates[d]), color = "T") +
+    facet_wrap(~exp) +
+    theme_minimal(base_size = 10) +
+    theme(panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3, size = 0.2)) +
+
+    patchwork::plot_layout(ncol = 2, widths = c(1, 1))
+
+  ggsave(paste0("/home/paola.corrales/campos/t_OmB_", format(dates[d], "%Y%m%d%H%M%S"), ".png"), height = 6, width = 9)
 
 }
 

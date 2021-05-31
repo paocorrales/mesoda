@@ -10,11 +10,11 @@ library(mesoda)
 #future::plan("cluster", workers = 3)
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E4"
-run <- "fcst_ens"
+exp <- "E5"
+run <- "ana_ens"
 
-ini_date <- ymd_hms("20181122060000")
-ciclos <- 31
+ini_date <- ymd_hms("20181120180000")
+ciclos <- 67
 
 acumulado <- 6
 q <- c(1, 5, 10, 25) #10mm, para arrancar pensando en pp acumulada
@@ -76,6 +76,8 @@ fss_out <- purrr::map_dfr(dates, function(d) {
                         acumulado, "h.rds")
 
     pp_wrf <- readRDS(files_wrf) %>%
+      .[, date := lead_time] %>%
+      .[, exp := exp] %>%
       .[date == d]
 
   } else {
@@ -116,6 +118,9 @@ fss_out <- purrr::map_dfr(dates, function(d) {
   }
 
   # browser()
+
+  pp_imerg <- pp_imerg[x %between% c(-900000, 900000) & y %between% c(-1100000, 1100000)]
+  pp_wrf <- pp_wrf[x %between% c(-900000, 900000) & y %between% c(-1100000, 1100000)]
 
   obs <- pp_imerg %>%
     .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
@@ -162,7 +167,7 @@ fss_out <- purrr::map_dfr(dates, function(d) {
 })
 
 if (run %in% c("ana", "ana_ens")) {
-  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, ".csv"))
+  fwrite(fss_out, file = paste0("fss_nob_", acumulado, "h_", run, "_", exp, ".csv"))
 
 } else {
 

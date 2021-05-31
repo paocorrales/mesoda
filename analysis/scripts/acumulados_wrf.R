@@ -11,10 +11,10 @@ library(mesoda)
 # Constante
 imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E4"
-run <- "fcst"
+exp <- "E8"
+run <- "ana"
 
-ini_date <- ymd_hms("20181122000000")
+ini_date <- ymd_hms("20181120180000")
 
 acumulado <- 6
 q <- c(5, 10, 25, 50, 100)
@@ -219,7 +219,7 @@ saveRDS(pp_wrf$pp_wrf_mean, paste0(exp, "_fcst_", format(ini_date, "%Y%m%d%H"), 
 
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E4"
+exp <- "E8"
 run <- "ana"
 
 ini_date <- ymd_hms("20181120180000")
