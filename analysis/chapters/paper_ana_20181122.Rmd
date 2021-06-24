@@ -1,58 +1,69 @@
 ---
-title: Assimilation of conventional and satellite observations in a deep convection
-  case during RELAMPAGO using the WRF-GSI-LETFK system.
+title: "Impact of frequent assimilation of surface and satellite observations in an MCS case during RELAMPAGO field campaign. Part I: impact on the analysis"
 author:
 - name: Paola Belén Corrales
   email: paola.corrales@cima.fcen.uba.ar
-  affiliation: Some Institute of Technology
+  affiliation: UBA,CIMA,CNRS
   footnote: 1
-- name: Bob Security
-  email: bob@example.com
-  affiliation: Another University
-- name: Cat Memes
-  email: cat@example.com
-  affiliation: Another University
-  footnote: 2
-- name: Derek Zoolander
-  email: derek@example.com
-  affiliation: Some Institute of Technology
-  footnote: 2
+- name: Victoria Galligani
+  affiliation: UBA,CIMA,CNRS
+- name: Juan Ruiz
+  affiliation: UBA,CIMA,CNRS
+- name: Luiz Sapucci
+  affiliation: INPE
+- name: María Eugenia Dillon
+  affiliation: SMN,CONICET
+- name: Yanina García Skabar
+  affiliation: SMN,CONICET,CNRS
+- name: Maximiliano Sacco
+  affiliation: SMN
 date: "`r Sys.Date()`"
 output:
   rticles::elsevier_article: 
     keep_tex: true
 abstract: |
-  This is the abstract.
-  It consists of two paragraphs.
+  The impact of assimilating high-resolution surface networks and satellite observations using the WRF-GSI-LETKF is evaluated. We conducted a case study corresponding to a huge mesoscale convective system (MCS) developed over central and north-eastern Argentina during November, 22th, 2018. The accumulated precipitation observed during the transit of the MCS was quite high with values over 200 mm over the northern part of the domain. This MCS developed during the Intense Observing Period (IOP) of the RELAMPAGO field campaign during Nov. 2018.
+  
+  We used the GSI-4DLETKF to produce analyses assimilating observations every hour with 10-km horizontal grid spacing and a 60-members ensemble initialized from the deterministic GFS run adding random perturbations with climatological covariance. A multiphysics approach is also used to represent model errors, using different physics configurations (a combination of PBL and convection parameterizations). We conducted four assimilation experiments using different sets of observations: CONV with conventional observations from prepBUFR, AUT that uses CONV observations plus automatic station networks, SATWND add satellite-derived winds and RAD includes satellite radiances from AMSU, HIRS, MHS, ATMS, AIRS and IASI. We found that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation. 
+
 journal: Atmospheric Research
-layout: 5p
+layout: authoryear,preprint,review,12pt
+#layout: final,5p,times,twocolumn,authoryear
 address:
-- code: Some Institute of Technology
-  address: Department, Street, City, State, Zip
-- code: Another University
-  address: Department, Street, City, State, Zip
+- code: UBA
+  address: Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Departamento de Ciencias de la Atmósfera y los Océanos. Buenos Aires, Argentina.
+- code: CIMA
+  address: CONICET – Universidad de Buenos Aires. Centro de Investigaciones del Mar y la Atmósfera (CIMA). Buenos Aires, Argentina.
+- code: CNRS
+  address: CNRS – IRD – CONICET – UBA. Instituto Franco-Argentino para el Estudio del Clima y sus Impactos (IRL 3351 IFAECI). Buenos Aires, Argentina.
+- code: SMN
+  address: Servicio Meteorológico Nacional de Argentina
+- code: CONICET
+  address: CONICET (Consejo Nacional de Investigaciones Científicas y Técnicas)
+- code: INPE
+  address: National Institute for Space Research, Brazil, Center for Weather Forecasting and Climate Studies
 bibliography: paper_ANA.bib
 csl: elsevier-harvard.csl
 footnote:
 - code: 1
   text: Corresponding Author
-- code: 2
-  text: Equal contribution
+keywords: Regional Data Assimilation, Surface Obsevations, Satellite Observations 
+numbersections: true
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = FALSE,
-  fig.path = "../figures/",
-  fig.retina = TRUE,
-  # fig.height = 3,
-  dev = "png",
-  message = FALSE,
-  warning = FALSE,
-  collapse = TRUE,
-  comment = "#>",
-  dpi = 300
+	eval = FALSE,
+	fig.path = "../figures/",
+	fig.retina = TRUE,
+	message = FALSE,
+	warning = FALSE,
+	collapse = TRUE,
+	comment = "#>",
+	dev = "png",
+	dpi = 300,
+	include = FALSE
 )
 library(mesoda)
 library(metR)
@@ -83,16 +94,16 @@ geom_mapa <- function(fill = NA) {
        scale_y_latitude(ticks = 5))
 }
 
-arg_topo <- metR::GetTopography(-75+360, -50+360, -20, -60, resolution = 1/10)
-arg_topo[, lon := metR::ConvertLongitude(lon)]
-
-cordillera <- list(
-  ggnewscale::new_scale_fill(),
-  geom_contour_fill(data = arg_topo, aes(x = lon, y = lat, 
-                                         z = h),
-                    breaks = seq(1500, 8000, by = 700)),
-  scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
-                      oob = scales::squish))
+# arg_topo <- metR::GetTopography(-75+360, -50+360, -20, -60, resolution = 1/10)
+# arg_topo[, lon := metR::ConvertLongitude(lon)]
+# 
+# cordillera <- list(
+#   ggnewscale::new_scale_fill(),
+#   geom_contour_fill(data = arg_topo, aes(x = lon, y = lat, 
+#                                          z = h),
+#                     breaks = seq(1500, 8000, by = 700)),
+#   scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
+#                       oob = scales::squish))
 
 scale_date <- function(ini = 20181120180000, end = 20181123120000,
                        break_bin = "6 hour") {
@@ -150,37 +161,68 @@ derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
 
 # Introduction
 
-Severe weather events cause significant human and material losses around the world. A large number of these phenomena are associated with the occurrence of deep moist convection including tornadoes, intense wind gusts, extreme precipitation in short time periods, large hail, and lightning. The north and central region of Argentina has been shown to have the highest frequency of favorable conditions for high-impact meteorological events [@brooks2003] and the highest occurrence of large hail events [@cecil2012]. This is also confirmed by observational evidence and high impact weather reports [@matsudo2015; @rasmussen2014]. 
+Severe weather events cause significant human and material losses around the world. A large number of these phenomena are associated with the occurrence of deep moist convection including tornadoes, intense wind gusts, extreme precipitation in short time periods, large hail, and lightning. 
+Southern South America has been shown to have the highest frequency of favorable conditions for high-impact meteorological events [@brooks2003] and the highest occurrence of large hail events [@cecil2012]. 
+This is also confirmed by observational evidence and high impact weather reports [@matsudo2015; @rasmussen2014]. 
 
-Forecasting mesoscale meteorological phenomena and particularly deep moist convection is a scientific and technological challenge due to several factors. On the one hand, mesoscale phenomena have limited predictability, while on the other hand, there is great difficulty in diagnosing the state of the atmosphere at small spatial and short temporal scales (for example from 1 to 10 kilometers and in the order of minutes). To solve this problem, data assimilation (DA) at the mesoscale is a topic that has gained increasing interest since it can provide appropriate initial conditions for the initialization of high-resolution forecasts [@sun2014]. 
+Forecasting mesoscale meteorological phenomena and particularly deep moist convection is a scientific and technological challenge due to several factors. 
+On the one hand, mesoscale phenomena have limited predictability, while on the other hand, there is great difficulty in diagnosing the state of the atmosphere at small spatial and short temporal scales (for example from 1 to 10 kilometers and in the order of minutes). 
+To solve this problem, data assimilation (DA) at the mesoscale is a topic that has gained increasing interest since it can provide appropriate initial conditions for the initialization of high-resolution forecasts [@sun2014]. 
 
-DA methods can successfully be implemented by using observations with sufficient temporal and spatial resolution to characterize mesoscale atmospheric circulations. However surface observations, which directly measure the atmospheric state, have limited availability in South America. Other types of observations with relatively high spatial and temporal resolution, such as satellite radiance observations, measure only indirect quantities and are more difficult to incorporate to DA systems. 
-The assimilation of conventional observations from surface stations have an important role at improving the initial conditions that lead to better forecasts. For example, @ha2014 showed that the assimilation of temperature and dew point temperature systematically improved the structure of the simulated planetary boundary layer that subsequently resulted in a better precipitation forecast over the U.S. [Agregar algún ejemplo local que no sea el RRA] 
+DA methods can successfully be implemented by using observations with sufficient temporal and spatial resolution to characterize mesoscale atmospheric circulations. 
+However surface observations, which directly measure the atmospheric state, have limited availability in South America. 
+Other types of observations are being assimilated with relatively high spatial and temporal resolution, such as satellite radiance observations or retrieval products. 
+Radiance observations particularly, are indirect measurements and are more difficult to incorporate to DA systems as they require complex forward models.
 
-Given the sparsity of the local conventional observing network it is important to explore the potential benefits of including additional sources of observations at a regional scale. Recently Zhu et al studied the impact of assimilating satellite radiance data within a frequently updated regional system and showed a positive improvement for all variables, in particular for relative humidity at upper levels. Previous work has shown a positive impact at incorporating temperature and humidity profiles derived from the AIRS sensor in a regional application (cita: RRA, otros de Maru?). Moreover Bao et al studied the impact on temperature and humidity forecast over western USA while assimilating directly microwave and infrared radiance data and found a reduction in the temperature bias at low and mid-levels due the microwave observations but an opposite impact for infrared data. Satellite-derived winds from water vapor channels and cloud drift motion vectors also have an overall positive impact on analysis and short-range forecasts (Gao et al. 2016). 
+The assimilation of conventional observations from surface stations have an important role at improving the initial conditions that lead to better forecasts. 
+For example, @ha2014 showed that the assimilation of temperature and dew point temperature systematically improved the structure of the simulated planetary boundary layer that subsequently resulted in a better precipitation forecast over the U.S. 
 
+Given the sparsity of the local conventional observing network it is important to explore the potential benefits of including additional sources of observations at a regional scale. 
+Recently @zhu2019 studied the impact of assimilating satellite radiance data within a frequently updated regional system and showed a positive improvement for all variables, in particular for relative humidity at upper levels. 
+Previous work has shown a positive impact at incorporating temperature and humidity profiles derived from the multispectral infrared sensors (i.e. AIRS and IASI) in a regional domain application. 
+@miyoshi2012a assimilated observations, atmospheric temperature and humidity profile data from the AIRS and found improvement on the tracking of two typhoons. 
+@dillon2019 also assimilated retrievals from the AIRS sensor and reported improvements on the thermodynamic variables and the regional circulation. 
+Moreover @bao2015 studied the impact on temperature and humidity forecast over western USA while assimilating microwave and infrared radiance data and found a reduction in the temperature bias at low and mid-levels as a result of the microwave observations but an opposite effect for infrared data. 
+Satellite-derived winds from water vapor channels and cloud drift motion vectors also have an overall positive impact on analysis and short-range forecasts [@gao2015]. 
 
-Having analyses with higher temporal resolution than those available from global forecasting systems (e.g. at hourly or sub-hourly) and using an increased number of regional observations that are not included in global models are some of the advantages of assimilation at these scales. Previous work has shown promising results on mesoscale DA in the region (goncalvesdegoncalves2015, Dillon 2019, Dillon 2020 submitted) using different approaches such as LETKF; (Hunt et al, 2007) and 3D-Var (). In particular, the use of ensemble-based methods have shown great potential for data assimilation in these scales, as they are able to characterize the flow-dependent evolution of the background error covariances. Moreover, the use of ensemble models also provides valuable information about the uncertainties in the forecast. Since 2016, the Argentinian National Meteorological Service (ANMS) has been running a convective-scale downscaling forecast (skabar2018). Recently a rapid-refresh ensemble-based DA system has been experimentally implemented during the Remote sensing of Electrification, Lightning, And Mesoscale/microscale Processes with Adaptive Ground Observations (RELAMPAGO) Field Campaign [central Argentina, November-December 2018, Nesbitt 2021] with promising results [Dillon 2020 submitted]. This system assimilated data from high-resolution surface networks, AMDAR data from local aircraft flights, soundings, AIRS retrievals, high-resolution GOES-16 wind estimates, and local radar data every hour with grid spacing of 10 km. The forecast initialized from the analyses shows an overall similar performance to cold-start initializations from the Global Forecast System analysis, and even a positive impact in some cases.
+Having analyses with higher temporal resolution than those available from global forecasting systems (e.g. at hourly or sub-hourly) and using an increased number of regional observations that are not assimilated in global DA systems are some of the advantages of regional DA. 
+Previous work has shown promising results on mesoscale DA in the region using different approaches such as LETKF; [@dillon2016; @dillonInreview] and 3D-Var [@goncalvesdegoncalves2015]. 
+In particular, the use of ensemble-based methods have shown great potential for data assimilation in these scales, as they are able to characterize the flow-dependent evolution of the background error covariances.
+Moreover, the use of ensembles also provides valuable information about the uncertainties in the forecast.
+Recently a rapid-refresh ensemble-based DA system has been experimentally implemented during the Remote sensing of Electrification, Lightning, And Mesoscale/microscale Processes with Adaptive Ground Observations (RELAMPAGO) Field Campaign (central Argentina, November-December 2018, @nesbitt2021) with promising results [@dillonInreview]. 
+This system assimilated data from high-resolution surface networks, AMDAR data from local aircraft flights, soundings, AIRS retrievals, high-resolution GOES-16 wind estimates, and local radar data every hour with a grid spacing of 10 km. 
+The forecast initialized from the analyses shows an overall similar performance to cold-start initializations from the Global Forecast System analysis, and even a positive impact in some cases.
 
-One important challenge of the DA method is to assess the performance of a regional data assimilation system at representing the true atmospheric state and the skill of the forecasts initialized using the analysis as initial condition. In this sense, the observations and measurements taken during the intense observing period of RELAMPAGO are an invaluable resource to validate a regional data assimilation system. 
+One important challenge of regional data assimilation systems is the assessment of their representation of the true atmospheric state and the skill of the forecasts initialized using their analysis as initial conditions.
+In this sense, the observations and measurements taken during the intense observing period of RELAMPAGO are an invaluable resource to validate a regional data assimilation system. 
 
-The main objectives of this work are: to evaluate the impact of different observation types, including frequent surface observations, satellite-derived winds and clear-sky satellite radiances from different platforms, into a regional frequent-update ensemble-based data assimilation system. The evaluation is performed using a case study approach involving a gigantic Mesoscale Convective System (MCS) developed over Southern South America during 22-23 November 2018 during the IOP period of the RELAMPAGO field campaign. On 22 November a cold front crossed the center of Argentina triggering isolated convective cells that rapidly grew upscale into an exceptionally large MCS. The MCS lasts for 42 hours traveling approximately 2500 km from south to north, dissipating over Paraguay and Southern Brazil after 18 UTC 23 November. To the north of the region, a warm front contributed to the development of isolated multicells that ultimately grew and merged the MSC. The experiments are conducted using the Local Ensemble Transform Kalman filter implemented within the GSI-WRF data assimilation system. A multi-model ensemble is used in the data assimilation experiments allowing an evaluation of the performance of different model configurations in this particular case.
-
-The rest of the paper is organized as follows: a description of the assimilation systems and assimilated observations is provided in Section XX, results are discussed in …. …..
+The main objectives of this work are: to evaluate the impact of different observation types, including frequent surface observations, satellite-derived winds and clear-sky satellite radiances from different platforms, into a regional frequent-update ensemble-based data assimilation system. 
+The experiments are conducted using the Local Ensemble Transform Kalman filter implemented within the GSI-WRF data assimilation system. 
+The evaluation is performed using a case study approach involving a gigantic Mesoscale Convective System (MCS) developed over Southern South America during 22-23 November 2018 during the intense observation period (IOP) of the RELAMPAGO field campaign. 
+On 22 November a cold front crossed the center of Argentina triggering isolated convective cells that rapidly grew upscale into an exceptionally large MCS. 
+The MCS traveled approximately 2500 km from south to north, dissipating over Paraguay and Southern Brazil after 42 hours. 
+To the north of the region, a warm front contributed to the development of isolated multicells that ultimately grew and merged with the MSC. 
+The paper is organized as follows. The data assimilation system, the experimental design and observations used is presented in section 2. Results are discussed in section 3 and finally, conclusions are summarized in section 4.
 
 
 # Data and Methods
 
-The model simulations for the case of study were performed using the version 3.9.1 of the non-hydrostatic Advanced Research version of the Weather Research and Forecasting (WRF-ARW (V3.9), Skamarock et al., n.d.) model. The resolution was 10 km (150 x 200 grid points) on the horizontal and 37 levels on the vertical with the top of the atmosphere at 50 hPa. The initial and boundary conditions are provided by the Global Forecasting System (GFS) analysis (0.25° resolution) [] every 6 hours. The domain covers the area indicated in Figure \@ref(fig:dominio) to capture the development of the MCS during the simulation period. 
+The model simulations for the case study were performed using the version 3.9.1 of the non-hydrostatic Advanced Research version of the Weather Research and Forecasting (WRF-ARW (V3.9), @skamarock2018) model. 
+The resolution was 10 km (150 x 200 grid points) on the horizontal and 37 levels on the vertical with the top of the atmosphere at 50 hPa. 
+The initial and boundary conditions are provided by the Global Forecasting System (GFS) analysis (0.25° horizontal resolution and 6 hour temporal resolution, @cisl_rda_ds084.1). 
+The domain covers the area indicated in Figure \@ref(fig:dominio) to capture the development of the MCS during the simulated period. 
  
-The Local Ensemble Transform Kalman Filter (LETKF; ) implementation (V1.3) part of the Gridpoint Statistical Interpolation analysis system (GSI V3.8; Hu et al. 2018) is chosen to generate the analysis. A rapid update cycle approach is implemented with hourly analysis and a centered assimilation window, meaning that all the observations within +- 30 minutes of the analysis time are assimilated. Observations are assimilated in a 4D approach by comparing them with the corresponding first guess state at 10-minute intervals. For radiance observations, the Community Radiative Transfer Model version 2.3 (CRTM; Han et al. 2006) was used as an observation operator to calculate model-simulated brightness temperatures. 
+The analyses are generated using the Local Ensemble Transform Kalman Filter (LETKF) implementation (V1.3, @hunt2007) part of the Gridpoint Statistical Interpolation analysis system (GSI V3.8; @hu2018). 
+A rapid update cycle approach is implemented with hourly analysis and a centered assimilation window, meaning that all the observations within $\pm$ 30 minutes of the analysis time are assimilated. 
+Observations are assimilated in a 4D approach by comparing them with the corresponding first guess state at 10-minute intervals. 
+For radiance observations, the Community Radiative Transfer Model version 2.3 (CRTM; @han2006) was used as an observation operator to calculate model-simulated brightness temperatures. 
 
-To reduce the effect of spurious correlations in the estimation of error covariances, we use a horizontal localization radius of 180 km and a vertical localizations radius of  0.4 (in log pressure coordinates) as in [RRA] for all types of observations. A relaxation-to-prior inflation [Whitaker and Hamill] is applied with an inflation parameter $\alpha=0.9$ to mitigate the impact of sampling errors and to consider model errors not accounted for by the multi-model ensemble approach.
+To reduce the effect of spurious correlations in the estimation of error covariances, we use a horizontal localization radius of 180 km and a vertical localization radius of 0.4 (in log pressure coordinates) as in [RRA] for all types of observations. A relaxation-to-prior inflation [Whitaker and Hamill] is applied with an inflation parameter $\alpha=0.9$ to mitigate the impact of sampling errors and to consider model errors not accounted for by the multi-model ensemble approach.
 
-We use a 60-member ensemble where the ensemble mean at the beginning of the data assimilation cycle is initialized using the GFS deterministic analysis and random perturbations are used to generate the initial ensemble perturbations. The perturbations are generated as scaled differences between two random atmospheric states obtained from the Climate Forecast System Reanalysis (CFSR) with a smooth time evolution as in \citep{Necker2020,Maldonado2021}. In this way, we preserved the nearly hydrostatic and geostrophic equilibrium of larger scales. These random perturbations are also applied at the boundaries in order to keep the ensemble spread within the domain. 
+We use a 60-member ensemble where the ensemble mean at the beginning of the data assimilation cycle is initialized using the GFS deterministic analysis. Since the publicly available GFS ensemble members change at each cycle (alguna fuente) we used random perturbations to generate the initial ensemble perturbations. This method also helps to prevent an underestimation of the ensemble spread [@ouaraini2015]. The perturbations are generated as scaled differences between two random atmospheric states obtained from the Climate Forecast System Reanalysis (CFSR) with a smooth time evolution as in [@necker2020, @maldonado2021]. In this way, we preserved the nearly hydrostatic and geostrophic equilibrium of larger scales. These random perturbations are also applied at the boundaries in order to keep the ensemble spread within the domain. 
 
+In addition to random perturbations at the lateral boundaries, a multi-physics scheme is used to better represent the uncertainty in model formulation within the DA system. We use 9 different model configurations consisting on the combination of 3 moist convection schemes (Kain–Fritsch [@kain2004], Grell–Freitas [@grell2013], and Betts–Miller–Janjic [@janjic1994]) and 3 planetary boundary layer schemes (Yonsei University Scheme [@hong2006], Mellor–Yamada–Janjic Scheme [@janjic1994], and Mellor–Yamada Nakanishi Niino [@nakanishi2009]). All ensemble members used the same land-surface model (Noah-MP, @chen2001) and microphysics (WRF single-moment 6–class squeme [@hong2006a]), and radiation processes (RRTMG shortwave and longwave scheme [@iacono2008]) parameterizations.
 
-In addition to random perturbations at the lateral boundaries, a multi-physics scheme is used to better represent the uncertainty in model formulation within the DA system. We use 9 different model configuration consisting on the combinations of 3 moist convection schemes  (Kain–Fritsch [], Grell–Freitas [], and Betts–Miller–Janjic []) and 3 planetary boundary layer schemes (Yonsei University Scheme [], Mellor–Yamada–Janjic Scheme [], and Mellor–Yamada Nakanishi Niino []). All ensemble members used the same land-surface model (Noah-MP, ) and microphysics (WRF single-moment 6–class squeme []), and radiation processes (RRTMG shortwave and longwave scheme []) parameterizations.
 
 
 ```{r dominio, fig.cap="a) The horizontal domain used on the simulations (black box) and the inner domain used for the experiment comparison (red box) and the locations of Automatic Surface Weather Stations (ASWS, green squares) and Conventional Surface Weather Stations (CSWS, orange triangles) . b) Locations of radiosonde launches during the experiment, green dots corresponds to radiosondes launched during IOP07, orange triangles are radiosondes launched during IOP08 and purple square are radiosondes launched outside the IOPs. The topography in meters is also shown (filled contours).", out.width="110%"}
@@ -572,7 +614,7 @@ $$\mathit{FSS} = 1-\frac{\frac{1}{N}\sum_{i=1}^{N} ({P_x}_i-{P_o}_i)^{2}}{\frac{
 where ${P_x}$ and ${P_o}$ are the probability of occurrence of specified rainfall accumulation of the simulated ensemble and the reference atmospheric state, respectively. To evaluate the grid points fraction in which the precipitation exceeds certain thresholds, the probability of occurrences for the whole ensemble was used, avoiding the systematic underestimation of high precipitation values by the ensemble mean. The FSS was applied to the 6 hr accumulated precipitation ensemble first-guess (i.e. adding the precipitation summed in the 6 previous analysis cycles).
 
 
-## Results
+# Results
 
 ### Ensemble reliability
 
@@ -597,6 +639,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
                         type.obs == 187, 287,
                         type.obs == 281, 281,
                         type.obs == 287, 287)] %>% 
+  .[, sd.y := mean(sd.y), by = .(lon.box, lat.box, var)] %>% 
   .[, var := factor(var, levels = c("v", "t"))] %>% 
   ggplot(aes(ConvertLongitude(lon.box), lat.box)) +
   geom_raster(aes(fill = sd.y)) +
@@ -606,17 +649,19 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
                        direction = -1,
                        guide = guide_colorstrip(inside = TRUE,
                                                 barwidth = 20,
-                                                barheight = 0.8)) +
-  facet_grid(var~type.obs, 
-             labeller = labeller(type.obs = c("281" = "ADPSFC",
-                                              "287" = "ADPSFC\n no pressure",
-                                              "181" = "ADPSFC",
-                                              "187" = "ADPSFC\n no pressure"),
-                                 var = c("v" = "Wind",
-                                         "t" = "Temperature"))) +
+                                                barheight = 0.5)) +
+  facet_wrap(~var, labeller = labeller(var = c("v" = "Wind",
+                                               "t" = "Temperature"))) +
+  # facet_grid(var~type.obs, 
+  #            labeller = labeller(type.obs = c("281" = "ADPSFC",
+  #                                             "287" = "ADPSFC\n no pressure",
+  #                                             "181" = "ADPSFC",
+  #                                             "187" = "ADPSFC\n no pressure"),
+  #                                var = c("v" = "Wind",
+  #                                        "t" = "Temperature"))) +
   tag_facets() +
   labs(fill = "") +
-  theme_minimal() +
+  theme_minimal(base_size = 6) +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
@@ -724,7 +769,7 @@ To investigate how changes in the PBL can modify the pre-convective environment 
 
 The potential temperature on the PBL (Figure 11 b) resembles the characteristics observed on the temperature profiles in Figure 8 a and c. On average the PBL in AUT and SATWND is colder than in CONV while RAD shows a warmer PBL due to the assimilation of radiance observations. Figure 11 c) shows the most unstable convective available potential energy (MCAPE, shaded) and the 0 to 6 km wind shear. The values of MCAPE in CONV do not exceed 2000 JKg-1 while the rest of the experiments show maximum MCAPE over 4000 JKg-1. The decrease of the specific humidity in lower levels present in RAD could explain the slightly lower values of MCAPE that is partially compensated by an increase in the temperature in the PBL, compared with AUT or SATWND. The wind shear is more intense in RAD  reaching  values over 15 ms-1 over the area of maximum MCAPE at the southern tip of the northerly low-level flow. Stronger wind shear between 0 and 6 km has been associated with the development of more intense and organized MCS [Chen 2015, ] and also with conditions favorable for supercells (e.g. Markowsky and Richardson 2010). Particularly in this case we can see that on the Southern tip of the strong CAPE region, the 0-6 km wind shear is over 15 ms-1 which is considered favorable for supercell occurrence, while in the CONV experiment the intersection of the unstable warm air and the high shear is slightly smaller and occurs at lower MCAPE values. 
 
-```{r TQ-diff, fig.cap="Difference between experiments AUT-CONV (a and b), SATWND-AUT (b and e) and RAD-SATWND (c-f) for the spatially averaged vertical profile of temperature (a, b, and c, in K) and specific humidity (d, e, and f in gkg-1).", fig.scap=c("Temperature (°C).", "Specific Humidity (g/kg)."), fig.height=3.5}
+```{r TQ-diff, fig.cap="Difference between experiments AUT-CONV (a and b), SATWND-AUT (b and e) and RAD-SATWND (c-f) for the spatially averaged vertical profile of temperature (a, b, and c, in K) and specific humidity (d, e, and f in gkg-1).", fig.env="figure*", fig.height=3.5}
 files <- list.files(derived_data, recursive = TRUE, full.names = TRUE,
                     pattern = "perfiles_ana")
 
@@ -749,8 +794,10 @@ perfiles %>%
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value, fill = stat(level)),
                     breaks = c(seq(-2, 2, 0.2), Inf)) +
+  geom_contour2(aes(z = value), color = "white", size = 0.1,
+                    breaks = c(seq(-2, 2, 0.2), Inf)) +
   scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
-                                                            barheight = 0.8)) +
+                                                            barheight = 0.5)) +
   labs(fill = "Temperature (K)",
        x = NULL,
        y = NULL) +
@@ -776,9 +823,11 @@ perfiles %>%
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value*1000, fill = stat(level)), 
                     breaks = c(seq(-1.6, 1.6, 0.2), Inf)) +
+  geom_contour2(aes(z = value), color = "white", size = 0.1,
+                    breaks = c(seq(-1.6, 1.6, 0.2), Inf)) +
   scale_fill_divergent_discretised(limits = c(-1.6, 1.6),
                                    guide = guide_colorsteps(barwidth = 25,
-                                                            barheight = 0.8)) +
+                                                            barheight = 0.5)) +
   
   scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
@@ -797,7 +846,9 @@ perfiles %>%
 
 ```
 
-```{r UV-diff, fig.cap="Difference between experiments for the average vertical profile of wind over time (shaded) and U and V (only northerly wind) profiles for the experiment with more observations (contours).", fig.height=3.5}
+
+
+```{r UV-diff, fig.cap="Difference between experiments AUT-CONV (a and b), SATWND-AUT (b and e) and RAD-SATWND (c-f) for the spatially averaged vertical profile of u wind (a, b, and c, in ms-1) and v wind (d, e, and f in ms-1). In contours the u wind for AUT (a), SATWND (b) and RAD (c) and v wind for AUT (d), SATWND (e) and RAD (f).", fig.height=3.5, fig.env="figure*"}
 perfiles %>% 
   dcast(lev + date ~ exp, value.var = "U") %>% 
   .[, ":="(E5_E2 = E5 - E2,
@@ -808,7 +859,9 @@ perfiles %>%
   # geom_contour(aes(z = value)) +
   geom_contour_fill(aes(z = value, fill = stat(level)), breaks = c(seq(-2, 2, 0.2), Inf)) +
   scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
-                                                            barheight = 0.8)) +
+                                                            barheight = 0.5)) +
+  geom_contour2(aes(z = value), color = "white", size = 0.1,
+                    breaks = c(seq(-2, 2, 0.2), Inf)) +
   geom_contour2(data = ~.x[, .(lev, date, E5_E2 = E5, E6_E5 = E6, E8_E6 = E8)] %>%
                   melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value),
                 breaks = seq(0, 30, 3), size = 0.2, linetype = 1, color = "grey30") +
@@ -842,9 +895,11 @@ perfiles %>%
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = value, fill = stat(level)), 
                     breaks = c(-Inf, seq(-1.6, 1.6, 0.2), Inf)) +
+  geom_contour2(aes(z = value), color = "white", size = 0.1,
+                    breaks = c(-Inf, seq(-1.6, 1.6, 0.2), Inf)) +
   scale_fill_divergent_discretised(limits = c(-1.6, 1.6),
                                    guide = guide_colorsteps(barwidth = 25,
-                                                            barheight = 0.8)) +
+                                                            barheight = 0.5)) +
   geom_contour2(data = ~.x[, .(lev, date, E5_E2 = E5, E6_E5 = E6, E8_E6 = E8)] %>% 
                   melt(id.vars = c("lev", "date")) %>% unique(), 
                 aes(z = value, linetype = factor(-sign(..level..))), 
@@ -872,7 +927,7 @@ perfiles %>%
 
 ```
 
-```{r summary-fields, fig.cap="a) Precipitable water (shaded) and northerly wind (contours, m/s), b) Average potential temperature for the PBL and c) Maximum CAPE and ~0-6 km wind shear over 15 m/s and 30 m/s for each experiment. All fields correspond to 00 UTC Nov, 22.", fig.height=10, fig.width=9}
+```{r summary-fields, fig.cap="a) Precipitable water (shaded) and northerly wind (contours, m/s), b) Average potential temperature for the PBL and c) Maximum CAPE and ~0-6 km wind shear over 15 m/s and 30 m/s for each experiment. All fields correspond to 00 UTC Nov, 22.", fig.height=10, fig.width=9, fig.env="figure*"}
 
 files <- Sys.glob(paste0(derived_data, "pw/*"))[c(1, 4, 5, 7)]
 
@@ -940,7 +995,7 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   colorspace::scale_fill_continuous_divergingx(super = ScaleDiscretised,
                                                palette = "PRGn", mid = 25,
                                                guide = guide_colorsteps(barwidth = 25,
-                                                                        barheight = 0.8)) +
+                                                                        barheight = 0.5)) +
   geom_contour2(aes(z = v_mean, size = stat(level)),
                 proj = norargentina_lambert, color = "black", 
                 breaks = c(-10, -5)) +
@@ -952,7 +1007,7 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   #              label.placement = label_placement_n(1)) +
   # scale_linetype_manual(guide = NULL, values = c(2, 1)) +
   labs(fill = "Precipitable\nwater (Kg/m²)", size = "V (m/s)") +
-  cordillera +
+  #cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
@@ -975,9 +1030,9 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   scale_fill_distiller(super = ScaleDiscretised,
                        palette = "RdYlBu", direction = -1,
                        guide = guide_colorsteps(barwidth = 25,
-                                                barheight = 0.8)) +
+                                                barheight = 0.5)) +
   labs(fill = "Potential\ntemperature (K)") +
-  cordillera +
+  #cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
@@ -1001,7 +1056,7 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   scale_fill_distiller(super = ScaleDiscretised,
                        palette = "YlOrRd", direction = 1,
                        guide = guide_colorsteps(barwidth = 25,
-                                                barheight = 0.8)) +
+                                                barheight = 0.5)) +
   # geom_contour2(aes(z = cortante),
   #               proj = norargentina_lambert, color = "black", size = 0.4,
   #               breaks = c(10, 25)) +
@@ -1017,7 +1072,7 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   # scale_alpha_manual(values = c(0.3, 0.7), name = NULL, #labels = c(">5 m/s", ">15 m/s"),
   #                    guide = guide_legend(override.aes = list(size = 2))) +
   labs(fill = "MCAPE (J/Kg)", size = "Wind\nshear (m/s)") +
-  cordillera +
+  #cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
              labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
@@ -1034,38 +1089,7 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   plot_annotation(tag_levels = "a", tag_suffix = ")")
 ```
 
-```{r q_vert, fig.cap="Specific humidity (g/kg, shaded) and meridional wind (m/s, contours) average over the inner domain for each latitude for 00 UTC Nov, 22."}
 
-coord <- mucape[variable == "mcape", c("south_north", "lat")] %>% 
-  .[, .(lat = mean(lat)), by = south_north]
-
-ana[west_east %between% c(70, 180) & bottom_top %between% c(1, 25)] %>% 
-  .[, .(q_mean = mean(q),
-        v_mean = mean(v)), by = .(bottom_top, south_north, date, exp)] %>% 
-  coord[., on = "south_north"] %>% 
-  ggplot(aes(lat, bottom_top)) +
-  geom_contour_fill(aes(z = q_mean*1000, fill = stat(level_d))) +
-  scale_fill_distiller(super = ScaleDiscretised,
-                       palette = "BrBG", direction = 1,
-                       # limits = c(1, 19),
-                       guide = guide_colorsteps(barwidth = 25,
-                                                barheight = 0.8)) +
-  geom_contour2(aes(z = v_mean, linetype = factor(-sign(..level..))), 
-                color = "grey30", size = 0.3, binwidth = 2) +
-  geom_text_contour(aes(z = v_mean), color = "grey30", 
-                    size = 3, stroke = 0.05, breaks = seq(-10, 6, 2),
-                    label.placement = label_placement_n(1)) +
-  scale_linetype(guide = NULL) +
-  scale_x_latitude(breaks = seq(-40, -20, 5)) +
-  facet_wrap( ~ exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
-                                                 E6 = "SATWND", E8 = "RAD"))) +
-  labs(y =  "Sigma levels", fill = "Specific\nhumidity (g/Kg)") +
-  theme_minimal() +
-  theme(legend.position = "bottom",
-        legend.box.spacing = margin(0, 0, 0, 0),
-        panel.ontop = TRUE,
-        panel.grid = element_line(linetype = 3)) 
-```
 
 ### Verification
 
@@ -1106,15 +1130,16 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
         lat = mean(lat),
         exp = "IMERG"), by = .(end_date, y)] %>% 
   ggplot(aes(end_date, lat)) +
-  geom_contour_fill(aes(z = pp_acum, fill = stat(level)), breaks = c(seq(1, 13, 1), Inf)) +
-  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(1, 13, 1)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level)), breaks = c(seq(0.5, 13, 0.5), Inf)) +
+  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(0.5, 13, 0.5)) +
   # scale_fill_viridis_c(option = "A",
   scale_fill_distiller(palette = "YlGnBu",
                        direction = 1,
+                        labels = function(x) JumpBy(x, 2, fill = ""),
                        super = ScaleDiscretised,
                        guide = guide_colorsteps(inside = TRUE,
                                                 barwidth = 25,
-                                                barheight = 0.8)) +
+                                                barheight = 0.5)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   scale_y_latitude(breaks = seq(-40, -20, 5)) +
   facet_wrap(~ exp) +
@@ -1127,15 +1152,16 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   .[, lat := lat[1], by = .(y)] %>% 
   .[, .(pp_acum = mean(pp_acum)), by = .(exp, date, y, lat)] %>% 
   ggplot(aes(date, lat)) +
-  geom_contour_fill(aes(z = pp_acum, fill = stat(level)), breaks = c(seq(1, 13, 1), Inf)) +
-  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(1, 13, 1)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level)), breaks = c(seq(0.5, 13, 0.5), Inf)) +
+  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(0.5, 13, 0.5)) +
   # scale_fill_viridis_c(option = "A",
   scale_fill_distiller(palette = "YlGnBu",
                        direction = 1,
+                       labels = function(x) JumpBy(x, 2, fill = ""),
                        super = ScaleDiscretised,
                        guide = guide_colorsteps(inside = TRUE,
                                                 barwidth = 25,
-                                                barheight = 0.8)) +
+                                                barheight = 0.5)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   scale_y_latitude(breaks = seq(-40, -20, 5), labels = NULL) +
   facet_wrap(~ exp, ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
@@ -1324,6 +1350,7 @@ sondeos %>%
   theme_minimal()
 ```
 
-## Conclusions
+# Conclusions
 
+# References
 
