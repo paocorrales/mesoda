@@ -18,17 +18,17 @@ author:
 - name: Maximiliano Sacco
   affiliation: SMN
 date: "`r Sys.Date()`"
-output:
-  rticles::elsevier_article: 
-    keep_tex: true
+output: 
+  bookdown::pdf_book: 
+      base_format: rticles::elsevier_article
 abstract: |
   The impact of assimilating high-resolution surface networks and satellite observations using the WRF-GSI-LETKF is evaluated. We conducted a case study corresponding to a huge mesoscale convective system (MCS) developed over central and north-eastern Argentina during November, 22th, 2018. The accumulated precipitation observed during the transit of the MCS was quite high with values over 200 mm over the northern part of the domain. This MCS developed during the Intense Observing Period (IOP) of the RELAMPAGO field campaign during Nov. 2018.
   
   We used the GSI-4DLETKF to produce analyses assimilating observations every hour with 10-km horizontal grid spacing and a 60-members ensemble initialized from the deterministic GFS run adding random perturbations with climatological covariance. A multiphysics approach is also used to represent model errors, using different physics configurations (a combination of PBL and convection parameterizations). We conducted four assimilation experiments using different sets of observations: CONV with conventional observations from prepBUFR, AUT that uses CONV observations plus automatic station networks, SATWND add satellite-derived winds and RAD includes satellite radiances from AMSU, HIRS, MHS, ATMS, AIRS and IASI. We found that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation. 
 
 journal: Atmospheric Research
-layout: authoryear,preprint,review,12pt
-#layout: final,5p,times,twocolumn,authoryear
+#layout: authoryear,preprint,review,12pt
+layout: final,5p,times,twocolumn,authoryear
 address:
 - code: UBA
   address: Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Departamento de Ciencias de la Atmósfera y los Océanos. Buenos Aires, Argentina.
@@ -49,12 +49,20 @@ footnote:
   text: Corresponding Author
 keywords: Regional Data Assimilation, Surface Obsevations, Satellite Observations 
 numbersections: true
+# header-includes: 
+#  - \usepackage{gensymb}
+#  - \usepackage{subfig}
+#  - \usepackage[inline]{showlabels}
+#  - \usepackage{chngcntr}
+#  - \usepackage{natbib}
+#  - \usepackage{lineno}
+#  - \linenumbers 
 ---
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-	eval = FALSE,
+	echo = FALSE,
 	fig.path = "../figures/",
 	fig.retina = TRUE,
 	message = FALSE,
@@ -62,8 +70,7 @@ knitr::opts_chunk$set(
 	collapse = TRUE,
 	comment = "#>",
 	dev = "png",
-	dpi = 300,
-	include = FALSE
+	dpi = 300
 )
 library(mesoda)
 library(metR)
@@ -76,6 +83,7 @@ library(unglue)
 library(knitr)
 library(kableExtra)
 library(tagger)
+library(cowplot)
 
 map_arg <- rnaturalearth::ne_states(country = c("argentina"), 
                                     returnclass = "sf")
@@ -217,15 +225,16 @@ A rapid update cycle approach is implemented with hourly analysis and a centered
 Observations are assimilated in a 4D approach by comparing them with the corresponding first guess state at 10-minute intervals. 
 For radiance observations, the Community Radiative Transfer Model version 2.3 (CRTM; @han2006) was used as an observation operator to calculate model-simulated brightness temperatures. 
 
-To reduce the effect of spurious correlations in the estimation of error covariances, we use a horizontal localization radius of 180 km and a vertical localization radius of 0.4 (in log pressure coordinates) as in [RRA] for all types of observations. A relaxation-to-prior inflation [Whitaker and Hamill] is applied with an inflation parameter $\alpha=0.9$ to mitigate the impact of sampling errors and to consider model errors not accounted for by the multi-model ensemble approach.
+To reduce the effect of spurious correlations in the estimation of error covariances, we use a horizontal localization radius of 180 km and a vertical localization radius of 0.4 (in log pressure coordinates) as in @dillonInreview for all types of observations. 
+A relaxation-to-prior inflation [@whitaker2012] is applied with an inflation parameter $\alpha=0.9$ to mitigate the impact of sampling errors and to consider model errors not accounted for by the multi-model ensemble approach.
 
-We use a 60-member ensemble where the ensemble mean at the beginning of the data assimilation cycle is initialized using the GFS deterministic analysis. Since the publicly available GFS ensemble members change at each cycle (alguna fuente) we used random perturbations to generate the initial ensemble perturbations. This method also helps to prevent an underestimation of the ensemble spread [@ouaraini2015]. The perturbations are generated as scaled differences between two random atmospheric states obtained from the Climate Forecast System Reanalysis (CFSR) with a smooth time evolution as in [@necker2020, @maldonado2021]. In this way, we preserved the nearly hydrostatic and geostrophic equilibrium of larger scales. These random perturbations are also applied at the boundaries in order to keep the ensemble spread within the domain. 
+We use a 60-member ensemble where the ensemble mean at the beginning of the data assimilation cycle is initialized using the GFS deterministic analysis. Since the publicly available GFS ensemble members change at each cycle **(alguna fuente)** we used random perturbations to generate the initial ensemble perturbations. This method also helps to prevent an underestimation of the ensemble spread [@ouaraini2015]. The perturbations are generated as scaled differences between two random atmospheric states obtained from the Climate Forecast System Reanalysis (CFSR) data with 0.5° horizontal grid spacing with a smooth time evolution as in [@necker2020; @maldonado2021]. In this way, we preserved the nearly hydrostatic and geostrophic equilibrium of larger scales. These random perturbations are also applied at the boundaries in order to keep the ensemble spread within the domain. 
 
 In addition to random perturbations at the lateral boundaries, a multi-physics scheme is used to better represent the uncertainty in model formulation within the DA system. We use 9 different model configurations consisting on the combination of 3 moist convection schemes (Kain–Fritsch [@kain2004], Grell–Freitas [@grell2013], and Betts–Miller–Janjic [@janjic1994]) and 3 planetary boundary layer schemes (Yonsei University Scheme [@hong2006], Mellor–Yamada–Janjic Scheme [@janjic1994], and Mellor–Yamada Nakanishi Niino [@nakanishi2009]). All ensemble members used the same land-surface model (Noah-MP, @chen2001) and microphysics (WRF single-moment 6–class squeme [@hong2006a]), and radiation processes (RRTMG shortwave and longwave scheme [@iacono2008]) parameterizations.
 
+(ref:dominio) a) The horizontal domain used on the simulations (black box), the inner domain used for the experiment comparison (red box), the region shown in b) (green box) and the locations of Automatic Surface Weather Stations (ASWS, green squares) and Conventional Surface Weather Stations (CSWS, orange triangles). b) Locations of radiosonde launches during the experiment, green dots corresponds to radiosondes launched during IOP 7, orange triangles are radiosondes launched during IOP 8 and purple square are radiosondes launched outside the IOPs. The topography in meters is also shown (filled contours).
 
-
-```{r dominio, fig.cap="a) The horizontal domain used on the simulations (black box) and the inner domain used for the experiment comparison (red box) and the locations of Automatic Surface Weather Stations (ASWS, green squares) and Conventional Surface Weather Stations (CSWS, orange triangles) . b) Locations of radiosonde launches during the experiment, green dots corresponds to radiosondes launched during IOP07, orange triangles are radiosondes launched during IOP08 and purple square are radiosondes launched outside the IOPs. The topography in meters is also shown (filled contours).", out.width="110%"}
+```{r dominio, fig.cap="(ref:dominio)", out.width="100%"}
 
 oficiales <- fread(here("analysis", "data", "raw_data", "E2_asim_conv_20181121120000.ensmean"), 
                    na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
@@ -248,32 +257,33 @@ no_oficiales <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_2018112
 obs <- rbind(no_oficiales, oficiales)
 
 lista_sondeos <- fread(here("analysis/data/derived_data/lista_sondeos.csv")) %>% 
-  .[, periodo := fcase(nominal_launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")),  "IOP07", 
-                       nominal_launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")),  "IOP08", 
+  .[, periodo := fcase(nominal_launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")),  "IOP 7", 
+                       nominal_launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")),  "IOP 8", 
                        default = "Others")
   ]
 
 dominio <- fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
   .[, c("x", "y") := wrf_project(lon, lat)]
 
-dominio %>% 
+g1 <- dominio %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
                     breaks = seq(0, 6000, 500)) +
   scale_fill_gradient(low = "#f2f2f2", high = "#333333",
                       name = NULL,
                       breaks = seq(0, 6000, 1000),
-                      guide = guide_colorstrip(barwidth = 20,
-                                               barheight = 0.5)) +
+                      guide = NULL) +
   geom_mapa() +
   geom_point(data = obs, aes(ConvertLongitude(lon), lat, 
                              color = source, shape = source), 
              size = 1, alpha = 0.8) + 
-  scale_shape_manual(name = "a) Surface stations",  
+  geom_rect(aes(xmin = -66.5, xmax = -61.5, ymin = -35.5, ymax = -29), 
+            color = "#7CAE00", alpha = 0) +
+  scale_shape_manual(name = NULL,  
                      breaks = c("Sfc - Non-official", "Sfc - Official"),
                      labels = c("ASWS","CSWS"), values = c(15, 17),
                      guide = guide_legend(override.aes = list(size = 2))) +
-  scale_color_manual(name =  "a) Surface stations", 
+  scale_color_manual(name =  NULL, 
                      values = c("Sfc - Non-official" = "#00695c", 
                                 "Sfc - Official" = "#FD8002"),
                      breaks = c("Sfc - Non-official", "Sfc - Official"),
@@ -281,14 +291,13 @@ dominio %>%
                      guide = guide_legend(override.aes = list(size = 2))) +
   geom_point(data = square, aes(lon, lat), size = 0.2) +
   geom_point(data = square2, aes(lon, lat), size = 0.2, color = "#CC3311") +
-  theme_minimal(base_size = 9) +
-  theme(legend.position = "bottom", 
-        legend.box = "vertical") +
-  # ,
-  # legend.margin = margin(),
-  # legend.box.spacing = margin(0, 0, 0, 0)) +
-  # 
-  dominio %>% 
+  theme_minimal(base_size = 10) +
+  theme(legend.box = "horizontal",
+        legend.position = c(0.1, 0.95),
+        legend.background = element_rect(fill = "white", color = "white")) 
+ 
+
+  temp <- dominio %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
                     breaks = seq(0, 6000, 500)) +
@@ -299,6 +308,29 @@ dominio %>%
                                                barheight = 0.5)) +
   geom_mapa() +
   coord_sf(ylim = c(-35.5, -29), xlim = c(-66.5, -61.5)) +
+  # geom_jitter(data = lista_sondeos, aes(lon, lat, 
+  #                                       color = periodo,
+  #                                       shape = periodo), 
+  #             alpha = 0.5, size = 1.5, width = 0.03, height = 0.03) +
+  # scale_color_brewer(palette = "Dark2",
+  #                    guide = guide_legend(override.aes = list(size = 2,
+  #                                                             alpha = 1))) +
+  # labs(color = "b) Soundings", shape = "b) Soundings") +
+  theme_minimal(base_size = 10) +
+  theme(legend.position = "bottom") 
+  
+  legend <- get_legend(temp)
+  
+  g2 <- dominio %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = hgt), proj = norargentina_lambert,
+                    breaks = seq(0, 6000, 500)) +
+  scale_fill_gradient(low = "#f2f2f2", high = "#333333",
+                      name = NULL,
+                      breaks = seq(0, 6000, 1000),
+                      guide = NULL) +
+  geom_mapa() +
+  coord_sf(ylim = c(-35.5, -29), xlim = c(-66.5, -61.5)) +
   geom_jitter(data = lista_sondeos, aes(lon, lat, 
                                         color = periodo,
                                         shape = periodo), 
@@ -306,16 +338,18 @@ dominio %>%
   scale_color_brewer(palette = "Dark2",
                      guide = guide_legend(override.aes = list(size = 2,
                                                               alpha = 1))) +
-  labs(color = "b) Soundings", shape = "b) Soundings") +
-  theme_minimal(base_size = 9) +
-  theme(legend.position = "bottom", 
-        legend.box = "vertical") +
-  # ,
-  #         legend.margin = margin(),
-  #         legend.box.spacing = margin(0, 0, 0, 0)) +
-  plot_layout(ncol = 2, widths = c(4, 1), guides = "collect") +
-  plot_annotation(tag_levels = 'a', tag_suffix = ')') & 
-  theme(legend.position = 'bottom', legend.box = "vertical")
+  labs(color = NULL, shape = NULL) +
+  theme_minimal(base_size = 10) +
+  theme(legend.box = "horizontal",
+        legend.position = c(0.16, 0.92),
+        legend.background = element_rect(fill = "white", color = "white")) 
+  
+  ggdraw(plot_grid(plot_grid(g1, g2, ncol = 2, rel_widths = c(1, 0.5), 
+                             labels = c("a)", "b)"), label_size = 10), legend, 
+                   ncol = 1, rel_heights = c(1, 0.05)))
+  
+  
+  
 ```
 
 ### Observations
@@ -398,7 +432,7 @@ tribble(
 ```
 
 
-```{r dist_obs, fig.cap="a) Horizontal spatial distribution of the mean available observations per analysis cycle for CONV, AUT and SATWND. b) Number of radiance observations assimilated at each analysis cycle and pressure level."}
+```{r dist_obs, eval=FALSE, fig.cap="a) Horizontal spatial distribution of the mean available observations per analysis cycle for CONV, AUT and SATWND. b) Number of radiance observations assimilated at each analysis cycle and pressure level."}
 files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E2/ANA/*/diagfiles/asim*ensmean")[1:67]
 
 conv <- read_diag_conv(files, exp = "E2", member = "000") 
@@ -491,7 +525,7 @@ rad %>%
 ```
 
 
-```{r count_obs, fig.cap="a) Number of available observations per cycle during the experiment. a) Vertical spatial distribution of the mean available observations per analysis cycle."}
+```{r count_obs, eval=FALSE, fig.cap="a) Number of available observations per cycle during the experiment. a) Vertical spatial distribution of the mean available observations per analysis cycle."}
 rad2 <- rad[, .(press, iuse, error, exp, date)] %>% 
   setnames(c("press", "iuse", "error"), c("pressure", "usage.flag", "rerr"))
 
@@ -629,7 +663,7 @@ The mean RCRV profiles calculated from the radiance observations (Figure 7 d)) s
 Overall these results indicate that the ensemble spread is consistent with the short-range forecast error and that systematic errors are relatively small for most of the observation types used in this work   Moreover, these results suggest the inflation parameter $\beta = 0.9$ is adequate. 
 
 
-```{r rcrv-sfc, fig.cap="Standar deviation of rcrv calculate for surface observations included in boxes of 2.5 degree"}
+```{r rcrv-sfc, eval=FALSE, fig.cap="Standar deviation of rcrv calculate for surface observations included in boxes of 2.5 degree"}
 
 rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
       fread(here("analysis", "data", "derived_data", "rcrv_t_box.csv"))) %>%   
@@ -669,7 +703,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
 ```
 
 
-```{r rcrv-profile, fig.cap="Profiles of the mean and standard deviation of RCRV for upper-air observations.", fig.subcap=c("Sounding and aircraft observations.", "Satellite-derived wind.", "Radiances observations.")}
+```{r rcrv-profile, eval=FALSE, fig.cap="Profiles of the mean and standard deviation of RCRV for upper-air observations.", fig.subcap=c("Sounding and aircraft observations.", "Satellite-derived wind.", "Radiances observations.")}
 
 rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")), 
       fread(here("analysis", "data", "derived_data", "rcrv_t_perfil.csv"))) %>% 
@@ -769,7 +803,7 @@ To investigate how changes in the PBL can modify the pre-convective environment 
 
 The potential temperature on the PBL (Figure 11 b) resembles the characteristics observed on the temperature profiles in Figure 8 a and c. On average the PBL in AUT and SATWND is colder than in CONV while RAD shows a warmer PBL due to the assimilation of radiance observations. Figure 11 c) shows the most unstable convective available potential energy (MCAPE, shaded) and the 0 to 6 km wind shear. The values of MCAPE in CONV do not exceed 2000 JKg-1 while the rest of the experiments show maximum MCAPE over 4000 JKg-1. The decrease of the specific humidity in lower levels present in RAD could explain the slightly lower values of MCAPE that is partially compensated by an increase in the temperature in the PBL, compared with AUT or SATWND. The wind shear is more intense in RAD  reaching  values over 15 ms-1 over the area of maximum MCAPE at the southern tip of the northerly low-level flow. Stronger wind shear between 0 and 6 km has been associated with the development of more intense and organized MCS [Chen 2015, ] and also with conditions favorable for supercells (e.g. Markowsky and Richardson 2010). Particularly in this case we can see that on the Southern tip of the strong CAPE region, the 0-6 km wind shear is over 15 ms-1 which is considered favorable for supercell occurrence, while in the CONV experiment the intersection of the unstable warm air and the high shear is slightly smaller and occurs at lower MCAPE values. 
 
-```{r TQ-diff, fig.cap="Difference between experiments AUT-CONV (a and b), SATWND-AUT (b and e) and RAD-SATWND (c-f) for the spatially averaged vertical profile of temperature (a, b, and c, in K) and specific humidity (d, e, and f in gkg-1).", fig.env="figure*", fig.height=3.5}
+```{r TQ-diff, eval=FALSE, fig.cap="Difference between experiments AUT-CONV (a and b), SATWND-AUT (b and e) and RAD-SATWND (c-f) for the spatially averaged vertical profile of temperature (a, b, and c, in K) and specific humidity (d, e, and f in gkg-1).", fig.env="figure*", fig.height=3.5}
 files <- list.files(derived_data, recursive = TRUE, full.names = TRUE,
                     pattern = "perfiles_ana")
 
@@ -848,7 +882,7 @@ perfiles %>%
 
 
 
-```{r UV-diff, fig.cap="Difference between experiments AUT-CONV (a and b), SATWND-AUT (b and e) and RAD-SATWND (c-f) for the spatially averaged vertical profile of u wind (a, b, and c, in ms-1) and v wind (d, e, and f in ms-1). In contours the u wind for AUT (a), SATWND (b) and RAD (c) and v wind for AUT (d), SATWND (e) and RAD (f).", fig.height=3.5, fig.env="figure*"}
+```{r UV-diff, eval=FALSE, fig.cap="Difference between experiments AUT-CONV (a and b), SATWND-AUT (b and e) and RAD-SATWND (c-f) for the spatially averaged vertical profile of u wind (a, b, and c, in ms-1) and v wind (d, e, and f in ms-1). In contours the u wind for AUT (a), SATWND (b) and RAD (c) and v wind for AUT (d), SATWND (e) and RAD (f).", fig.height=3.5, fig.env="figure*"}
 perfiles %>% 
   dcast(lev + date ~ exp, value.var = "U") %>% 
   .[, ":="(E5_E2 = E5 - E2,
@@ -927,7 +961,7 @@ perfiles %>%
 
 ```
 
-```{r summary-fields, fig.cap="a) Precipitable water (shaded) and northerly wind (contours, m/s), b) Average potential temperature for the PBL and c) Maximum CAPE and ~0-6 km wind shear over 15 m/s and 30 m/s for each experiment. All fields correspond to 00 UTC Nov, 22.", fig.height=10, fig.width=9, fig.env="figure*"}
+```{r summary-fields, eval=FALSE, fig.cap="a) Precipitable water (shaded) and northerly wind (contours, m/s), b) Average potential temperature for the PBL and c) Maximum CAPE and ~0-6 km wind shear over 15 m/s and 30 m/s for each experiment. All fields correspond to 00 UTC Nov, 22.", fig.height=10, fig.width=9, fig.env="figure*"}
 
 files <- Sys.glob(paste0(derived_data, "pw/*"))[c(1, 4, 5, 7)]
 
@@ -1109,7 +1143,7 @@ For the second period, corresponding to IOP08, none of the radiosondes was direc
 To summarize, the results suggest that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed case study. While the assimilation of satellite-derived wind does not impact substantially on the analysis, this is possible due to the small number of observations in low levels.  The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the CSM leading to an increase in the accumulated precipitation. 
 
 
-```{r pp-hov, fig.cap="Hövmoller of mean hourly accumulated precipitation for each latitude band observed (left) and simulated (right, for the ensemble mean) over the inner domain."}
+```{r pp-hov, eval=FALSE, fig.cap="Hövmoller of mean hourly accumulated precipitation for each latitude band observed (left) and simulated (right, for the ensemble mean) over the inner domain."}
 
 files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/derived_data/ppacum/E[2568]_ana*mean_acum_1h.rds")
 
@@ -1173,7 +1207,7 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   plot_layout(ncol = 2, widths = c(0.2, 0.8), guides = "collect") & theme(legend.position = 'bottom')
 ```
 
-```{r fss, fig.cap="FSS calculated over a 6-hours moving window for different thresholds and scales."}
+```{r fss, eval=FALSE, fig.cap="FSS calculated over a 6-hours moving window for different thresholds and scales."}
 files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E[2-8].csv")
 
 fss <- purrr::map(files, function(f) {
@@ -1204,7 +1238,7 @@ fss %>%
 
 
 
-```{r dbz-mean, eval=FALSE, fig.cap="Observed maximum reflectivity in the column (upper row) and ensemble mean maximum reflectivity for CONV and RAD at different times (bottom two rows).", include=FALSE}
+```{r dbz-mean, eval=FALSE, eval=FALSE, fig.cap="Observed maximum reflectivity in the column (upper row) and ensemble mean maximum reflectivity for CONV and RAD at different times (bottom two rows).", include=FALSE}
 proj_radar <- "+proj=tmerc +lon_0=-61.5 +lat_0=-32 +k_0=1 +ellps=WGS84"
 
 rad_loc <- read_csv(here("analysis", "data", "derived_data", "radar_loc.csv"))
@@ -1307,7 +1341,7 @@ dbz_obs %>%
 
 ```
 
-```{r soundings, fig.cap="RMSE and Bias of temperature, dew point temperature and wind components calculated by comparing each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8."}
+```{r soundings, eval=FALSE, fig.cap="RMSE and Bias of temperature, dew point temperature and wind components calculated by comparing each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8."}
 files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/derived_data/sondeos/ANA/sondeo_E[2568]_ana*")
 
 sondeos <- purrr::map(files, function(f){
