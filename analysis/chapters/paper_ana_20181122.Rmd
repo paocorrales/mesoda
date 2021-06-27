@@ -63,6 +63,7 @@ numbersections: true
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
 	echo = FALSE,
+	cache = TRUE,
 	fig.path = "../figures/",
 	fig.retina = TRUE,
 	message = FALSE,
@@ -250,6 +251,7 @@ no_oficiales <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_2018112
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>% 
   .[type %in% c(181, 187)] %>% 
   .[!str_detect(stationID, "SMN")] %>%
+  .[!str_detect(stationID, "^SC")] %>%
   .[!(stationID %in% oficiales$stationID)] %>% 
   unique(by = c("stationID")) %>% 
   .[, source := "Sfc - Non-official"]
@@ -352,36 +354,58 @@ g1 <- dominio %>%
   
 ```
 
-### Observations
+## Observations
 
-#### Conventional and Satellite-derived wind
+### Conventional and Satellite-derived wind
 
-Conventional and satellite-derived wind observations are part of the Global Data Assimilation System (GDAS) [] except for Automatic Surface Weather Stations (ASWS). These observations come from public and private automatic station networks over Southern South America and are part of RELAMPAGO Data Set repository (García, F., et al. 2019).  
+The conventional and satellite-derived wind observations used are part of the Global Data Assimilation System (GDAS) **[ver cita]**. We assimilated conventional observations included in the Binary Universal Form for Representation of Meteorological Data (PREPBUFR) files generated at NCEP that consist of surface observations from conventional surface weather stations (CSWS) and ships and upper-air observations from radiosondes and aircrafts. The orange triangles in Figure \@ref(fig:dominio) a), are the surface stations and ship locations included in this experiment.  The frequency of these observations varied between 1 hour for surface stations and 12/24 hours for most radiosondes in the region.  
 
-We used conventional observations included in the Binary Universal Form for Representation of Meteorological Data (PREPBUFR) files generated at NCEP (Keyser 2013) that consist of surface observations (land and sea) and upper-air observations from radiosondes and aircrafts (Figure \@ref(fig:dominio)). The frequency of these observations varied between 1 hour for surface stations and 24 hours for most radiosondes in the region. 
+Satellite-derived wind observations also come from GDAS and includes information from GOES-16 (estimated from the visible, infrared and water vapour channels) and METEOSAT 8 and 11 (visible and water vapour channels). Due to the domain covered by each of these satellites, GOES-16 is the primary source of this type of observation (99 % of observation).
 
-Satellite-derived wind observations also come from GDAS and includes information from GOES-16 (estimated from the visible, infrared and water vapour channels) and METEOSAT 8 and 11 (visible and water vapour channels). Due to the domain covered by each of these satellites, GOES-16 is the primary source of this type of observation (99 % of this type of observation).
+We used additional conventional observations from 866 Automatic Surface Weather Stations (ASWS) that are part of  various public and private automatic station networks over Southern South America and are part of RELAMPAGO Data Set repository [@garcia2019]. These stations are indicated as green squares in Figure \@ref(fig:dominio) a). They have higher spatial coverage than the CSWS and a sampling frequency of 10 minutes in most cases. The variables measured by the stations varied between networks; all stations measure temperature, but only 395 stations provide humidity, 422 provide pressure and 605 provide wind information. 
 
-Table 2 lists all the observation types (i.e., pressure, temperature, specific humidity and wind) available for each source, together with their associated errors. The observation errors were specified following the GSI default configuration. In some cases, the error varies with height and it depends on the specific platform (aircraft and satellite-derived wind). In terms of quality control, a gross check was performed by the observation operator by comparing the innovation (the difference between the observation and model-simulated observation based on the first-guess)  with a predefined threshold (also included in Table 2).  
+Table \@ref(tab:table-obs) lists all the observation types (i.e., pressure, temperature, specific humidity and wind) available for each source, together with their associated errors. The observation errors were specified following the GSI default configuration. In some cases, the error varies with height and it depends on the specific platform (aircraft and satellite-derived wind). In terms of quality control, a gross check was performed by the observation operator by comparing the innovation (the difference between the observation and model-simulated observation based on the first-guess) with a predefined threshold (also included in Table \@ref(tab:table-obs)). 
+
+```{r table-obs}
+fread(here("analysis/data/derived_data/table1.csv")) %>% 
+  # str()
+  kbl(caption = "Observation errors and gross check thresholds for different observation platforms and types.",
+      col.names = c("Code", "Platform", "Variable", "Error", "Gross check"),
+      booktabs = TRUE,
+      escape = FALSE) %>% 
+  kable_classic_2(full_width = FALSE) %>% 
+  kable_styling(font_size = 6,
+                position = "center") %>% 
+  column_spec(1, width = "3.5em") %>% 
+  column_spec(2, width = "4.5em") %>% 
+  column_spec(3, width = "5em") %>% 
+  column_spec(4:5, width = "7em") %>% 
+  collapse_rows(columns = 1:2, valign = "middle", latex_hline = "major") %>% 
+  footnote(symbol = c("Observation error varied with height",
+                      "Observations over 600 hPa are rejected",
+                      "Observation error depends on the report type"),
+           symbol_manual = c("*", "**", "+"))
+```
 
 
-#### Satellite radiances
+### Satellite radiances {#sat}
 
-Satellite radiances available through the GDAS datastream which consist of infrared and microwave observations are used in this paper. This includes the Advanced Microwave Sounding Unit - A (AMSU-A), Advanced Technology Microwave Sounder (ATMS), Microwave Humidity Sounder (MHS), High-resolution Infrared Radiation Sounder (HIRS/4), and 2 multispectral sensors, Atmospheric Infrared Sounder (AIRS) and Infrared Atmospheric Sounding Interferometer (IASI) over several satellite platforms (see Table 3). Since the regional domain is located in mid-latitudes, each sensor scans the area only twice a day with a spatial coverage depending on the satellite swath. For this reason, radiance observations were not available in all analysis cycles and the number of observations varied significantly among cycles. This is evident in Figure 2 b) that shows the number of radiance observations assimilated at each analysis cycle as a function of pressure. In particular, the multispectral sensors provided between 100 and 10.000 observations for every scan every 12 hours, contributing 82 % of the total amount of assimilated radiances in the period. The vertical location of each radiance was estimated as the model level at which its weighting function was maximized as calculated by the CRTM. The multispectral sensors have a good vertical distribution and are able to sense throughout the entire atmosphere. The channels whose maximum weighting function is in the stratosphere were rejected due to the low model top model (50 hPa) used in the experiments. 
+Satellite radiances available through the GDAS data stream, consisting of infrared and microwave observations are used in this study. This includes the Advanced Microwave Sounding Unit - A (AMSU-A), Advanced Technology Microwave Sounder (ATMS), Microwave Humidity Sounder (MHS), High-resolution Infrared Radiation Sounder (HIRS/4), and 2 multispectral sensors, Atmospheric Infrared Sounder (AIRS) and Infrared Atmospheric Sounding Interferometer (IASI) over several satellite platforms (see Table \@ref(tab:table-rad)). Since the regional domain is located in the mid-latitudes and all satellite platforms are on polar orbits, each sensor scans the area only twice a day with a spatial coverage depending on the satellite swath. For this reason, the number of satellite observations varied significantly among cycles. This is evident in Figure \@ref(fig:obs-cycle) a) which shows the number of radiance observations assimilated at each analysis cycle as a function of pressure. In particular, the multispectral sensors provided between 100 and 10.000 observations for every scan every 12 hours, contributing 82 % of the total amount of assimilated radiances in our experiments. The vertical location of each radiance observation was estimated as the model level at which its weighting function was maximized as calculated by CRTM. The multispectral sensors have a good vertical coverage and are able to sense from the lower troposphere and up to the lower stratosphere. The channels whose maximum weighting function is located in the stratosphere were rejected due to the low model top model (50 hPa) used in the experiments. 
 
-The channels accepted for assimilation and their associated error were defined using the default GSI configuration. The data preprocessing, which is an essential step in the assimilation of radiances, was performed within the GSI system for each sensor specifically. Firstly a spatial data thinning is applied using a 60 km grid following [Singh et al 2016, Jones et al 2013, Lin et al 2017], where the observations to be assimilated are chosen based on their distance to the model grid points, to the observation quality (based on available data quality predictors) and on the number of available channels (from the same pixel and sensor) that passed the quality control. Also, observations over the sea or sea-ice surface are preferred from those over land or snow [cita a la guía avanzada]. 
+The channels accepted for assimilation and their associated error were defined using the default GSI configuration. The data preprocessing, which is an essential step in the assimilation of radiances, was performed within the GSI system for each sensor specifically. Firstly a spatial data thinning is applied using a 60 km grid following [@singh2016; @jones2013; @lin2017a], where the observations to be assimilated are chosen based on their distance to the model grid points, no the observation quality (based on available data quality predictors) and on the number of available channels (from the same pixel and sensor) that passed the quality control. Also, observations over the sea are preferred from those over land or snow [@hu2018]. 
 
-The thinned observations were then bias corrected. The bias correction (BC) has an air-mass dependent and an angle-dependent component (Zhu 2014) and it is calculated as a multi-linear function of N predictors $p_i(x)$, with associated coefficients $\beta_i$. Then, the bias corrected brightness temperature can be obtained as:
+The thinned observations were then bias corrected. The bias correction (BC) has an air-mass dependent and an angle-dependent component [@zhu2014] and it is calculated as a multi-linear function of N predictors $p_i(x)$, with associated coefficients $\beta_i$. Then, the bias corrected brightness temperature can be obtained as:
 
-$$\mathit{BT_bc}  =\mathit{ BT} +  \sum{i = 0}{N} \beta_i p_i (x)$$
+$$\mathit{BT_bc} =\mathit{ BT} + \sum{i = 0}{N} \beta_i p_i (x)$$
 
-In GSI $p_0 = 1$ a constant offset bias correction term.  The following predictors are:  the cloud liquid water content (CLW), the temperature lapse rate at the pressure of maximum weight, the square of the temperature lapse rate at the pressure of maximum weight , and the emissivity sensitivity. Scan angle dependent bias is modeled as a 4th-order polynomial [Zhu 2014]. 
+GSI has a constant offset bias correction term ($p_0 = 1$). The following predictors are the cloud liquid water content (CLW), the temperature lapse rate at the pressure of maximum weight, the square of the temperature lapse rate at the pressure of maximum weight, and the emissivity sensitivity. Scan angle-dependent bias is modelled as a 4th-order polynomial [@zhu2014]. 
 
-The $\beta_i$ coefficients are usually trained to achieve the best fit between the simulation and the observations. In the GSI system these coefficients are trained using a variational estimation method (Zhu 2014) which solves for the $\beta_i$ that provides the best fit between the simulation and the observations. The coefficients initialized from the 18 UTC Nov, 11 2018 GFS coefficients were trained during one week of continuous assimilation and using the same setup as in the experiments described in the next section. Moreover, the assimilation system was configured to use a constant background error variance of 0.01 to avoid large adjustments to the predictor coefficients during each cycle. 
+The $\beta_i$ coefficients are usually trained to achieve the best fit between the simulation and the observations. In the GSI system these coefficients are trained using a variational estimation method which solves for the $\beta_i$ that provides the best fit between the simulation and the observations. The coefficients initialized from the 18 UTC Nov, 11 2018 GFS coefficients were trained during one week of continuous assimilation using the same setup as in the experiments described in the next section. Moreover, the assimilation system was configured to use a constant background error variance of 0.01 to avoid large adjustments  in the estimated coefficients at each cycle. 
 
-During the quality control step, GSI rejects all observations if the innovation is greater than a predefined threshold for each channel and sensor. For microwave sensors, the quality control routines also use the scattering and Liquid Water Path (LWP) indexes calculated from brightness temperature channel differences (Weston et al., 2019; Zhu et al., 2016). The quality control routine for infrared sensors looks for observations over water with a large zenithal angle (over 60°) to reject channels near the visible range that can be contaminated with reflection. It also checks for cloud-affected observations using the transmittance profile calculated within the CRTM algorithms and performs an emissivity check for observations over land. In the experiment, only clear-sky observations are used as defined by the internal subroutines of GSI that use the LWP for microwave and the transmittance profile for infrared observations that could be potentially affected by clouds.
+In our experiments, only clear-sky observations are used. For microwave radiances, observations potentially contaminated by clouds are detected using the scattering and Liquid Water Path (LWP) indexes[@weston2019; @zhu2016]. For the infrared channels cloud contaminated observations are detected using the transmittance profile calculated within the CRTM algorithms. Additionally, the GSI quality control for infrared sensors looks for observations over water with a large zenithal angle (over 60°) to reject channels near the visible range that can be contaminated with reflection. It also performs an emissivity check for observations over land for both infrared and microwave radiances. 
 
-```{r}
+
+```{r eval=FALSE, include=FALSE}
 files <- Sys.glob(here("analysis/data/derived_data/count_obs_E*"))[c(1, 3, 4)]
 
 purrr::map(files, ~fread(.x)) %>% rbindlist() %>% 
@@ -403,22 +427,25 @@ purrr::map(files, ~fread(.x)) %>% rbindlist() %>%
 
 
 
-```{r}
+```{r table-rad}
 fread(here("analysis", "data", "derived_data", "tabla_radianzas.csv")) %>% 
   .[, ":="(sensor = toupper(sensor),
            plataforma = toupper(plataforma),
-           prop = scales::percent(prop/100, accuracy = 0.01, trim = TRUE))] %>% 
+           prop = paste0(prop, " \\", "%"))] %>% 
   .[order(.[,'sensor']), ] %>% 
   .[] %>% 
-  kbl(booktabs = T, col.names = c("Sensor", "Plataform", "Assimilated\nchannels", "Percentage over total"),
+  kbl(booktabs = TRUE,
+      escape = FALSE,
+      col.names = linebreak(c("Sensor", "Plataform", "Assimilated\nchannels", "Percentage\nover total")),
       caption = "List of the available sensors in several platforms, the number of accepted channels and the percentage of assimilated observations calculated over all radiance observations.") %>% 
+  kable_styling(font_size = 7) %>% 
   collapse_rows(1,valign = "top") %>% 
   # column_spec(1, width = "3cm", latex_valign = "p") %>% 
-  kable_classic_2(full_width = F)
+  kable_classic_2(full_width = TRUE)
 ```
 
 
-```{r obs}
+```{r table-exp}
 tribble(
   ~obs_type, ~conv, ~aut, ~satwnd, ~rad,
   "PREPBUFR", "x", "x", "x", "x",
@@ -432,7 +459,10 @@ tribble(
 ```
 
 
-```{r dist_obs, eval=FALSE, fig.cap="a) Horizontal spatial distribution of the mean available observations per analysis cycle for CONV, AUT and SATWND. b) Number of radiance observations assimilated at each analysis cycle and pressure level."}
+
+(ref:obs-horizontal) Horizontal spatial distribution of the mean available observations per analysis cycle for the a) CONV, b) AUT c) SATWND and d) RAD experiments calculate over 2.5º boxes.
+
+```{r obs-horizontal, fig.cap="(ref:obs-horizontal)", out.width="100%"}
 files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E2/ANA/*/diagfiles/asim*ensmean")[1:67]
 
 conv <- read_diag_conv(files, exp = "E2", member = "000") 
@@ -478,13 +508,35 @@ files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E8/ANA/*/diagfiles/asim*
 
 files <- files[!str_detect(files, "conv")]
 
-
 rad <- read_diag_rad(files, "E8") %>% 
   satinfo[., on = c("sensor", "channel")] %>% 
   .[, ":="(lon.box = cut_round(lon, breaks = seq(284, 309, 2.5)),
            lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
 
-rbind(conv, aut, satwnd) %>% 
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E8/ANA/*/diagfiles/asim*ensmean")
+
+files <- files[str_detect(files, "conv")]
+
+rad_conv <- read_diag_conv(files, exp = "E8", member = "000") 
+
+rad_conv[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
+                            type %in% c(120, 220, 221), "ADPUPA",
+                            type %in% c(130, 131, 133, 230, 231, 233), "AIRCFT",
+                            type %in% c(290), "ASCATW",
+                            type %in% c(180, 280, 183, 283, 184, 284), "SFCSHP",
+                            type %in% c(240:260), "SATWND")] %>% 
+  .[, ":="(lon.box = cut_round(lon, breaks = seq(284, 309, 2.5)),
+           lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
+
+
+
+rad <- rad[, .(press, iuse, error, exp, date, lon.box, lat.box)] %>% 
+  setnames(c("press", "iuse", "error"), c("pressure", "usage.flag", "rerr"))
+
+
+rbind(conv, aut, satwnd, rad_conv) %>%
+  .[, .(pressure, usage.flag, rerr, exp, date, lon.box, lat.box)] %>% 
+  rbind(., rad) %>% 
   .[usage.flag == 1 & rerr != 1.0e+10] %>% 
   .[, .(count_obs = .N), by = .(exp, lon.box, lat.box, date)] %>% 
   .[, .(obs_cycle = mean(count_obs, na.rm = TRUE)), by = .(exp, lon.box, lat.box)] %>% 
@@ -496,42 +548,20 @@ rbind(conv, aut, satwnd) %>%
   geom_mapa() +
   facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
                                                E6 = "SATWND", E8 = "RAD"))) +
+  tagger::tag_facets() +
   labs(fill = "Mean number of\nobs per cycle") +
-  theme_minimal( base_size = 6) +
+  theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
-        plot.margin = unit(c(0, 0, 0, 0), "cm")) +
-
-rad %>% 
-  .[qc == 0 & iuse == 1] %>% 
-  .[, lev := factor(cut_round(peakwt, breaks = seq(0, 1050, 50)))] %>% 
-  .[, .(omb = mean(tbc),
-        n = .N), by = .(date, lev, exp)] %>% 
-  .[lev != 1025] %>% 
-  ggplot(aes(date, fct_rev(lev))) +
-  geom_tile(aes(fill = n)) +
-  scale_fill_viridis_c(trans = scales::log10_trans(), breaks = c(1, 10, 100, 1000, 10000),
-                       guide = guide_colourbar(barheight = 8,
-                                               barwidth = 0.5)) +
-  
-  scale_date() +
-   facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
-                                               E6 = "SATWND", E8 = "RAD"))) +
-  labs(x = NULL, fill = NULL, y = "pressure (hPa)") +
-  theme_minimal(base_size = 6) +
-  theme(aspect.ratio = 1/1.5) +
-  
-  plot_layout(ncol = 2, widths = c(1.6, 1)) + plot_annotation(tag_levels = 'a', tag_suffix = ")") &
-  theme(plot.tag = element_text(size = 6))
+        plot.margin = unit(c(0, 0, 0, 0), "cm"))
 ```
 
+(ref:obs-cycle) a) Number of available observations per cycle and b) time averaged number of observations per cycle and divided into 50 hPa-depth vertical layers for the CONV (blue line), AUT (light blue line), SATWND (orange line) and RAD (red line) experiments.
 
-```{r count_obs, eval=FALSE, fig.cap="a) Number of available observations per cycle during the experiment. a) Vertical spatial distribution of the mean available observations per analysis cycle."}
-rad2 <- rad[, .(press, iuse, error, exp, date)] %>% 
-  setnames(c("press", "iuse", "error"), c("pressure", "usage.flag", "rerr"))
+```{r obs-cycle, fig.cap="(ref:obs-cycle)", fig.env="figure*"}
 
-rbind(conv, aut, satwnd) %>%
-  .[, .(pressure, usage.flag, rerr, exp, date)] %>% 
-  rbind(., rad2) %>% 
+rbind(conv, aut, satwnd, rad_conv) %>%
+  .[, .(pressure, usage.flag, rerr, exp, date, lon.box, lat.box)] %>% 
+  rbind(., rad) %>% 
   .[usage.flag == 1 & rerr != 1.0e+10] %>% 
   .[, .(count_obs = .N), by = .(exp, date)] %>% 
   ggplot(aes(date, count_obs)) +
@@ -550,9 +580,9 @@ rbind(conv, aut, satwnd) %>%
   theme(legend.position = "bottom", 
         plot.margin = unit(c(0, 0, 0, 0), "cm")) +
   
-  rbind(conv, aut, satwnd) %>%
-  .[, .(pressure, usage.flag, rerr, exp, date)] %>% 
-  rbind(., rad2) %>% 
+rbind(conv, aut, satwnd, rad_conv) %>%
+  .[, .(pressure, usage.flag, rerr, exp, date, lon.box, lat.box)] %>% 
+  rbind(., rad) %>%  
   .[usage.flag == 1 & rerr != 1.0e+10] %>% 
   .[, ":="(lev.box = cut_round(pressure, breaks = seq(50, 1050, 50)))] %>% 
   .[, .(count_obs = .N), by = .(exp, lev.box, date)] %>% 
@@ -587,17 +617,18 @@ rbind(conv, aut, satwnd) %>%
 
 ```
 
-#### Validation dataset 
+### Validation dataset 
 
-In order to evaluate the performance of the ensemble based data assimilation system presented in this article, we use part of the following observations datasets: 
+To evaluate the performance of the ensemble based data assimilation system presented in this article, we use the following observations datasets: 
 
-* The Multi-Network Composite Highest Resolution Radiosonde Data [] from the RELAMPAGO field campaign database consists of high resolution radiosondes launched from several locations during the Intensive Observation Periods (IOP) along with the operational measurements. Only the radiosondes that did not enter the assimilation system were used to perform the validation. The experiment period covers the Intensive Observation Periods (IOP) 7 and 8 during which XXXX radiosondes were launched in a small area Figure 1 b). 
+* The Multi-Network Composite Highest Resolution Radiosonde Data [@sondeos] from the RELAMPAGO field campaign database consisting of high resolution radiosondes launched from several locations during the Intensive Observation Periods (IOP) along with the operational measurements. Only the measurements/soundings that did not enter the assimilation system were used for validation. The experiment period covers IOP missions 7 and 8 during which 74 radiosondes were launched in a small area near the center of the experimental domain (Figure \@ref(fig:dominio) b). 
 
-* The Satellite precipitation estimation IMERG half-hourly Final  Run of  0.01◦ resolution (Huffman et al. 2018) was used as a reference state to validate the skill of the short-range forecasts to represent the precipitation over the domain. 
+* The Satellite precipitation estimation IMERG Final Run with 0.01◦ spatial resolution and 30 minutes temporal resolution [@huffman2018] was used as a reference state to validate the skill 1-hour forecasts to represent the precipitation over the domain. 
 
-* Radar observations are used to perform a qualitative and visual assessment of the convection features. The data comes from 9 radars located on the domain and is provided by the recently developed Argentine C-band Doppler dual-polarization weather radar network \citep{deelia2017} with a temporal frequency of 10 minutes. For this work only the maximum reflectivity in the column (COLMAX) field close to the analysis time was used. 
+* Radar observations are used to perform a qualitative and visual assessment of the convection features. The data comes from 9 radars located on the domain and is provided by the Argentine C-band Doppler dual-polarization weather radar network [@deelia2017] with a temporal frequency of 10 minutes. For this work only the maximum reflectivity in the column (COLMAX) field closest to the analysis time was used. 
 
-### Experimental design
+
+## Experimental design
 
 To investigate the impact of different observations upon the analysis, four data assimilation experiments were performed using different observation sets (Table \@ref(tab:obs)). The CONV experiment uses only convectional observations from PREPBUFR. The orange triangles in Figure \@ref(fig:dominio) a), are the surface stations and ship locations included in this experiment. 
 
@@ -610,12 +641,12 @@ The horizontal distribution of the average number of assimilated observations pe
 All the experiments start at 12 UTC Nov 20, 2018 with 6 hours of simulation spin up (without assimilation). The assimilation cycles start at 18 UTC 20 Nov, 20 and continue until 12 UTC Nov, 23 (67 hours/assimilation cycles). Two independent ensemble forecasts whose validation is discussed in a companion paper or on part II of this paper were initialized from the analysis at 00 and 06 UTC Nov, 22 and continue until 12 UTC Nov, 23 (Figure 3). 
 
 
-```{r ciclo, fig.cap="Diagram of the analysis cycles between Nov 20th, 18 UTC and Nov 23rd 12 UTC plus and spin up period of 6 hours. The zoomed section shows the assimilation for each hour that is performed within a one-hour centered window and new boundary conditions from GFSD every 6 hours. Also the two Intensive Observation Periods (IOP) from the RELAMPAGO Field Campaign are shown."}
+```{r cycle, fig.cap="Diagram of the analysis cycles between Nov 20th, 18 UTC and Nov 23rd 12 UTC plus and spin up period of 6 hours. The zoomed section shows the assimilation for each hour that is performed within a one-hour centered window and new boundary conditions from GFSD every 6 hours. Also the two Intensive Observation Periods (IOP) from the RELAMPAGO Field Campaign are shown.", out.width="100%"}
 knitr::include_graphics(here("analysis", "figures", "analysis_cycle.pdf"))
 ```
 
 
-### Verification methods
+## Verification methods
 
 A set of metrics are selected to evaluate different aspects of the analysis obtained in the experiments conducted in this paper. These aspects include a validation of how uncertainty is quantified in the first-guess and in the analysis and how different experiments fit an independent set of observations not used in the assimilation. 
 To evaluate the consistency of the uncertainty quantification in the first-guess and in the analysis we use  the Reduced Centered Random Variable (RCRV, Candille et al., 2007) which is define as  defined as:
@@ -650,7 +681,7 @@ where ${P_x}$ and ${P_o}$ are the probability of occurrence of specified rainfal
 
 # Results
 
-### Ensemble reliability
+## Ensemble reliability
 
 To investigate the ability of the ensemble to represent the possible states of the atmosphere taking into account the uncertainties of the model and the observations we calculated the mean and sd of the first-guess RCRV for the RAD experiment between 18 UTC Nov, 20 and 12 UTC Nov, 23. As this experiment assimilates all types of observations used in this work, it is possible to analyse the reliability of the ensemble by comparing with each type of observation. Figure 5 shows the sd RCRV for surface observations computed and box-averaged to a 2.5° grid. The wind (Figure 5 a) has a $sd RCRV$ close to 1 suggesting a good agreement between the ensemble spread, the forecast error and the observation error. For the temperature (Figure 6 b and d), the results are similar except for some areas to the west of the domain where sd RCRV can be as high as 4.5. These areas were studied in detail and it was found that the mean innovation was overly large. The main reason for this is the complexity of the topography, usually associated with differences between the model topography and the station height leading to relatively large errors. 
  
@@ -785,7 +816,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
 
 ```
 
-### Impacts of assimilated observations 
+## Impacts of assimilated observations 
 
 In this section we  investigate the impact of assimilating different observation types on variables which are particularly relevant for the occurrence of deep moist convection. The analysis is performed over a smaller domain (red box in Figure 1) to avoid high topography effects and to focus on the region most directly affected by the MCS. Figure 8 a to c shows the difference between AUT and CONV in the spatially averaged vertical profile of temperature. The assimilation of  ASWS observations results in a colder planetary boundary layer (PBL). This cooling effect has a clear diurnal cycle that is stronger during night time. (Figure 8 a). The impact of ASWS observations is not limited to the PBL, as significant impact  in mid to upper levels is also found during the mature stage of the MCS. The warming in AUT present between 500 and 300 hPa is produced by the development of stronger convection in this experiment compared to CONV.  SATWND observations have an almost negligible impact on the mean temperature (Figure 8 b)). The assimilation of radiances produces significant impacts in low level temperature. These observations produce a warming effect in the analyzed PBL which partially compensate for the cooling effect of ASWS observations, particularly during the first 24 hours. After that period the impact of assimilating radiances becomes smaller in the first levels. The impact of the radiances is also important during the mature stage of the MCS and extended to the end of the simulation period.  
 
@@ -1125,7 +1156,7 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
 
 
 
-### Verification
+## Verification
 
 Analysis verifications are performed to assess the skill of each experiment to represent the atmospheric circulation, particularly associated with the MSC development and precipitation. Figure 12 shows the first-guess hourly accumulated precipitation averaged over a longitud range between 67°W and 54.5°W as a function of time and latitude in the different experiments, and estimated precipitation by IMERG. The heaviest precipitation (over 12 mm/h) starts during the afternoon of Nov 22 and continues during Nov 23 after the end of the experiments. In all the experiments, the accumulated precipitation in the short-range forecasts  underestimate the precipitation. This is particularly evident on CONV where the convection initiation is significantly delayed with respect to the observations and occurs further north with respect to the observed initiation. AUT, SATWND and RAD better capture the timing and location of convective initiation. On RAD the initiation is delayed respecto to AUT and SATWND possibly related to the lower content of precipitable water and MCAPE on the southern tip of the moist tongue. After 18 UTC Nov, 22 RAD shows improvements in precipitation rate and its distribution compared to the other experiments due to the enhanced development of the conveccion.
 
