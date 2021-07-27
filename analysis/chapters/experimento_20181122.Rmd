@@ -108,7 +108,7 @@ colores_exp <- c(E4 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E7 = "#CC3311")
 # colores_exp <- c(E4 = "#225555", E5 = "#CCBB44", E6 = "#CC6677", E7 = "#882255")
 satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
   setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
-derived_data <- "/home/paola.corrales/datosmunin/EXP/derived_data/"
+derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
 
 
 proj_radar <- "+proj=tmerc +lon_0=-61.5 +lat_0=-32 +k_0=1 +ellps=WGS84"
@@ -691,7 +691,7 @@ AUT-CONV present a negative difference in low levels with a clear diurnal cycle 
 
 ```{r T-mse, eval=FALSE, fig.cap="MSE", include=FALSE}
 
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/derived_data/perfiles_mse*")
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/derived_data/perfiles_rmsd*")
 
 perfiles_mse <- purrr::map(files, function(f) {
   exp <- unglue(basename(f), "perfiles_{run}_{exp}.csv")
@@ -710,18 +710,18 @@ perfiles_mse <- purrr::map(files, function(f) {
 perfiles_mse %>% 
   .[variable == "T"] %>% 
   ggplot(aes(date, lev)) +
-  geom_contour_fill(aes(z = mse, fill = stat(level))) +
+  geom_contour_fill(aes(z = rmsd, fill = stat(level))) +
   scale_fill_viridis_c(option = "A", direction = -1,
                        name = NULL, super = ScaleDiscretised,
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
-  labs(subtitle = "Temperature MSE (K^2)",
+  labs(subtitle = "Temperature RMSD (K)",
        x = NULL,
        y = "Pressure level") +
   scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
-  facet_wrap(~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
-                                               E6 = "SATWND", E7 = "RAD"))) +
+  facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                               E6 = "SATWND", E8 = "RAD"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -764,23 +764,24 @@ perfiles %>%
 Comparing the specific humidity (Figure \@ref(fig:Q-diff)) once again the difference between AUT and CONV is important in low levels showing the impact of assimilating the observations from automatic stations with larger spacial and temporal resolution. Between SATWND and AUT the differences are smaller and only important after Nov, 21st 18Z. The addition of satellite derived winds produce and increse of humidity around 750 hPa during Nov 21st (0.05 to 0.10 g/kg) and a decrese of humidity between surface and 750 hPa starting at 00Z Nov 22th until the end of the experiment.  
 
 The differences between RAD and SATWND and therefore the impact of the radiances have opposite sign to the impact of the observations from automatic stations but with smaller magnituded in low levels. A positive difference can also be observed between 850 and 600 hPa. 
+
 ```{r Q-mse, eval=FALSE, fig.cap="MSE", include=FALSE}
 
 perfiles_mse %>% 
   .[variable == "QVAPOR"] %>% 
   ggplot(aes(date, lev)) +
-  geom_contour_fill(aes(z = mse*1000000, fill = stat(level))) +
+  geom_contour_fill(aes(z = rmsd, fill = stat(level))) +
   scale_fill_viridis_c(option = "A", direction = -1,
                        name = NULL, super = ScaleDiscretised,
                        guide = guide_colorsteps(barwidth = 25,
                                                 barheight = 0.8)) +
-  labs(subtitle = "Specific humidity MSE (g/Kg^2)",
+  labs(subtitle = "Specific humidity RMSD (g/Kg)",
        x = NULL,
        y = "Pressure level") +
   scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
-  facet_wrap(~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
-                                               E6 = "SATWND", E7 = "RAD"))) +
+  facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                               E6 = "SATWND", E8 = "RAD"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -819,6 +820,30 @@ perfiles %>%
                                                          "E6_E5" = "SATWND - AUT",
                                                          "E7_E6" = "RAD - SATWND",
                                                          "E8_E6" = "NEW RAD - SATWND"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
+```
+
+
+```{r U-mse, eval=FALSE, fig.cap="MSE", include=FALSE}
+
+perfiles_mse %>% 
+  .[variable == "U"] %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = rmsd, fill = stat(level))) +
+  scale_fill_viridis_c(option = "A", direction = -1,
+                       name = NULL, super = ScaleDiscretised,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  labs(subtitle = "U RMSD (m/s)",
+       x = NULL,
+       y = "Pressure level") +
+  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+  facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                               E6 = "SATWND", E8 = "RAD"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
         panel.ontop = TRUE,
@@ -865,6 +890,29 @@ perfiles %>%
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 
+```
+
+```{r V-mse, eval=FALSE, fig.cap="MSE", include=FALSE}
+
+perfiles_mse %>% 
+  .[variable == "V"] %>% 
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = rmsd, fill = stat(level))) +
+  scale_fill_viridis_c(option = "A", direction = -1,
+                       name = NULL, super = ScaleDiscretised,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.8)) +
+  labs(subtitle = "V RMSD (m/s)",
+       x = NULL,
+       y = "Pressure level") +
+  scale_y_level(name = "Pressure level", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_x_datetime(expand = c(0,0), date_labels = "%HZ \n %b-%d", date_breaks = "24 hours") +
+  facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                               E6 = "SATWND", E8 = "RAD"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3))
 ```
 
 Figure \@ref(fig:V-diff) is constructed in the same way as Figure \@ref(fig:U-diff) but here only negative meridional wind is ploted. Again the wind profiles are similar for each experiment but nevertheless there are differences of +- 1 m/s. 
@@ -1291,6 +1339,51 @@ ana[bottom_top %between% c(2, 7), .(v_mean = mean(v)),
   
   plot_layout(ncol = 1, heights = c(1, 1, 1)) +
   plot_annotation(tag_levels = "a", tag_suffix = ")")
+```
+
+
+```{r}
+files <- Sys.glob(paste0(derived_data, "mucape/mcape_ana_E[2,5,6,8]_20181122*.nc")) 
+
+dates <- c("20181122000000", "20181122060000", 
+           "20181122120000", "20181122180000",
+           "20181123000000")
+
+mucape <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "mcape_ana_{exp}_{date}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "cape_2d", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      setnames(old = "mcape_mcin_lcl_lfc", new = "variable") %>% 
+      .[]
+}
+}) %>% 
+  rbindlist() 
+
+fcsts <- expand_grid(fcsts = dates,
+                     exp = c("E2", "E5", "E6", "E8"))
+
+cor <- lapply(seq_len(nrow(fcsts)), function(f) {
+  
+  tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
+    .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
+    .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>% 
+    .[, theta := ReadNetCDF(paste0(derived_data, "/theta_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(th = "theta"), out = "vector")] %>%
+    .[, date :=  ymd_hms(fcsts[f, 1])] %>% 
+    .[, exp := fcsts[f, 2]] %>%  
+    .[]
+}) %>% 
+  rbindlist() %>% 
+.[bottom_top %in% c(1, 16)] %>% 
+  dcast(date + exp + south_north + west_east ~ bottom_top, value.var = c("u", "v")) %>% 
+  .[, cortante := Mag(u_16 - u_1, v_16 - v_1)] %>% 
+  .[, ":="(u_2 = NULL, 
+           u_10 = NULL,
+           v_2 = NULL,
+           v_10 = NULL)]
 ```
 
 
