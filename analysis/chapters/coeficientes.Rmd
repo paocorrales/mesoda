@@ -153,7 +153,7 @@ Se utilizaron observaciones en aire claro (ver métodos para detectar nubles usa
 En la Figura \@ref(fig:n-rad) se muestra la cantidad de observaciones potencialmente asimilables, es decir, que pasan el control de calidad del operador de las observaciones, para cada canal en cada ciclo de asimilación. Dejando de lado IASI que no se ve nada porque tiene más de 600 canales, se puede ver que en todo los casos hay outliers. Esto tiene que ver con que en cada ciclo solo hay disponibles observaciones de algunos sensores y no siempre la pasada del sensor coincide completamente con el dominio. Los momenos donde la cantidad de observaciones aumenta considerablemente coinciden con los momentos donde la pasada del satélite estaba centrada en el dominio. En general hay más observaciones en el rango infrarrojo tanto por las observaciones de los sensores multiespectrales (AIRS e IASI) como por el sensor HIRS que en general para todos los canales aporta mayor cantidad de observaciones. 
 
 ```{r}
-files <- list.files("/home/paola.corrales/datosmunin/EXP/E7-training/ANA", 
+files <- list.files("/home/paola.corrales/datosmunin3/EXP/E7-training/ANA", 
                     pattern = "asim.", recursive = TRUE, 
                     full.names = TRUE)
 files <- files[!str_detect(files, pattern = "conv")]
