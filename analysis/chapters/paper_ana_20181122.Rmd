@@ -317,7 +317,7 @@ temp <- dominio %>%
   #                    guide = guide_legend(override.aes = list(size = 2,
   #                                                             alpha = 1))) +
   # labs(color = "b) Soundings", shape = "b) Soundings") +
-  theme_minimal(base_size = 10) +
+  theme_minimal(base_size = 11) +
   theme(legend.position = "bottom") 
 
 legend <- get_legend(temp)
@@ -340,13 +340,13 @@ g2 <- dominio %>%
                      guide = guide_legend(override.aes = list(size = 2,
                                                               alpha = 1))) +
   labs(color = NULL, shape = NULL) +
-  theme_minimal(base_size = 10) +
+  theme_minimal(base_size = 11) +
   theme(legend.box = "horizontal",
         legend.position = c(0.16, 0.92),
         legend.background = element_rect(fill = "white", color = "white")) 
 
 ggdraw(plot_grid(plot_grid(g1, g2, ncol = 2, rel_widths = c(1, 0.5), 
-                           labels = c("a)", "b)"), label_size = 10), legend, 
+                           labels = c("a)", "b)"), label_size = 11), legend, 
                  ncol = 1, rel_heights = c(1, 0.05)))
 
 
@@ -540,6 +540,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
   labs(fill = "Mean number of\nobs per cycle") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 14),
         plot.margin = unit(c(0, 0, 0, 0), "cm"))
 ```
 
@@ -597,7 +598,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
   
   plot_layout(ncol = 2, widths = c(4, 1), guides = "collect") + 
   plot_annotation(tag_levels = 'a', tag_suffix = ")") &
-  theme(plot.tag = element_text(size = 6), 
+  theme(plot.tag = element_text(size = 8), 
         legend.position = "bottom",
         legend.margin = unit(c(0, 0, 0, 0), "cm"),
         plot.margin = unit(c(0, 0, 0, 0), "cm"))
@@ -622,7 +623,7 @@ To investigate the impact of different observations upon the analysis, four data
 
 The horizontal distribution of the average number of assimilated observations per cycle in each experiment is shown in Figure \@ref(fig:obs-horizontal). The larger number of assimilated observations over the center and east of the domain correspond to the ASWS observations. In this region we observed high values of precipitation during Nov 22 and is associated with the inflow of moisture by the South American low level jet. In Figure \@ref(fig:obs-cycle)a the number of assimilated observations over time is shown. Local maxima at 12 and 00 UTC  found mainly in CONV is produced by the operational soundings. The strong variability in the number of radiance observations per cycle is also noticeable and depends on the satellite coverage. The maxima after 12 and 00 UTC in RAD correspond to the contribution of the multispectral sensors. The vertical distribution of the mean number of observations per cycle (Figure \@ref(fig:obs-cycle)b) shows a maximum in low levels due to the ASWS observations. Satellite-derived winds available in this particular case are maximum at the upper troposphere (between 500-250 hPa). Above 850 hPa, most of the observations correspond to radiance observations. 
 
-All the assimilation experiments start at 18 UTC Nov 20, 2018 and continue until 12 UTC Nov, 23 (totaling 67 hours/assimilation cycles). The initial ensemble is generated from a spin-up run without assimilating observations performed between 12 UTC and 18 UTC Nov 20 (Figure \@ref(fig:cycle)). 
+All the assimilation experiments start at 18 UTC Nov 20, 2018 and continue until 12 UTC Nov, 23 (totaling 67 hours/assimilation cycles). The initial ensemble is generated from a spin-up run without assimilating observations performed between 12 UTC and 18 UTC Nov, 20 (Figure \@ref(fig:cycle)). 
 
 
 ```{r table-exp}
@@ -690,7 +691,7 @@ where ${P_x}$ is the probability of occurrence of accumulated rainfall over a sp
 ## Ensemble reliability
 
 To investigate the ability of the first-guess ensemble mean to fit the observations taking into account the uncertainties of the forecast and the observations, we calculated the $mean RCRV$ and the $sd RCRV$ for the RAD experiment. As this experiment assimilates all types of observations used in this work, it is possible to analyse the reliability of the ensemble by comparing it with each type of observations. Figure 5 shows the $sd RCRV$ for surface observations box-averaged to a 2.5° grid. The $sd RCRV$ for wind observations (Figure \@ref(fig:rcrv-sfc)a) is close to 1 suggesting a good agreement between the ensemble spread, the forecast error and the observation error. For the temperature (Figure \@ref(fig:rcrv-sfc)b), the results are similar except that for some areas to the west of the domain where the $sd RCRV$ can be as high as 4.5. In this region the mean innovation was overly large due to the complex terrain leading to large differences between the model topography and the station height. 
- 
+
 Figure \@ref(fig:rcrv-profile) shows the mean and standard deviation of the RCRV for the upper-air observations. Figure \@ref(fig:rcrv-profile)a-b show the RCRV statistics for soundings (ADPUPA) and aircraft (AIRCAR and AIRCFT). Both ADPUPA and AIRCFR show a general good agreement between the ensemble spread and the observation error. As sounding observations and their associated errors are known to be reliable, this result indicates that the ensemble has an appropriate spread. AIRCAR presents an irregular profile with $sd RCRV$ values that suggests that the error for this type of observation is overestimated. ADPUPA and AIRCAR present a $mean RCRV$ profile near zero on middle and upper levels but ADPUPA observations show a cold bias respect to the model at low levels, a characteristic already studied in @ruiz2010 and @dilloninreview.
 
 For satellite-derived winds (Figure \@ref(fig:rcrv-profile)c) in low levels, where the are not many observations available, the profiles of $mean RCRV$ and $sd RCRV$ shows a larger departure from the expected behaviour with a negative bias and an overestimation of the observation error. Wind estimations derived from water vapor channels are abundant over 500 hPa  where their bias is close to zero. The only exception are the EUMETSAT observations which contribute very little in the region. 
@@ -698,7 +699,7 @@ For satellite-derived winds (Figure \@ref(fig:rcrv-profile)c) in low levels, whe
 The mean RCRV profiles calculated from the radiance observations (Figure \@ref(fig:rcrv-profile)d) shows almost no bias and the same happens if the $mean RCRV$ is calculated over each channel of each sensor. This indicates that the bias correction algorithm works as expected. The $sd RCRV$ values are less than 1 for all sensors possibly due to an overestimation of the observation errors to reduce the influence of potentially erroneous observations. 
 
 Overall these results indicate that the ensemble spread is consistent with the short-range forecast error and that systematic errors are relatively small for most of the observation types used in this work. Moreover, these results suggest the inflation parameter $\beta = 0.9$ is adequate for the system. 
- 
+
 
 (ref:rcrv-sfc) sd RCRV calculated for surface observations of a) wind, and b) temperature, averaged over 2.5º boxes.
 
@@ -731,6 +732,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
   labs(fill = "sd RCRV") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 14),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3))
 
@@ -761,14 +763,12 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   tag_facets() +
   labs(x = NULL, y = NULL,
        linetype = NULL, color = "Upper air\nobservations") +
-  guides(color = guide_legend(
-    keyheight = 0.4,
-    default.unit = "cm")) +
-  theme_minimal(base_size = 6) +
-  # theme(legend.box = "vertical",
-  #   aspect.ratio = 4/1) +
+  guides(color = guide_legend(keyheight = 0.4, default.unit = "cm"),
+         linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
+  theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
-        legend.spacing.y = unit(0.1, 'mm')) +
+        legend.spacing.y = unit(0.1, 'mm'),
+        tagger.panel.tag.text = element_text(size = 8)) +
   
   
   read_csv(here::here("analysis", "data", "derived_data", "rcrv_satwind.csv")) %>% 
@@ -782,21 +782,19 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("mean RCRV", "sd RCRV")) +
   scale_color_brewer(palette = "Set1") +
-  scale_x_level(breaks = c(1000, 500, 250, 125, 50)) +
+  scale_x_level(breaks = c(1000, 500, 250, 125, 50), limits = c(1000, 50)) +
   coord_flip() +
   facet_wrap(~ var, scales = "free_x", labeller = labeller(var = c("u" = "U wind",
                                                                    "v" = "Wind"))) +
   tag_facets(tag_pool = c("c")) +
   labs(x = NULL, y = NULL,
        linetype = NULL, color = "Satellite-derived\nwind") +
-  guides(color = guide_legend(
-    keyheight = 0.4,
-    default.unit = "cm")) +
-  theme_minimal(base_size = 6) +
-  # theme(legend.box = "vertical",
-  #   aspect.ratio = 2/1) +
+    guides(color = guide_legend(keyheight = 0.4, default.unit = "cm"),
+         linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
+  theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
-        legend.spacing.y = unit(0.1, 'mm')) +
+        legend.spacing.y = unit(0.1, 'mm'),
+        tagger.panel.tag.text = element_text(size = 8)) +
   
   purrr::map(Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/rcrv_*_perfil.csv")[1:6], function(f) {
     meta <- unglue::unglue(basename(f), "rcrv_{sensor}_perfil.csv")
@@ -821,18 +819,17 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   tag_facets(tag_pool = c("d")) +
   labs(x = NULL, y = NULL,
        linetype = NULL, color = "Radiances\nobservations") +
-  guides(color = guide_legend(
-    keyheight = 0.4,
-    default.unit = "cm")) +
-  theme_minimal(base_size = 6) +
-  # theme(legend.box = "vertical",
-  #   aspect.ratio = 2/1) +
+  guides(color = guide_legend(keyheight = 0.4, default.unit = "cm"),
+         linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
+  theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
-        legend.spacing.y = unit(0.1, 'mm')) +
+        legend.spacing.y = unit(0.1, 'mm'),
+        tagger.panel.tag.text = element_text(size = 8)) +
   
   plot_layout(ncol = 3, widths = c(1, 1, 1), guides = "collect") & 
   theme(legend.box = "vertical",
-        legend.spacing.y = unit(0.1, 'mm'))
+        legend.spacing.y = unit(0.1, 'mm'),
+        tagger.panel.tag.text = element_text(size = 8))
 
 
 ```
@@ -847,8 +844,8 @@ Comparing the specific humidity in the experiments (Figure \@ref(fig:TQ-diff)d-f
 The impacts on the wind components are shown in Figure Figure \@ref(fig:UV-diff) along with the corresponding averaged wind component in the experiment with the largest number of assimilated observations.  
 
 The assimilation of ASWS produces an increase of zonal wind and a decrease of meridional wind at low levels during the first two days of analysis. There is a diurnal cycle in the impact of surface weather stations on the meridional velocity  (Figure  \@ref(fig:UV-diff)d) with stronger reduction of the northerly wind during night hours. This indicates that surface observations are reducing the intensity of the low level jet present in the pre-convective environment. After 18 UTC Nov, 22 the opposite effect is observed when the MCS is moving through the domain. After the initiation of the convective cells the systematic impact on the wind field is larger at mid and upper levels. During Nov 22 and 23 the impact of assimilating ASWS, produces an increase of northerly wind in upper levels. This could be a consequence of a stronger MCS with an increased polar side upper level outflow. Satellite-derived wind observations produce the largest impact in mid-to-upper levels where the number of observations is larger, however the systematic impact is overall smaller than the one produced by assimilating data from ASWS.
- 
-The assimilation of radiances produced a reduction in the westerly wind compared with respect to SATWIND in low and upper levels (Figure  \@ref(fig:UV-diff)c and f). For the meridional wind, these observations produce an enhancement on average of the northerly low-level flow of $1 ms^{-1}$, opposite to what is generated by the assimilation of ASWS observations. On upper levels and during Nov 22 and 23 the average impact of assimilating radiances is a decrease in the wind. When we look at the meridional wind field at 200 hPa at different times, we observed that the outflow from the MCS is even more intense than in the other experiments while the southerly wind ahead of the MCS also increases producing in average a reduction of the northerly wind present in  Figure /@ref(fig:UV-diff)f. 
+
+The assimilation of radiances produced a reduction in the westerly wind compared with respect to SATWIND in low and upper levels (Figure  \@ref(fig:UV-diff)c and f). For the meridional wind, these observations produce an enhancement on average of the northerly low-level flow of $1 ms^{-1}$, opposite to what is generated by the assimilation of ASWS observations. On upper levels and during Nov 22 and 23 the average impact of assimilating radiances is a decrease in the wind. When we look at the meridional wind field at 200 hPa at different times, we observed that the outflow from the MCS is even more intense than in the other experiments while the southerly wind ahead of the MCS also increases producing in average a reduction of the northerly wind present in  Figure \@ref(fig:UV-diff)f. 
 
 To investigate how changes in the PBL can modify the pre-convective environment we compare the horizontal distribution of the low level northerly flow, precipitable water, low level temperature and CAPE for the analysis at 00 UTC Nov, 22 (after 30 assimilation cycles). At that moment the first convective cells were developing on the southern region of the domain along the cold front. Figure \@ref(fig:summary-fields)a shows the precipitable water (shaded) and the vertically averaged low-level meridional wind component (contours). We found that the moist tongue extending over the northern part of the domain is enhanced by the assimilation of denser surface observations. The moisture increase is particularly stronger at the southern tip of this tongue, just ahead of the cold front where convection initiation was taking place. AUT and SATWND experiments are very similar, with values of precipitable water over 55 $kgm^{-2}$ north of 30$^{\circ}$S and a similar vertical distribution of specific humidity (not shown). RAD has lower precipitable water content than AUT and SATWND but higher than CONV. The distribution of moisture at low levels in RAD seems to be the results of the combination of the moistening effect of assimilating ASWS  -- partially compensated by the assimilation of radiance observations -- and a reduced meridional moisture transport due to the weaker northerly flow over the centre of the domain compare to CONV. 
 
@@ -901,6 +898,7 @@ perfiles %>%
   tag_facets(position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 8),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) +
   
@@ -935,6 +933,7 @@ perfiles %>%
   tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 8),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) +
   
@@ -980,6 +979,7 @@ perfiles %>%
   tag_facets(position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 8),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3), 
         strip.text = ggtext::element_markdown()) +
@@ -1023,6 +1023,7 @@ perfiles %>%
   tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 8),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3),
         strip.text = ggtext::element_markdown()) +
@@ -1249,9 +1250,10 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   scale_y_latitude(breaks = seq(-40, -20, 5)) +
   facet_wrap(~ exp) +
-  labs(x = NULL, y = NULL, fill = "Acumulated\nprecipitation (mm/h)") +
+  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Acumulated\nprecipitation ($mmh^{-1}$)")) +
   theme_minimal(base_size = 9) +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 9)) +
   
   ppacum_1h %>% 
   .[exp %in% c("E2", "E5", "E6", "E8")] %>%
@@ -1274,14 +1276,15 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   scale_y_latitude(breaks = seq(-40, -20, 5), labels = NULL) +
   facet_wrap(~ exp, ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
                                                           E6 = "SATWND", E8 = "RAD"))) +
-  labs(x = NULL, y = NULL, fill = "Acumulated\nprecipitation (mm/h)") +
+  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Acumulated\nprecipitation ($mmh^{-1}$)")) +
   theme_minimal(base_size = 9) +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 9)) +
   
   plot_layout(ncol = 2, widths = c(0.2, 0.8), guides = "collect") & theme(legend.position = 'bottom')
 ```
 
-To quantify the spatial match between the observed precipitation and the short range forecasted precipitation for the different experiments, we compute the FSS in 6-hours moving windows for different thresholds and spatial scales (Figure \@ref(fig:fss)). All experiments show low values of FSS before and during the initiation of the MCS around 03 UTC Nov, 22, with an improvement during the mature stage of the MCS. The FSS for CONV is the lowest compared to the rest of the experiments and the differences are larger during the mature stage of the MCS. AUT and SATWND show similar FSSs indicating that satellite-derived wind assimilation has little impact on the precipitation for the present case study. The assimilation of radiances led to an overall improvement of the 1-hour forecasted precipitation, particularly for the 25 mm threshold during the period of heaviest precipitation on Nov, 22. The enhancement is also important at the developing stage of the MCS (between 00 and 12 UTC Nov, 22 and for spatial scales above 500 km, not shown).  
+To quantify the spatial match between the observed precipitation and the short range forecasted precipitation for the different experiments, we compute the FSS in 6-hours moving windows for different thresholds and spatial scales (Figure \@ref(fig:fss)). All experiments show low values of FSS before and during the initiation of the MCS around 03 UTC Nov, 22 with an improvement during the mature stage of the MCS. The FSS for CONV is the lowest compared to the rest of the experiments and the differences are larger during the mature stage of the MCS. AUT and SATWND show similar FSSs indicating that satellite-derived wind assimilation has little impact on the precipitation for the present case study. The assimilation of radiances led to an overall improvement of the 1-hour forecasted precipitation, particularly for the 25 mm threshold during the period of heaviest precipitation on Nov, 22. The enhancement is also important at the developing stage of the MCS (between 00 and 12 UTC Nov, 22 and for spatial scales above 500 km, not shown).  
 
 (ref:fss) FSS calculated over a 6-hours moving window for a) 1 mm and b) 25 mm with a scale of 10 km and c) 1 mm and a d) 25 mm with a scale of 100 km, for the CONV (blue line), AUT (ligh blue line), SATWND (orange line) and RAD (red line) experiments.
 
@@ -1316,7 +1319,7 @@ fss %>%
   theme(legend.position = "bottom")
 ```
 
-To complement the analysis, Figure \@ref(fig:dbz-mean) shows the maximum reflectivity in the column (COLMAX) for the CONV and RAD experiments ensemble mean at different times between 10 and 19 UTC Nov, 22th along with the observed maximum reflectivity. These experiments were chosen because they represent the analysis with minimum and maximum number of assimilated observations. In addition, these experiments are the worst and best performing experiments in terms of the short range precipitation forecast skill. Overall none of the short range forecasts is able to capture the mesoscale details in the precipitation distribution. This is partially expected considering the relatively low horizontal resolution (10 km) which is not enough to appropriately capture the strength of the convective band associated with the MCS. Also, the ensemble mean produces a smoothing effect that reduces the amplitude of local maxima in the forecasted reflectivity field. RAD better represents the observed features of the MSC showing a more strong and organized MCS over the domain center at 10 and 13 UTC (first and second columns in Figure \@ref(fig:dbz-mean)). The convective cells that initiate after 16 UTC over the warm front in the northeast part of the domain  are well captured by  both experiments, but better represented in terms of strength in the RAD experiment. CONV captures the location of the MCS, but the convection seems to be less organised and much weaker than in RAD. Before and after the times shown in Figure \@ref(fig:dbz-mean), the agreement between experiment and observations is quite high in the regions where radar data are available. 
+To complement the analysis, Figure \@ref(fig:dbz-mean) shows the maximum reflectivity in the column (COLMAX) for the CONV and RAD experiments ensemble mean at different times between 10 and 19 UTC Nov, 22 along with the observed maximum reflectivity. These experiments were chosen because they represent the analysis with minimum and maximum number of assimilated observations. In addition, these experiments are the worst and best performing experiments in terms of the short range precipitation forecast skill. Overall none of the short range forecasts is able to capture the mesoscale details in the precipitation distribution. This is partially expected considering the relatively low horizontal resolution (10 km) which is not enough to appropriately capture the strength of the convective band associated with the MCS. Also, the ensemble mean produces a smoothing effect that reduces the amplitude of local maxima in the forecasted reflectivity field. RAD better represents the observed features of the MSC showing a more strong and organized MCS over the domain center at 10 and 13 UTC (first and second columns in Figure \@ref(fig:dbz-mean)). The convective cells that initiate after 16 UTC over the warm front in the northeast part of the domain  are well captured by  both experiments, but better represented in terms of strength in the RAD experiment. CONV captures the location of the MCS, but the convection seems to be less organised and much weaker than in RAD. Before and after the times shown in Figure \@ref(fig:dbz-mean), the agreement between experiment and observations is quite high in the regions where radar data are available. 
 
 Finally, Figure \@ref(fig:soundings) shows the RMSE and bias calculated by comparing the experiments with radiosonde data from the RELAMPAGO missions, IOP 7 from 15 to 21 UTC Nov, 21 (including 30 radiosondes) and IOP 8 from 14 to 20 UTC Nov 22 (including 22 radiosondes). IOP 7 provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. For the temperature, CONV presents a warm bias on the PBL of 1$^{\circ}$C and an RMSE between 1 and 2.5$^{\circ}$C that are slightly reduced by the assimilation of ASWS and radiances. The RMSE for temperature remains between 0.5 and 2$^{\circ}$C throughout the troposphere and lower stratosphere and the impact of additional observations in the AUT, SATWND and RAD is small above the PBL. The dew point temperature shows a small dry bias in low levels that is corrected on AUT, SATWND and RAD. On middle levels (below 10 km) the bias is large and positive (8 - 10$^{\circ}$C), indicating a more moist atmosphere in the analysis. Overall, the RMSE grows with height, this is probably because at upper levels, moisture contents are lower and small changes in the amount of water vapor can produce relatively large differences in terms of dew point temperatures. The zonal wind has a significant positive bias of approximately 10 $ms^{-1}$ in the upper troposphere which is mainly reduced by assimilating satellite radiances. It is somewhat surprising that no significant effect is observed by assimilating satellite derived winds. The assimilation of ASWS and radiance observations increases the northerly wind bias and RMSE near the surface.
 
@@ -1376,7 +1379,7 @@ colours <- c("#3D4170", "#3D4E7C", "#3B5B84", "#3A6695", "#3672A4", "#3188BD",
              "#95E3C5", "#85E0BD")
 
 
-dbz_obs %>% 
+p1 <- dbz_obs %>% 
   # .[date == unique(date)[1]] %>% 
   .[, date := factor(date)] %>% 
   ggplot(aes(x, y)) +
@@ -1394,15 +1397,21 @@ dbz_obs %>%
   # geom_point(data = rad_loc, aes(lon, lat, color = factor(nradar)), size = 2) +
   geom_path(data = rad_loc, aes(lon, lat, group = ID), size = 0.4) +
   geom_mapa() +
-  facet_grid(run ~ date) +
+  coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)) +
+  scale_x_longitude(ticks = 5, labels = NULL) +
+  facet_grid(run ~ date, labeller = labeller(date = c("2018-11-22 10:00:00" = "10 UTC",
+                                                      "2018-11-22 13:00:00" = "13 UTC",
+                                                      "2018-11-22 16:00:00" = "16 UTC",
+                                                      "2018-11-22 19:00:00" = "19 UTC"))) +
   labs(x = NULL, y = NULL, fill = "COLMAX (dBZ)") +
   theme_minimal(base_size = 9) +
-  theme(legend.position = "bottom",
-        # legend.box.spacing = margin(0, 0, 0, 0),
+  theme(legend.position = "none",
+        axis.text.x = element_blank(),
+        plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
         panel.ontop = TRUE,
-        panel.grid = element_line(linetype = 3)) +
+        panel.grid = element_line(linetype = 3)) 
   
-  dbz_ana %>% 
+p2 <- dbz_ana %>% 
   .[, date := factor(date)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = max_dbz, fill = stat(level)), 
@@ -1419,18 +1428,33 @@ dbz_obs %>%
   # geom_point(data = rad_loc, aes(lon, lat, color = factor(nradar)), size = 2) +
   geom_path(data = rad_loc, aes(lon, lat, group = ID), size = 0.4) +
   geom_mapa() +
-  facet_grid(run ~ date) +
+  facet_grid(run ~ date, labeller = labeller(date = c("2018-11-22 10:00:00" = "10 UTC",
+                                                      "2018-11-22 13:00:00" = "13 UTC",
+                                                      "2018-11-22 16:00:00" = "16 UTC",
+                                                      "2018-11-22 19:00:00" = "19 UTC"))) +
   labs(x = NULL, y = NULL, fill = "COLMAX (dBZ)") +
   theme_minimal(base_size = 9) +
   theme(legend.position = "bottom",
+        plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
         strip.background = element_blank(),
         strip.text.x = element_blank(),
         panel.ontop = TRUE,
-        panel.grid = element_line(linetype = 3)) +
-  
-  plot_layout(ncol = 1, heights = c(1, 2), guides = "collect") & 
-  theme(legend.position = 'bottom')
+        panel.grid = element_line(linetype = 3)) 
 
+legend <- get_legend(
+  # create some space to the left of the legend
+  p2 + theme(plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"), 
+             legend.box.margin = margin(0, 0, 0, 0))
+)
+
+p2 <- p2 + theme(legend.position = "none")
+
+plot_grid(p1 + theme(legend.position = "none",
+                     plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt")),
+          p2 + theme(legend.position = "none",
+                     plot.margin = margin(t = -5, r = 0, b = -2, l = 0, unit = "pt")), 
+          legend, ncol = 1, rel_heights = c(1.1, 2, 0.1))
+ 
 ```
 
 
