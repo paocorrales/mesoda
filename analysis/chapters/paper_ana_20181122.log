@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2018.11.2)  27 JUL 2021 19:21
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2018.11.2)  17 AUG 2021 18:59
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1515,19 +1515,16 @@ Package microtype Info: Loading generic settings for font family
 (microtype)             `lmtt' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 
-] [2] <../figures/dominio-1.png, id=100, 469.755pt x 325.215pt>
+] [2] <../figures/dominio-1.png, id=99, 469.755pt x 325.215pt>
 File: ../figures/dominio-1.png Graphic file (type png)
 <use ../figures/dominio-1.png>
 Package pdftex.def Info: ../figures/dominio-1.png used on input line 183.
 (pdftex.def)             Requested size: 252.0pt x 174.4622pt.
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 2698) has occurred while \output is active []
 
 [3pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) 
 has been already used, duplicate ignored
@@ -1596,33 +1593,34 @@ as been already used, duplicate ignored
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
 l.261 
-      ] <../figures/obs-horizontal-1.png, id=135, 469.755pt x 505.89pt>
+      ]
+LaTeX Font Info:    Try loading font information for TS1+lmr on input line 262.
+
+(/usr/share/texmf/tex/latex/lm/ts1lmr.fd
+File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
+) <../figures/obs-horizontal-1.png, id=131, 469.755pt x 505.89pt>
 File: ../figures/obs-horizontal-1.png Graphic file (type png)
 <use ../figures/obs-horizontal-1.png>
 Package pdftex.def Info: ../figures/obs-horizontal-1.png used on input line 309
 .
 (pdftex.def)             Requested size: 252.0pt x 271.38565pt.
-<../figures/obs-cycle-1.png, id=136, 505.89pt x 252.945pt>
+<../figures/obs-cycle-1.png, id=132, 505.89pt x 252.945pt>
 File: ../figures/obs-cycle-1.png Graphic file (type png)
 <use ../figures/obs-cycle-1.png>
 Package pdftex.def Info: ../figures/obs-cycle-1.png used on input line 315.
 (pdftex.def)             Requested size: 505.88875pt x 252.94438pt.
-LaTeX Font Info:    Try loading font information for TS1+lmr on input line 325.
-
-(/usr/share/texmf/tex/latex/lm/ts1lmr.fd
-File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) [5pdfTeX warning (ext4): destination with the same identifier (name{table.2})
- has been already used, duplicate ignored
+[5pdfTeX warning (ext4): destination with the same identifier (name{table.2}) h
+as been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.338 
+l.336 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.
 2}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.338 
+l.336 
        <../figures/obs-horizontal-1.png (PNG copy)>]
 Overfull \hbox (4.4pt too wide) in paragraph at lines 354--354
  []\T1/lmr/m/n/10 (-20) CONV| 
@@ -1634,7 +1632,10 @@ Overfull \hbox (13.94725pt too wide) in paragraph at lines 354--354
  []
 
 
-</home/paola.corrales/mesoda/analysis/figures/analysis_cycle.pdf, id=153, 722.6
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+</home/paola.corrales/mesoda/analysis/figures/analysis_cycle.pdf, id=150, 722.6
 8929pt x 302.96146pt>
 File: /home/paola.corrales/mesoda/analysis/figures/analysis_cycle.pdf Graphic f
 ile (type pdf)
@@ -1647,27 +1648,28 @@ has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.367 
+l.374 
       pdfTeX warning (ext4): destination with the same identifier (name{table.3
 }) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.367 
-      pdfTeX warning (ext4): destination with the same identifier (name{figure.
-4}) has been already used, duplicate ignored
+l.374 
+       <../figures/obs-cycle-1.png (PNG copy)>] [7pdfTeX warning (ext4): destin
+ation with the same identifier (name{figure.4}) has been already used, duplicat
+e ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.367 
-       <../figures/obs-cycle-1.png (PNG copy)> </home/paola.corrales/mesoda/ana
-lysis/figures/analysis_cycle.pdf>] [7] <../figures/rcrv-sfc-1.png, id=182, 469.
-755pt x 361.35pt>
+l.413 F
+       or satellite-derived winds (Figure \ref{fig:rcrv-profile}c) in low le...
+ </home/paola.corrales/mesoda/analysis/figures/analysis_cycle.pdf>] <../figures
+/rcrv-sfc-1.png, id=180, 469.755pt x 361.35pt>
 File: ../figures/rcrv-sfc-1.png Graphic file (type png)
 <use ../figures/rcrv-sfc-1.png>
 Package pdftex.def Info: ../figures/rcrv-sfc-1.png used on input line 422.
 (pdftex.def)             Requested size: 252.0pt x 193.84691pt.
-<../figures/rcrv-profile-1.png, id=183, 505.89pt x 252.945pt>
+<../figures/rcrv-profile-1.png, id=181, 505.89pt x 252.945pt>
 File: ../figures/rcrv-profile-1.png Graphic file (type png)
 <use ../figures/rcrv-profile-1.png>
 Package pdftex.def Info: ../figures/rcrv-profile-1.png used on input line 428.
@@ -1677,7 +1679,7 @@ has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.442 
+l.440 
        <../figures/rcrv-sfc-1.png (PNG copy)>]
 Underfull \vbox (badness 6526) has occurred while \output is active []
 
@@ -1689,46 +1691,46 @@ has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.448 
+l.446 
        <../figures/rcrv-profile-1.png (PNG copy)>] <../figures/TQ-diff-1.png, i
-d=213, 469.755pt x 433.62pt>
+d=211, 469.755pt x 433.62pt>
 File: ../figures/TQ-diff-1.png Graphic file (type png)
 <use ../figures/TQ-diff-1.png>
-Package pdftex.def Info: ../figures/TQ-diff-1.png used on input line 453.
+Package pdftex.def Info: ../figures/TQ-diff-1.png used on input line 451.
 (pdftex.def)             Requested size: 469.75386pt x 433.61894pt.
-<../figures/UV-diff-1.png, id=216, 469.755pt x 433.62pt>
+<../figures/UV-diff-1.png, id=214, 469.755pt x 433.62pt>
 File: ../figures/UV-diff-1.png Graphic file (type png)
 <use ../figures/UV-diff-1.png>
-Package pdftex.def Info: ../figures/UV-diff-1.png used on input line 464.
+Package pdftex.def Info: ../figures/UV-diff-1.png used on input line 462.
 (pdftex.def)             Requested size: 469.75386pt x 433.61894pt.
-<../figures/summary-fields-1.png, id=219, 758.835pt x 867.24pt>
+<../figures/summary-fields-1.png, id=217, 758.835pt x 867.24pt>
 File: ../figures/summary-fields-1.png Graphic file (type png)
 <use ../figures/summary-fields-1.png>
-Package pdftex.def Info: ../figures/summary-fields-1.png used on input line 474
+Package pdftex.def Info: ../figures/summary-fields-1.png used on input line 472
 .
 (pdftex.def)             Requested size: 522.0pt x 596.58334pt.
-<../figures/pp-hov-1.png, id=221, 469.755pt x 289.08pt>
+<../figures/pp-hov-1.png, id=219, 469.755pt x 289.08pt>
 File: ../figures/pp-hov-1.png Graphic file (type png)
 <use ../figures/pp-hov-1.png>
-Package pdftex.def Info: ../figures/pp-hov-1.png used on input line 485.
+Package pdftex.def Info: ../figures/pp-hov-1.png used on input line 483.
 (pdftex.def)             Requested size: 469.75386pt x 289.07928pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<../figures/fss-1.png, id=225, 252.945pt x 252.945pt>
+<../figures/fss-1.png, id=223, 252.945pt x 252.945pt>
 File: ../figures/fss-1.png Graphic file (type png)
 <use ../figures/fss-1.png>
-Package pdftex.def Info: ../figures/fss-1.png used on input line 494.
+Package pdftex.def Info: ../figures/fss-1.png used on input line 492.
 (pdftex.def)             Requested size: 252.94438pt x 252.94438pt.
 
-Overfull \hbox (0.94438pt too wide) in paragraph at lines 494--495
+Overfull \hbox (0.94438pt too wide) in paragraph at lines 492--493
  [][] 
  []
 
-[10] <../figures/dbz-mean-1.png, id=239, 578.16pt x 469.755pt>
+[10] <../figures/dbz-mean-1.png, id=237, 578.16pt x 469.755pt>
 File: ../figures/dbz-mean-1.png Graphic file (type png)
 <use ../figures/dbz-mean-1.png>
-Package pdftex.def Info: ../figures/dbz-mean-1.png used on input line 505.
+Package pdftex.def Info: ../figures/dbz-mean-1.png used on input line 503.
 (pdftex.def)             Requested size: 522.0pt x 424.14467pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
@@ -1744,12 +1746,12 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.509 
+l.507 
        <../figures/TQ-diff-1.png (PNG copy)>] <../figures/soundings-1.png, id=2
-46, 469.755pt x 325.215pt>
+44, 469.755pt x 325.215pt>
 File: ../figures/soundings-1.png Graphic file (type png)
 <use ../figures/soundings-1.png>
-Package pdftex.def Info: ../figures/soundings-1.png used on input line 514.
+Package pdftex.def Info: ../figures/soundings-1.png used on input line 512.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -1759,14 +1761,14 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.527 
+l.525 
        <../figures/UV-diff-1.png (PNG copy)>] [13pdfTeX warning (ext4): destina
 tion with the same identifier (name{figure.9}) has been already used, duplicate
  ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.527 
+l.525 
        <../figures/summary-fields-1.png (PNG copy)>]
 Underfull \vbox (badness 6204) has occurred while \output is active []
 
@@ -1775,13 +1777,13 @@ Underfull \vbox (badness 6204) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.531 
+l.529 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.
 11}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.531 
+l.529 
        <../figures/pp-hov-1.png (PNG copy)> <../figures/fss-1.png (PNG copy)>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -1790,69 +1792,68 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.538 
-       <../figures/dbz-mean-1.png (PNG copy)>]
-Underfull \hbox (badness 6978) in paragraph at lines 562--564
+l.536 
+       <../figures/dbz-mean-1.png (PNG copy)>] [16pdfTeX warning (ext4): destin
+ation with the same identifier (name{figure.13}) has been already used, duplica
+te ignored
+
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.559 
+       <../figures/soundings-1.png (PNG copy)>]
+Underfull \hbox (badness 6978) in paragraph at lines 560--562
 [][]\T1/lmr/m/n/10 (+20) Chen, F., Dud-hia, J., 2001. Cou-pling an
  []
 
 
-Underfull \hbox (badness 2343) in paragraph at lines 562--564
+Underfull \hbox (badness 2343) in paragraph at lines 560--562
 \T1/lmr/m/n/10 (+20) Ad-vanced Land Surface--Hydrology Model with the
  []
 
 
-Underfull \hbox (badness 2393) in paragraph at lines 562--564
+Underfull \hbox (badness 2393) in paragraph at lines 560--562
 \T1/lmr/m/n/10 (+20) Penn State--NCAR MM5 Mod-el-ing Sys-tem. Part
  []
 
 
-Underfull \hbox (badness 1253) in paragraph at lines 562--564
+Underfull \hbox (badness 1253) in paragraph at lines 560--562
 \T1/lmr/m/n/10 (+20) I: Model Im-ple-men-ta-tion and Sen-si-tiv-ity. Monthly
  []
 
 
-Underfull \hbox (badness 3690) in paragraph at lines 562--564
+Underfull \hbox (badness 3690) in paragraph at lines 560--562
 \T1/lmr/m/n/10 (+20) Weather Re-view 129, 569--585. doi:[]10.1175/1520-
  []
 
-[16pdfTeX warning (ext4): destination with the same identifier (name{figure.13}
-) has been already used, duplicate ignored
-
-\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
-                                                  \fi \fi 
-l.571 \leavevmode
-                 \hypertarget{ref-deelia2017}{}% <../figures/soundings-1.png (P
-NG copy)>]
-Underfull \hbox (badness 2894) in paragraph at lines 649--651
+[17]
+Underfull \hbox (badness 2894) in paragraph at lines 647--649
 [][]\T1/lmr/m/n/10 (+20) Nakanishi, M., Ni-ino, H., 2009. De-vel-op-ment
  []
 
 
-Underfull \hbox (badness 1769) in paragraph at lines 649--651
+Underfull \hbox (badness 1769) in paragraph at lines 647--649
 \T1/lmr/m/n/10 (+20) of an Im-proved Tur-bu-lence Clo-sure Model for the
  []
 
 
-Underfull \hbox (badness 1824) in paragraph at lines 649--651
+Underfull \hbox (badness 1824) in paragraph at lines 647--649
 \T1/lmr/m/n/10 (+20) At-mo-spheric Bound-ary Layer. JMSJ 87, 895--912.
  []
 
-[17]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 707.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 705.
 [18]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 707.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 705.
 (./paper_ana_20181122.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 707.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 707.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 705.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 705.
 Package rerunfilecheck Info: File `paper_ana_20181122.out' has not changed.
-(rerunfilecheck)             Checksum: 2C28F28AD6C4E9E6574A35E7F9AA49FE;2348.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 707.
+(rerunfilecheck)             Checksum: 4F734AA6B20A7E32E3ABD002D4637949;2512.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 705.
  ) 
 Here is how much of TeX's memory you used:
  15884 strings out of 494945
- 225155 string characters out of 6181032
- 359605 words of memory out of 5000000
+ 225217 string characters out of 6181032
+ 359537 words of memory out of 5000000
  18575 multiletter control sequences out of 15000+600000
  94127 words of font info for 153 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
@@ -1874,10 +1875,10 @@ public/lm/lmri8.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/sh
 are/texmf/fonts/type1/public/lm/lmsy5.pfb></usr/share/texmf/fonts/type1/public/
 lm/lmsy6.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy7.pfb></usr/share/texm
 f/fonts/type1/public/lm/lmtt8.pfb>
-Output written on paper_ana_20181122.pdf (18 pages, 8463957 bytes).
+Output written on paper_ana_20181122.pdf (18 pages, 8464377 bytes).
 PDF statistics:
- 484 PDF objects out of 1000 (max. 8388607)
- 422 compressed objects within 5 object streams
+ 482 PDF objects out of 1000 (max. 8388607)
+ 420 compressed objects within 5 object streams
  130 named destinations out of 1000 (max. 500000)
  26818 words of extra memory for PDF output out of 29859 (max. 10000000)
 
