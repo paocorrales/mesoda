@@ -1,0 +1,208 @@
+---
+title: "Poster 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(here)
+library(patchwork)
+library(unglue)
+library(knitr)
+library(kableExtra)
+
+map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+
+geom_mapa <- function(fill = NA) {
+  list(geom_sf(data = map, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       # geom_sf(data = map_limitrofes, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)),
+       scale_x_longitude(ticks = 5),
+       scale_y_latitude(ticks = 5))
+}
+
+arg_topo <- metR::GetTopography(-75+360, -50+360, -20, -60, resolution = 1/10, 
+                                file.dir = "~/mesoda/analysis/data/derived_data/")
+arg_topo[, lon := metR::ConvertLongitude(lon)]
+
+cordillera <- list(
+  ggnewscale::new_scale_fill(),
+  geom_contour_fill(data = arg_topo, aes(x = lon, y = lat,
+                                         z = h),
+                    breaks = seq(1500, 8000, by = 700)),
+  scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
+                      oob = scales::squish))
+
+experiments <- c("E4", "E5", "E6", "E7")
+colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E8 = "#CC3311") 
+
+satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
+```
+
+
+## Analysis
+
+```{r summary-fields}
+
+files <- Sys.glob(paste0(derived_data, "pw/pw_2*"))
+
+dates <- c("20181122000000", "20181122060000")
+
+pw <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "pw_{date}_{exp}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "pw", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      .[]
+  }
+}) %>% 
+  rbindlist() %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)]
+
+files <- c(Sys.glob(paste0(derived_data, "mucape/mcape_ana_E[2,5,6,8]_20181122000000.nc")),
+           Sys.glob(paste0(derived_data, "mucape/mcape_ana_E[2,5,6,8]_20181122060000.nc")))
+
+mucape <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "mcape_ana_{exp}_{date}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "cape_2d", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      setnames(old = "mcape_mcin_lcl_lfc", new = "variable") %>% 
+      .[]
+  }
+}) %>% 
+  rbindlist() 
+
+
+
+fcsts <- expand_grid(fcsts = c("20181122000000", "20181122060000"),
+                     exp = c("E2", "E5", "E6", "E8"))
+
+ana <- lapply(seq_len(nrow(fcsts)), function(f) {
+  
+  tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
+    .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
+    .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>%     .[, date :=  ymd_hms(fcsts[f, 1])] %>% 
+    .[, exp := fcsts[f, 2]] %>%  
+    .[]
+}) %>% 
+  rbindlist() 
+
+cor <- ana[bottom_top %in% c(1, 16)] %>% 
+  dcast(date + exp + south_north + west_east ~ bottom_top, value.var = c("u", "v")) %>% 
+  .[, cortante := Mag(u_16 - u_1, v_16 - v_1)] %>% 
+  .[, ":="(u_1 = NULL, 
+           u_16 = NULL,
+           v_1 = NULL,
+           v_16 = NULL)]
+
+ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)), 
+    by = .(south_north, west_east, date, exp)] %>% 
+  .[pw, on = .NATURAL] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)),
+                    proj = norargentina_lambert) +
+  colorspace::scale_fill_continuous_divergingx(super = ScaleDiscretised,
+                                               palette = "PRGn", mid = 25,
+                                               guide = guide_colorsteps(barwidth = 25,
+                                                                        barheight = 0.5, 
+                                                                        title.position = "left", 
+                                                                        title.vjust = 1,
+                                                                        frame.colour = "black")) +
+  geom_contour2(aes(z = v_mean, size = stat(level)),
+                proj = norargentina_lambert, color = "black", 
+                breaks = c(-10, -5)) +
+  scale_size_continuous(breaks = c(-10, -5), range = c(0.8, 0.4),
+                        labels = c("-10", "-5")) +
+  labs(fill = latex2exp::TeX("Precipitable\nwater ($Kgm^{-2}$)"), size = latex2exp::TeX("V ($ms^{-1})")) +
+  cordillera +
+  geom_mapa() +
+  facet_grid(date ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E8 = "RAD"),
+                                 date = c("2018-11-22 00:00:00" = "00 UTC", "2018-11-22 06:00:00" = "06 UTC"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+  
+  
+  # ana[bottom_top %between% c(1, 10), .(theta_mean = mean(theta)), 
+  #     by = .(south_north, west_east, date, exp)] %>% 
+  # .[pw, on = .NATURAL] %>% 
+  # ggplot(aes(x, y)) +
+  # geom_contour_fill(aes(z = theta_mean, fill = stat(level_d)),
+  #                   proj = norargentina_lambert,
+  #                   breaks = c(-Inf, seq(290, 314, 2), Inf), limits = c(-Inf, Inf)) +
+  # scale_fill_distiller(super = ScaleDiscretised,
+  #                      palette = "RdYlBu", direction = -1,
+  #                      guide = guide_colorsteps(barwidth = 25,
+  #                                               barheight = 0.5, 
+  #                                               title.position = "left", 
+  #                                               title.vjust = 1,
+  #                                               frame.colour = "black")) +
+  # labs(fill = "Potential\ntemperature (K)") +
+  # cordillera +
+  # geom_mapa() +
+  # facet_grid(. ~ exp, 
+  #            labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+  #                                        E6 = "SATWND", E8 = "RAD"))) +
+  # theme_minimal() +
+  # theme(legend.position = "bottom",
+  #       panel.ontop = TRUE,
+  #       panel.grid = element_line(linetype = 3),
+  #       strip.text = element_blank(), 
+  #       strip.background = element_blank()) +
+  
+  
+mucape %>% 
+  .[variable == "mcape"] %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  .[cor, on = .NATURAL] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)), 
+                    proj = norargentina_lambert, limits = c(500, 6000)) +
+  scale_fill_distiller(super = ScaleDiscretised,
+                       palette = "YlOrRd", direction = 1,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.5, 
+                                                title.position = "left", 
+                                                title.vjust = 1,
+                                                frame.colour = "black")) +
+  geom_contour2(aes(z = cortante, size = stat(level)),
+                proj = norargentina_lambert, color = "black", 
+                breaks = c(15, 30)) +
+  scale_size_continuous(breaks = c(15, 30), range = c(0.8, 0.4),
+                        labels = c("15", "30")) +
+  labs(fill = latex2exp::TeX("MCAPE ($JKg^{-1}$)"), size = latex2exp::TeX("Wind\nshear ($ms^{-1}$)")) +
+  cordillera +
+  geom_mapa() +
+  facet_grid(date ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E8 = "RAD"),
+                                 date = c("2018-11-22 00:00:00" = "00 UTC", "2018-11-22 06:00:00" = "06 UTC"))) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+```
+
+
+
