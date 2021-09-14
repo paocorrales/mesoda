@@ -1,5 +1,5 @@
 ---
-title: "Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO. Part I: Impact on the Analysis"
+title: "Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO. Part I: Impact on the Analysis and First-guess"
 author:
 - name: Paola Belén Corrales
   email: paola.corrales@cima.fcen.uba.ar
@@ -26,7 +26,7 @@ output:
 abstract: |
   In this paper we evaluate the impact of assimilating high-resolution surface networks and satellite observations using the WRF-GSI-LETKF. We conducted a case study corresponding to a huge mesoscale convective system (MCS) developed over central and north-eastern Argentina during November 22, 2018. The accumulated precipitation associated with this MCS was quite high, exceeding 200 mm over northern Argentina and Paraguay. This MCS developed during the Intense Observing Period (IOP) of the RELAMPAGO field campaign during November 2018.
 
-  We used the GSI-4DLETKF data assimilation package to produce analyses assimilating observations every hour with 10-km horizontal grid spacing and a 60-members ensemble initialized from the deterministic GFS run adding random perturbations with climatological covariance. A multiphysics approach was also used to represent model errors, using different physics configurations (a combination of PBL and convection parameterizations). We conducted four assimilation experiments using different sets of observations: CONV, consisting of conventional observations from NCEP’s prepBUFR files, AUT combining CONV and dense automatic surface weather station networks, SATWND, combining AUT with satellite-derived winds and RAD, including SATWND and satellite radiances from different microwave and infrared sensors (AMSU, HIRS, MHS, ATMS, AIRS, and IASI). We found that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed in this case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation.  
+  We used the GSI-4DLETKF data assimilation package to produce analyses assimilating observations every hour with 10-km horizontal grid spacing and a 60-members ensemble initialized from the deterministic GFS run adding random perturbations with climatological covariance. A multiphysics approach was also used to represent model errors, using different physics configurations (a combination of PBL and convection parameterizations). We conducted four assimilation experiments using different sets of observations: CONV, consisting of conventional observations from NCEP’s prepBUFR files, ASWS combining CONV and dense automatic surface weather station networks, SATWND, combining ASWS with satellite-derived winds and RAD, including SATWND and satellite radiances from different microwave and infrared sensors (AMSU, HIRS, MHS, ATMS, AIRS, and IASI). We found that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed in this case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation.  
 journal: Atmospheric Research
 #layout: authoryear,preprint,review,12pt
 layout: final,5p,times,twocolumn,authoryear
@@ -416,7 +416,7 @@ fread(here("analysis", "data", "derived_data", "tabla_radianzas.csv")) %>%
 ```
 
 
-(ref:obs-horizontal) Horizontal spatial distribution of the mean available observations per analysis cycle for the a) CONV, b) AUT c) SATWND and d) RAD experiments calculate over 2.5$^{\circ}$ boxes.
+(ref:obs-horizontal) Horizontal spatial distribution of the mean available observations per analysis cycle for the a) CONV, b) ASWS c) SATWND and d) RAD experiments calculate over 2.5$^{\circ}$ boxes.
 
 ```{r obs-horizontal, fig.cap="(ref:obs-horizontal)", out.width="100%", fig.height=7}
 files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E2/ANA/*/diagfiles/asim*ensmean")[1:67]
@@ -505,7 +505,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
                                               title.vjust = 1,
                                               frame.colour = "black")) +
   geom_mapa() +
-  facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+  facet_wrap(~exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "ASWS", 
                                                E6 = "SATWND", E8 = "RAD"))) +
   tagger::tag_facets() +
   labs(fill = "Mean number of\nobs per cycle") +
@@ -515,7 +515,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
         plot.margin = unit(c(0, 0, 0, 0), "cm"))
 ```
 
-(ref:obs-cycle) a) Number of assimilated observations per cycle and b) time averaged number of assimilated observations per cycle divided into 50 hPa-depth vertical layers for the CONV (blue squares and line), AUT (light blue dots and line), SATWND (orange triangles and line) and RAD (red diamond and line) experiments.
+(ref:obs-cycle) a) Number of assimilated observations per cycle and b) time averaged number of assimilated observations per cycle divided into 50 hPa-depth vertical layers for the CONV (blue squares and line), ASWS (light blue dots and line), SATWND (orange triangles and line) and RAD (red diamond and line) experiments.
 
 ```{r obs-cycle, fig.cap="(ref:obs-cycle)", fig.env="figure*", fig.height=3.5, fig.width=7}
 
@@ -528,13 +528,13 @@ rbind(conv, aut, satwnd, rad_conv) %>%
   geom_line(aes(color = exp), size = 0.2) +
   geom_point(aes(color = exp, shape = exp), size = 1) +
   scale_color_manual(values = colores_exp, 
-                     labels = c(E2 = "CONV", E5 = "AUT", 
+                     labels = c(E2 = "CONV", E5 = "ASWS", 
                                 E6 = "SATWND", E8 = "RAD")) +
-  scale_shape_manual(values = c(15, 16, 17, 18), labels = c(E2 = "CONV", E5 = "AUT", 
+  scale_shape_manual(values = c(15, 16, 17, 18), labels = c(E2 = "CONV", E5 = "ASWS", 
                                                             E6 = "SATWND", E8 = "RAD")) +
   scale_y_log10() +
   scale_date() +
-  labs(y = "Number of obs per cycle", x = NULL,
+  labs(y = "Number of obs per cycle", x = "Hour (UTC)",
        color = NULL, shape = NULL) +
   theme_minimal(base_size = 10) +
   theme(legend.position = "bottom", 
@@ -551,9 +551,9 @@ rbind(conv, aut, satwnd, rad_conv) %>%
   geom_line(aes(color = exp), size = 0.2) +
   geom_point(aes(color = exp, shape = exp), size = 1) +
   scale_color_manual(values = colores_exp, 
-                     labels = c(E2 = "CONV", E5 = "AUT", 
+                     labels = c(E2 = "CONV", E5 = "ASWS", 
                                 E6 = "SATWND", E8 = "RAD")) +
-  scale_shape_manual(values = c(15, 16, 17, 18), labels = c(E2 = "CONV", E5 = "AUT", 
+  scale_shape_manual(values = c(15, 16, 17, 18), labels = c(E2 = "CONV", E5 = "ASWS", 
                                                             E6 = "SATWND", E8 = "RAD")) +
   # geom_tile(aes(fill = obs_cycle)) +
   # scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
@@ -590,7 +590,7 @@ To evaluate the performance of the ensemble-based data assimilation system prese
 
 ## Experimental design {#exp}
 
-To investigate the impact of different observations upon the analysis, four data assimilation experiments were performed using different observation sets (Table \@ref(tab:table-exp)). The CONV experiment uses only convectional observations from PREPBUFR. In a second experiment, referred to as AUT, we assimilate all the observations included in CONV plus the 10-minute frequency surface observations from ASWS. In the third experiment, referred to as SATWND, we assimilate all the observations of the AUT experiment and the satellite-derived motion winds. Finally, a fourth experiment referred to as RAD assimilates all available clear-sky observations from sensors onboard polar orbit satellites as described in Section \@ref(sat).
+To investigate the impact of different observations upon the analysis, four data assimilation experiments were performed using different observation sets (Table \@ref(tab:table-exp)). The CONV experiment uses only convectional observations from PREPBUFR. In a second experiment, referred to as ASWS, we assimilate all the observations included in CONV plus the 10-minute frequency surface observations from ASWS. In the third experiment, referred to as SATWND, we assimilate all the observations of the ASWS experiment and the satellite-derived motion winds. Finally, a fourth experiment referred to as RAD assimilates all available clear-sky observations from sensors onboard polar orbit satellites as described in Section \@ref(sat).
 
 The horizontal distribution of the average number of assimilated observations per cycle in each experiment is shown in Figure \@ref(fig:obs-horizontal). The larger number of assimilated observations over the center and east of the domain corresponds to the ASWS observations. In this region, we observed high values of precipitation during Nov 22 and is associated with the inflow of moisture by the South American low level jet [@vera2006]. In Figure \@ref(fig:obs-cycle)a the number of assimilated observations over time is shown. Local maxima at 12 and 00 UTC  found mainly in CONV is produced by the operational soundings. The strong variability in the number of radiance observations per cycle is also noticeable and depends on the satellite coverage. The maxima after 12 and 00 UTC in RAD correspond to the contribution of the multispectral sensors. The vertical distribution of the mean number of observations per cycle (Figure \@ref(fig:obs-cycle)b) shows a maximum in low levels due to the ASWS observations. Satellite-derived winds available in this particular case are maximum at the upper troposphere (between 500-250 hPa). Above 850 hPa, most of the observations correspond to radiance observations. 
 
@@ -605,7 +605,7 @@ tribble(
   "Satellite-derived winds", " ", " ", "x", "x",
   "Radiances", " ", " ", " ", "x",
 ) %>% 
-  kbl(booktabs = TRUE, col.names = c("Obs type", "CONV", "AUT", "SATWND", "RAD"),
+  kbl(booktabs = TRUE, col.names = c("Obs type", "CONV", "ASWS", "SATWND", "RAD"),
       align = "lcccc",
       caption = "Observation types assimilated in each experiment.",
       escape = FALSE) %>% 
@@ -621,7 +621,7 @@ tribble(
 
 ```{r cycle, fig.cap="(ref:cycle)", out.width="100%"}
 
-knitr::include_graphics(here("analysis", "figures", "analysis_cycle.pdf"))
+knitr::include_graphics(here("analysis", "figures", "analysis_cycle.png"))
 
 ```
 
@@ -739,13 +739,14 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   facet_wrap(~ var, labeller = labeller(var = c("t" = "Temperature",
                                                 "v" = "Wind"))) +
   tag_facets() +
-  labs(x = NULL, y = NULL,
+  labs(x = "Pressure (hPa)", y = NULL,
        linetype = NULL, color = "Upper air\nobservations") +
   guides(color = guide_legend(keyheight = 0.4, default.unit = "cm"),
          linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
   theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
+        legend.title = element_text(size = 6),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   
@@ -759,19 +760,20 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   geom_line(aes(color = sat_type, linetype = variable)) +
   scale_linetype_manual(values = c("dashed", "solid"),
                         labels = c("mean RCRV", "sd RCRV")) +
-  scale_color_brewer(palette = "Set1") +
+  # scale_color_brewer(palette = "Set1") +
   scale_x_level(breaks = c(1000, 500, 250, 125, 50), limits = c(1000, 50)) +
   coord_flip() +
   facet_wrap(~ var, scales = "free_x", labeller = labeller(var = c("u" = "U wind",
                                                                    "v" = "Satellite-derived\nwind"))) +
   tag_facets(tag_pool = c("c")) +
-  labs(x = NULL, y = NULL,
+  labs(x = NULL, y = "mean RCRV / sd RCRV",
        linetype = NULL, color = "Satellite-derived\nwind") +
   guides(color = guide_legend(keyheight = 0.4, default.unit = "cm"),
          linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
   theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
+        legend.title = element_text(size = 6),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   purrr::map(Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/rcrv_*_perfil.csv")[1:6], function(f) {
@@ -802,11 +804,13 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
   theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
+        legend.title = element_text(size = 6),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   plot_layout(ncol = 3, widths = c(1, 1, 1), guides = "collect") & 
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
+        legend.title = element_text(size = 6),
         tagger.panel.tag.text = element_text(size = 8))
 
 
@@ -814,21 +818,21 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
 
 ## Impacts of assimilated observations 
 
-In this section, we present the impact of assimilating different observation types on variables which are particularly relevant for the occurrence of deep moist convection. The analysis is performed over a smaller domain (red box in Figure \@ref(fig:dominio)a) to focus on the region most directly affected by the MCS. Figure \@ref(fig:TQ-diff)a-c shows the difference between experiments in the spatially averaged vertical profile of temperature. By averaging the differences between two experiments we can isolate the systematic impact produced by different observing systems on the analyzed state. During the first day, the assimilation of ASWS observations results in a colder PBL. This cooling effect has a clear diurnal cycle being stronger during nighttime (Figure \@ref(fig:TQ-diff)a). During the second day of the experiment, the impact of ASWS observations extends into the middle and upper troposphere coinciding with the mature stage of the MCS. The warm difference shown in AUT with respect to CONV  in mid and upper levels is produced by the development of stronger convection in this experiment compared to CONV. This is a good example of how low-level information provided by surface weather stations can rapidly spread into the troposphere in the presence of deep moist convection. Figure \@ref(fig:TQ-diff)b, indicates that SATWND observations have an almost negligible impact on the mean temperature through the experiment. This result is unexpected since mid-to-upper level winds can have a profound impact on the organization and evolution of MCSs over the region. 
-During the first day of the experiment, the assimilation of radiances produces a warming effect in the PBL which partially compensates for the cooling effect of ASWS observations. No clear systematic impact is found above the PBL during this period. During the second day, the impact of radiance observations is found through the troposphere with a distribution that is similar to the impact found in the AUT experiment but with the opposite sign. 
+In this section, we present the impact of assimilating different observation types on variables which are particularly relevant for the occurrence of deep moist convection. The analysis is performed over a smaller domain (red box in Figure \@ref(fig:dominio)a) to focus on the region most directly affected by the MCS. Figure \@ref(fig:TQ-diff)a-c shows the difference between experiments in the spatially averaged vertical profile of temperature. By averaging the differences between two experiments we can isolate the systematic impact produced by different observing systems on the analyzed state. During the first day, the assimilation of ASWS observations results in a colder PBL. This cooling effect has a clear diurnal cycle being stronger during nighttime (Figure \@ref(fig:TQ-diff)a). During the second day of the experiment, the impact of ASWS observations extends into the middle and upper troposphere coinciding with the mature stage of the MCS. The warm difference shown in ASWS with respect to CONV  in mid and upper levels is produced by the development of stronger convection in this experiment compared to CONV. This is a good example of how low-level information provided by surface weather stations can rapidly spread into the troposphere in the presence of deep moist convection. Figure \@ref(fig:TQ-diff)b, indicates that SATWND observations have an almost negligible impact on the mean temperature through the experiment. This result is unexpected since mid-to-upper level winds can have a profound impact on the organization and evolution of MCSs over the region. 
+During the first day of the experiment, the assimilation of radiances produces a warming effect in the PBL which partially compensates for the cooling effect of ASWS observations. No clear systematic impact is found above the PBL during this period. During the second day, the impact of radiance observations is found through the troposphere with a distribution that is similar to the impact found in the ASWS experiment but with the opposite sign. 
 
-Comparing the specific humidity in the experiments (Figure \@ref(fig:TQ-diff)d-f) the impact of assimilating ASWS with larger spatial and temporal resolution is most significant at low levels (Figure \@ref(fig:TQ-diff)d). The PBL in the AUT experiment is consistently moister than in the CONV experiment and this is enhanced during the nighttime. The increase in low-level moisture by a denser surface network is consistent with previously reported dry biases in the WRF model over the region [@ruiz2010]. We found that the moistening of the PBL is mainly driven by the covariance between temperature and specific humidity within the PBL. In our experiment and over the center of the domain, this covariance remains negative, increasing low-level moisture as the observations introduce negative temperature corrections. As for the temperature, the systematic impact of satellite-derived winds is small and only important after 18 UTC Nov, 21 at low levels. Figure \@ref(fig:TQ-diff)f shows that radiances reduce low-middle level moisture during the first day of the experiment. The drying effect extends to lower-middle levels during the second day of the experiment coinciding with the development of the MCS between 00 and 12 UTC Nov, 22.
+Comparing the specific humidity in the experiments (Figure \@ref(fig:TQ-diff)d-f) the impact of assimilating ASWS with larger spatial and temporal resolution is most significant at low levels (Figure \@ref(fig:TQ-diff)d). The PBL in the ASWS experiment is consistently moister than in the CONV experiment and this is enhanced during the nighttime. The increase in low-level moisture by a denser surface network is consistent with previously reported dry biases in the WRF model over the region [@ruiz2010]. We found that the moistening of the PBL is mainly driven by the covariance between temperature and specific humidity within the PBL. In our experiment and over the center of the domain, this covariance remains negative, increasing low-level moisture as the observations introduce negative temperature corrections. As for the temperature, the systematic impact of satellite-derived winds is small and only important after 18 UTC Nov, 21 at low levels. Figure \@ref(fig:TQ-diff)f shows that radiances reduce low-middle level moisture during the first day of the experiment. The drying effect extends to lower-middle levels during the second day of the experiment coinciding with the development of the MCS between 00 and 12 UTC Nov, 22.
 
 The impacts on the wind components are shown in Figure \@ref(fig:UV-diff) along with the corresponding averaged wind component in the experiment with the largest number of assimilated observations.  The assimilation of ASWS produces an increase of zonal wind and a decrease of meridional wind at low levels during the first two days of analysis. There is a diurnal cycle in the impact of surface weather stations on the meridional velocity  (Figure  \@ref(fig:UV-diff)d) with a stronger reduction of the northerly wind during night hours. This indicates that surface observations are reducing the intensity of the low level jet present in the pre-convective environment. After 18 UTC Nov, 22 the opposite effect is observed when the MCS is moving through the domain. After the initiation of the convective cells, the systematic impact on the wind field is larger at mid and upper levels. During Nov 22 and 23 the impact of assimilating ASWS produces an increase of northerly wind in upper levels. This could be a consequence of a stronger MCS with an increased polar side upper level outflow. Although satellite-derived wind observations produce the largest impact in mid-to-upper levels where the number of observations is larger, the systematic impact is overall smaller than the one produced by assimilating data from ASWS.
  
 The assimilation of radiances produces a reduction in the westerly wind compared with respect to SATWIND in low and upper levels (Figure  \@ref(fig:UV-diff)c and f). For the meridional wind, these observations produce an enhancement on average of the northerly low-level flow of $1 ms^{-1}$, opposite to what is generated by the assimilation of ASWS observations. On upper levels and during Nov 22 and 23 the average impact of assimilating radiances is a decrease in the wind. When we look at the meridional wind field at 200 hPa at different times, we observe that the outflow from the MCS is even more intense than in the other experiments, while the southerly wind ahead of the MCS also increases producing in average a reduction of the northerly wind present in  Figure \@ref(fig:UV-diff)f. 
 
-To investigate how changes in the PBL can modify the pre-convective environment we compare the horizontal distribution of the low level northerly flow, precipitable water, low level temperature, and CAPE for the analysis at 00 UTC Nov, 22 (after 30 assimilation cycles). At that moment the first convective cells were developing on the southern region of the domain along the cold front. Figure \@ref(fig:summary-fields)a shows the precipitable water (shaded) and the vertically averaged low-level meridional wind component (contours). We found that the moist tongue extending over the northern part of the domain is enhanced by the assimilation of denser surface observations. The moisture increase is particularly stronger at the southern tip of this tongue, just ahead of the cold front where convection initiation was taking place. AUT and SATWND experiments are very similar, with values of precipitable water over 55 $kgm^{-2}$ north of 30$^{\circ}$S and a similar vertical distribution of specific humidity (not shown). RAD has lower precipitable water content than AUT and SATWND but higher than CONV. The distribution of moisture at low levels in RAD seems to be the result of the combination of the moistening effect of assimilating ASWS  -- partially compensated by the assimilation of radiance observations -- and a reduced meridional moisture transport due to the weaker northerly flow over the center of the domain compared to CONV. 
+To investigate how changes in the PBL can modify the pre-convective environment we compare the horizontal distribution of the low level northerly flow, precipitable water, low level temperature, and CAPE for the analysis at 00 UTC Nov, 22 (after 30 assimilation cycles). At that moment the first convective cells were developing on the southern region of the domain along the cold front. Figure \@ref(fig:summary-fields)a shows the precipitable water (shaded) and the vertically averaged low-level meridional wind component (contours). We found that the moist tongue extending over the northern part of the domain is enhanced by the assimilation of denser surface observations. The moisture increase is particularly stronger at the southern tip of this tongue, just ahead of the cold front where convection initiation was taking place. ASWS and SATWND experiments are very similar, with values of precipitable water over 55 $kgm^{-2}$ north of 30$^{\circ}$S and a similar vertical distribution of specific humidity (not shown). RAD has lower precipitable water content than ASWS and SATWND but higher than CONV. The distribution of moisture at low levels in RAD seems to be the result of the combination of the moistening effect of assimilating ASWS  -- partially compensated by the assimilation of radiance observations -- and a reduced meridional moisture transport due to the weaker northerly flow over the center of the domain compared to CONV. 
 
-The potential temperature on the PBL (Figure \@ref(fig:summary-fields)b) resembles the characteristics observed on the temperature profiles in Figure \@ref(fig:TQ-diff)a-c. On average the PBL in AUT and SATWND is colder than in CONV while RAD shows a warmer PBL than AUT due to the assimilation of radiance observations. Figure \@ref(fig:summary-fields)c shows the most unstable convective available potential energy (MCAPE, shaded) and the 0 to 6 $km$ wind shear. The values of MCAPE in CONV do not exceed 2000 $JKg^{-1}$ while the rest of the experiments show maximum MCAPE over 4000 $JKg^{-1}$. MCAPE in the RAD experiment is lower compared to AUT or SATWND. This is consistent with less humidity in the PBL with respect to these experiments and may be partially compensated by a slightly warmer PBL in the RAD experiment. The 0-6 km wind shear is more intense in AUT, SATWND, and RAD reaching values over 15 $ms^{-1}$ at the southern tip of the region with positive MCAPE values. Moreover, in this same region, these experiments show larger MCAPE values than CONV. Note that wind shears over 15 $ms^{-1}$ have been associated with the development of more intense and organized MCSs [@chen2015] and also with conditions favorable for supercells [@markowsky2010]. 
+The potential temperature on the PBL (Figure \@ref(fig:summary-fields)b) resembles the characteristics observed on the temperature profiles in Figure \@ref(fig:TQ-diff)a-c. On average the PBL in ASWS and SATWND is colder than in CONV while RAD shows a warmer PBL than ASWS due to the assimilation of radiance observations. Figure \@ref(fig:summary-fields)c shows the most unstable convective available potential energy (MCAPE, shaded) and the 0 to 6 $km$ wind shear. The values of MCAPE in CONV do not exceed 2000 $JKg^{-1}$ while the rest of the experiments show maximum MCAPE over 4000 $JKg^{-1}$. MCAPE in the RAD experiment is lower compared to ASWS or SATWND. This is consistent with less humidity in the PBL with respect to these experiments and may be partially compensated by a slightly warmer PBL in the RAD experiment. The 0-6 km wind shear is more intense in ASWS, SATWND, and RAD reaching values over 15 $ms^{-1}$ at the southern tip of the region with positive MCAPE values. Moreover, in this same region, these experiments show larger MCAPE values than CONV. Note that wind shears over 15 $ms^{-1}$ have been associated with the development of more intense and organized MCSs [@chen2015] and also with conditions favorable for supercells [@markowsky2010]. 
 
 
-(ref:TQ-diff) Difference between experiments AUT-CONV (a and d), SATWND-AUT (b and e) and RAD-SATWND (c and f) for the spatially averaged vertical profiles of temperature (a, b, and c, in $K$) and specific humidity (d, e, and f in $gkg^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
+(ref:TQ-diff) Difference between experiments ASWS-CONV (a and d), SATWND-ASWS (b and e) and RAD-SATWND (c and f) for the spatially averaged vertical profiles of temperature (a, b, and c, in $K$) and specific humidity (d, e, and f in $gkg^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
 
 ```{r TQ-diff, fig.cap="(ref:TQ-diff)", fig.env="figure*", fig.height=6, fig.align="center",fig.pos="th"}
 files <- list.files(derived_data, recursive = TRUE, full.names = TRUE,
@@ -868,8 +872,8 @@ perfiles %>%
   scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, ncol = 3,
-             labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
-                                              "E6_E5" = "SATWND - AUT",
+             labeller = labeller(variable = c("E5_E2" = "ASWS - CONV",
+                                              "E6_E5" = "SATWND - ASWS",
                                               "E8_E6" = "RAD - SATWND"))) +
   tag_facets(position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
@@ -903,8 +907,8 @@ perfiles %>%
        y = NULL,
        x = NULL) +
   facet_wrap(~variable, ncol = 3,
-             labeller = labeller(variable = c("E5_E2" = "AUT - CONV",
-                                              "E6_E5" = "SATWND - AUT",
+             labeller = labeller(variable = c("E5_E2" = "ASWS - CONV",
+                                              "E6_E5" = "SATWND - ASWS",
                                               "E8_E6" = "RAD - SATWND"))) +
   tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
@@ -917,7 +921,7 @@ perfiles %>%
 
 ```
 
-(ref:UV-diff) Difference between experiments AUT-CONV (a and d), SATWND-AUT (b and e) and RAD-SATWND (c and f) for the spatially averaged vertical profiles of u wind (a, b, and c, in $ms^{-1}$) and v wind (d, e, and f in $ms^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle. In contours the u wind for AUT (a), SATWND (b) and RAD (c) and v wind for AUT (d), SATWND (e) and RAD (f) are shown.
+(ref:UV-diff) Difference between experiments ASWS-CONV (a and d), SATWND-ASWS (b and e) and RAD-SATWND (c and f) for the spatially averaged vertical profiles of u wind (a, b, and c, in $ms^{-1}$) and v wind (d, e, and f in $ms^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle. In contours the u wind for ASWS (a), SATWND (b) and RAD (c) and v wind for ASWS (d), SATWND (e) and RAD (f) are shown.
 
 ```{r UV-diff, fig.cap="(ref:UV-diff)", fig.env="figure*", fig.height=6, fig.align="center", fig.pos="ht"}
 perfiles %>% 
@@ -949,8 +953,8 @@ perfiles %>%
   scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, ncol = 3,
-             labeller = labeller(variable = c("E5_E2" = "**AUT** - CONV",
-                                              "E6_E5" = "**SATWND** - AUT",
+             labeller = labeller(variable = c("E5_E2" = "**ASWS** - CONV",
+                                              "E6_E5" = "**SATWND** - ASWS",
                                               "E8_E6" = "**RAD** - SATWND"))) +
   tag_facets(position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
@@ -993,8 +997,8 @@ perfiles %>%
   scale_y_level(breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   facet_wrap(~variable, ncol = 3,
-             labeller = labeller(variable = c("E5_E2" = "**AUT** - CONV",
-                                              "E6_E5" = "**SATWND** - AUT",
+             labeller = labeller(variable = c("E5_E2" = "**ASWS** - CONV",
+                                              "E6_E5" = "**SATWND** - ASWS",
                                               "E8_E6" = "**RAD** - SATWND"))) +
   tag_facets(tag_pool = c("d", "e", "f"), position = list(x = 0.1, y = 0.96)) +
   theme_minimal(base_size = 8) +
@@ -1008,12 +1012,12 @@ perfiles %>%
 
 ```
 
-(ref:summary-fields) a) Precipitable water (shaded, $kgm^{-2}$) and average northerly wind on the first 7 sigma levels (from the surface and up to approximately 800 hPa, contours, $ms^{-1}$), b) Average potential temperature for the PBL (first 10 sigma levels) and c) Maximum CAPE and ~0-6 km wind shear over 15 and 30 $ms^{-1}$ for each experiment. All fields correspond to 00 UTC Nov, 22. 
+(ref:summary-fields) a) Precipitable water (shaded, $kgm^{-2}$) and average northerly wind on the first 7 sigma levels (from the surface and up to approximately 800 hPa, contours, $ms^{-1}$), b) Average potential temperature for the PBL (first 10 sigma levels) and c) Maximum CAPE and ~0-6 km wind shear over 15 and 30 $ms^{-1}$ for each experiment. All fields correspond to 00 UTC Nov, 22. Grey filled contours corresponde to  topography over 1500 meter over sea level.
 
 
 ```{r summary-fields, fig.cap="(ref:summary-fields)", out.width="100%", fig.height=12, fig.width=10.5, fig.env="figure*"}
 
-files <- Sys.glob(paste0(derived_data, "pw/*"))[c(1, 4, 5, 7)]
+files <- Sys.glob(paste0(derived_data, "pw/pw_ana_E[2,5,6,8]*"))
 
 dates <- c("20181122000000")
 
@@ -1092,7 +1096,7 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
   cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
-             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "ASWS", 
                                          E6 = "SATWND", E8 = "RAD"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -1118,7 +1122,7 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
   cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
-             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "ASWS", 
                                          E6 = "SATWND", E8 = "RAD"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -1151,7 +1155,7 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
   cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
-             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "ASWS", 
                                          E6 = "SATWND", E8 = "RAD"))) +
   theme_minimal() +
   theme(legend.position = "bottom",
@@ -1168,7 +1172,7 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
 
 ## Validation against independent observations
 
-Firstly we analyze the impact of different observation types in terms of the representation of the MCS and its associated precipitation. Figure \@ref(fig:pp-hov) shows the first-guess hourly accumulated precipitation averaged over a longitude range between 67$^{\circ}$W and 54.5$^{\circ}$W as a function of time and latitude in the different experiments, and the estimated precipitation by IMERG. The heaviest precipitation (over 12 $mmh^{-1}$) starts during the afternoon of Nov 22 and continues during Nov 23 after the end of the simulated period. In all the experiments, the accumulated precipitation in the short-range forecasts is underestimated. This is particularly evident on CONV where the convection initiation is significantly delayed and occurs further north with respect to the observed initiation. AUT, SATWND, and RAD better capture the timing and location of convective initiation. On RAD the initiation is delayed when we compare with AUT and SATWND, possibly due to the lower content of precipitable water and MCAPE on the southern tip of the moist tongue. After 18 UTC Nov, 22 RAD shows improvements in the precipitation rate and its distribution compared to the other experiments as a result of the enhanced development of the convection.
+Firstly we analyze the impact of different observation types in terms of the representation of the MCS and its associated precipitation. Figure \@ref(fig:pp-hov) shows the first-guess hourly accumulated precipitation averaged over a longitude range between 67$^{\circ}$W and 54.5$^{\circ}$W as a function of time and latitude in the different experiments, and the estimated precipitation by IMERG. The heaviest precipitation (over 12 $mmh^{-1}$) starts during the afternoon of Nov 22 and continues during Nov 23 after the end of the simulated period. In all the experiments, the accumulated precipitation in the short-range forecasts is underestimated. This is particularly evident on CONV where the convection initiation is significantly delayed and occurs further north with respect to the observed initiation. ASWS, SATWND, and RAD better capture the timing and location of convective initiation. On RAD the initiation is delayed when we compare with ASWS and SATWND, possibly due to the lower content of precipitable water and MCAPE on the southern tip of the moist tongue. After 18 UTC Nov, 22 RAD shows improvements in the precipitation rate and its distribution compared to the other experiments as a result of the enhanced development of the convection.
 
 (ref:pp-hov) Hövmoller of mean hourly accumulated precipitation for each latitude band estimated by IMERG (left) and simulated (right), for the ensemble mean of each experiment, averaged over a longitude range between 67$^{\circ}$W and 54.5$^{\circ}$W. Contours drawn every 0.5 $mmh^{-1}$, starting at 0.5 $mmh^{-1}$.
 
@@ -1232,7 +1236,7 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
                                                 frame.colour = "black")) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
   scale_y_latitude(breaks = seq(-40, -20, 5), labels = NULL) +
-  facet_wrap(~ exp, ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+  facet_wrap(~ exp, ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "ASWS", 
                                                           E6 = "SATWND", E8 = "RAD"))) +
   labs(x = NULL, y = NULL, fill = latex2exp::TeX("Acumulated\nprecipitation ($mmh^{-1}$)")) +
   theme_minimal(base_size = 9) +
@@ -1242,9 +1246,9 @@ readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %
   plot_layout(ncol = 2, widths = c(0.2, 0.8), guides = "collect") & theme(legend.position = 'bottom')
 ```
 
-To quantify the spatial match between the observed precipitation and the short-range forecasted precipitation for the different experiments, we compute the FSS in 6-hours moving windows for different thresholds and spatial scales (Figure \@ref(fig:fss)). All experiments show low values of FSS before and during the initiation of the MCS around 03 UTC Nov, 22, with an improvement during the mature stage of the MCS. The FSS for CONV is the lowest compared to the rest of the experiments and the differences are larger during the mature stage of the MCS. AUT and SATWND show similar FSSs indicating that satellite-derived wind assimilation has little impact on the precipitation for the present case study. The assimilation of radiances led to an overall improvement of the 1-hour forecasted precipitation, particularly for the 25 mm threshold during the period of heaviest precipitation on Nov, 22. The enhancement is also important at the developing stage of the MCS (between 00 and 12 UTC Nov, 22 and also for spatial scales above 500 km, not shown). 
+To quantify the spatial match between the observed precipitation and the short-range forecasted precipitation for the different experiments, we compute the FSS in 6-hours moving windows for different thresholds and spatial scales (Figure \@ref(fig:fss)). All experiments show low values of FSS before and during the initiation of the MCS around 03 UTC Nov, 22, with an improvement during the mature stage of the MCS. The FSS for CONV is the lowest compared to the rest of the experiments and the differences are larger during the mature stage of the MCS. ASWS and SATWND show similar FSSs indicating that satellite-derived wind assimilation has little impact on the precipitation for the present case study. The assimilation of radiances led to an overall improvement of the 1-hour forecasted precipitation, particularly for the 25 mm threshold during the period of heaviest precipitation on Nov, 22. The enhancement is also important at the developing stage of the MCS (between 00 and 12 UTC Nov, 22 and also for spatial scales above 500 km, not shown). 
 
-(ref:fss) FSS calculated over a 6-hours moving window for 1 mm (a and c) and 25 mm (b and d) thresholds, on a 10 km (a and b) and 100 km (c and d) scales, for the CONV (blue line), AUT (ligh blue line), SATWND (orange line) and RAD (red line) experiments.
+(ref:fss) FSS calculated over a 6-hours moving window for 1 mm (a and c) and 25 mm (b and d) thresholds, on a 10 km (a and b) and 100 km (c and d) scales, for the CONV (blue line), ASWS (ligh blue line), SATWND (orange line) and RAD (red line) experiments.
 
 ```{r fss, fig.cap="(ref:fss)", fig.width=3.5, fig.height=3.5, fig.pos="t"}
 files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E[2-8].csv")
@@ -1263,7 +1267,7 @@ fss %>%
   geom_hline(yintercept = 1, color = "darkgray") +
   geom_line(aes(color = exp)) +
   # geom_point(aes(color = exp)) +
-  scale_color_manual(values = colores_exp, labels = c(E2 = "CONV", E5 = "AUT", 
+  scale_color_manual(values = colores_exp, labels = c(E2 = "CONV", E5 = "ASWS", 
                                                       E6 = "SATWND", E8 = "RAD")) +
   scale_date(20181122000000, 20181123000000, "12 hours") +
   coord_cartesian(xlim = c(ymd_hms(20181122000000), ymd_hms(20181123120000))) +
@@ -1281,7 +1285,7 @@ To complement the analysis, Figure \@ref(fig:dbz-mean) shows the maximum reflect
 
 Finally, Figure \@ref(fig:soundings) shows the RMSE and bias calculated by comparing the experiments with radiosonde data from the RELAMPAGO missions, IOP 7 from 15 to 21 UTC Nov, 21 (including 30 radiosondes) and IOP 8 from 14 to 20 UTC Nov 22 (including 22 radiosondes). 
 
-IOP 7 provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. For the temperature, CONV presents a warm bias on the PBL of 1$^{\circ}$C and an RMSE between 1 and 2.5$^{\circ}$C that is slightly reduced by the assimilation of ASWS and radiances. The RMSE for temperature remains between 0.5 and 2$^{\circ}$C throughout the troposphere and lower stratosphere and the impact of additional observations in the AUT, SATWND, and RAD is small above the PBL. The dew point temperature shows a small dry bias in low levels that is corrected on AUT, SATWND, and RAD. On middle levels (below 10 km) the bias is large and positive (8 - 10$^{\circ}$C) for all the experiments, indicating a more moist atmosphere in the analyses than the observed. Overall, the RMSE grows with height, probably because at upper levels moisture contents are lower and small changes in the amount of water vapor can produce relatively large differences in terms of dew point temperatures. The zonal wind has a significant positive bias of approximately 10 $ms^{-1}$ in the upper troposphere which is mainly reduced by assimilating satellite radiances. It is somewhat surprising that no significant effect is observed by assimilating satellite-derived winds. The assimilation of ASWS and radiance observations increases the northerly wind bias and RMSE near the surface.
+IOP 7 provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. For the temperature, CONV presents a warm bias on the PBL of 1$^{\circ}$C and an RMSE between 1 and 2.5$^{\circ}$C that is slightly reduced by the assimilation of ASWS and radiances. The RMSE for temperature remains between 0.5 and 2$^{\circ}$C throughout the troposphere and lower stratosphere and the impact of additional observations in the ASWS, SATWND, and RAD is small above the PBL. The dew point temperature shows a small dry bias in low levels that is corrected on ASWS, SATWND, and RAD. On middle levels (below 10 km) the bias is large and positive (8 - 10$^{\circ}$C) for all the experiments, indicating a more moist atmosphere in the analyses than the observed. Overall, the RMSE grows with height, probably because at upper levels moisture contents are lower and small changes in the amount of water vapor can produce relatively large differences in terms of dew point temperatures. The zonal wind has a significant positive bias of approximately 10 $ms^{-1}$ in the upper troposphere which is mainly reduced by assimilating satellite radiances. It is somewhat surprising that no significant effect is observed by assimilating satellite-derived winds. The assimilation of ASWS and radiance observations increases the northerly wind bias and RMSE near the surface.
 
 (ref:dbz-mean) Maximum reflectivity in the column (COLMAX in $dBZ$), observed (upper row) and 1-hr forecasted ensemble mean maximum reflectivity for CONV (second row) and RAD (third row) at 10 UTC (first column), 13 UTC (second column), 16 UTC (third column), and 19 UTC (fourth column) Nov, 22.
 
@@ -1379,9 +1383,9 @@ rbind(dbz_obs, dbz_ana) %>%
 ```
 
 
-For the IOP 8 (bottom row in Figure \@ref(fig:soundings)), the densely observed area was behind the MCS, but far enough from it to not be directly affected by its mesoscale circulations. This area was also behind the cold front thus affected by low-level cold advection. Below 5 km all experiments show a warm bias which decreases with the assimilation of ASWS and radiances. Between 5 and 12 km, the bias in each experiment is cold and is reduced in AUT, SATWND, and RAD to the assimilation of ASWS. The RMSE for AUT, SATWND, and RAD remains below 2$^{\circ}$C for almost all levels with significant improvement in upper levels where radiance observations have the largest impact. In terms of the dew point temperature, the analyses have a moist bias near the surface that increases with the incorporation of new observations. This moist bias is mostly driven by the assimilation of surface temperature observations and the fact that near the surface there is a negative covariance between temperature and moisture content over this region. The reason why such a covariance structure emerges from the ensemble is not clear and deserves further investigation but it is evident that the corrections introduced by the observations are degrading the estimation of the moisture content within the PBL.  SATWND presents the lowest RMSE overall while AUT and RAD are comparable between 4 and 12 km with values that do not exceed 7$^{\circ}$C. The zonal wind is overestimated on the analyses with a positive bias at middle levels. For this period only RAD shows an improvement with respect to CONV in the upper troposphere. At low levels the meridional wind presents a negative bias, indicating an underestimation of the southerly wind behind the cold front principally in AUT, SATWND, and RAD. In fact, low level biases in these experiments are higher (in module) than in the CONV experiment, indicating a detrimental effect of the additional observations (possibly associated with the effect of ASWS). 
+For the IOP 8 (bottom row in Figure \@ref(fig:soundings)), the densely observed area was behind the MCS, but far enough from it to not be directly affected by its mesoscale circulations. This area was also behind the cold front thus affected by low-level cold advection. Below 5 km all experiments show a warm bias which decreases with the assimilation of ASWS and radiances. Between 5 and 12 km, the bias in each experiment is cold and is reduced in ASWS, SATWND, and RAD to the assimilation of ASWS. The RMSE for ASWS, SATWND, and RAD remains below 2$^{\circ}$C for almost all levels with significant improvement in upper levels where radiance observations have the largest impact. In terms of the dew point temperature, the analyses have a moist bias near the surface that increases with the incorporation of new observations. This moist bias is mostly driven by the assimilation of surface temperature observations and the fact that near the surface there is a negative covariance between temperature and moisture content over this region. The reason why such a covariance structure emerges from the ensemble is not clear and deserves further investigation but it is evident that the corrections introduced by the observations are degrading the estimation of the moisture content within the PBL.  SATWND presents the lowest RMSE overall while ASWS and RAD are comparable between 4 and 12 km with values that do not exceed 7$^{\circ}$C. The zonal wind is overestimated on the analyses with a positive bias at middle levels. For this period only RAD shows an improvement with respect to CONV in the upper troposphere. At low levels the meridional wind presents a negative bias, indicating an underestimation of the southerly wind behind the cold front principally in ASWS, SATWND, and RAD. In fact, low level biases in these experiments are higher (in module) than in the CONV experiment, indicating a detrimental effect of the additional observations (possibly associated with the effect of ASWS). 
 
-(ref:soundings) RMSE (solid line) and Bias (dash line) of a) temperature ($K$), b) dew point temperature ($K$), c) u wind ($ms^{-1}$) and d) v wind ($ms^{-1}$) calculated by comparing each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8. The blue line correspond to CONV, the light blue line to AUT, SATWND is represented with an orange line and RAD with a red line.
+(ref:soundings) RMSE (solid line) and Bias (dash line) of a) temperature ($K$), b) dew point temperature ($K$), c) u wind ($ms^{-1}$) and d) v wind ($ms^{-1}$) calculated by comparing each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8. The blue line correspond to CONV, the light blue line to ASWS, SATWND is represented with an orange line and RAD with a red line.
 
 ```{r soundings, fig.cap="(ref:soundings)", fig.env="figure*", fig.pos="t", fig.align="center"}
 files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/derived_data/sondeos/ANA/sondeo_E[2568]_ana*")
@@ -1415,7 +1419,7 @@ sondeos %>%
   ggplot(aes(lev/1000, value.est)) +
   geom_hline(yintercept = 0, color = "grey30") +
   geom_line(aes(color = exp, linetype = estadistico)) +
-  scale_color_manual(values = c(colores_exp, "black"), labels = c(E2 = "CONV", E5 = "AUT", 
+  scale_color_manual(values = c(colores_exp, "black"), labels = c(E2 = "CONV", E5 = "ASWS", 
                                                                   E6 = "SATWND", E8 = "RAD")) +
   coord_flip() +
   facet_grid(iop~variable, scales = "free_x", 
@@ -1432,7 +1436,7 @@ sondeos %>%
 
 # Conclusions
 
-We performed four experiments to assess the impact of different observation types, including conventional data (CONV), frequent surface observations (AUT), satellite-derived winds (SATWND), and clear-sky satellite radiances (RAD), into a regional frequent-update ensemble-based data assimilation system. We used a case study approach of a massive MCS developed over Southern South America on Nov 22, 2018. 
+We performed four experiments to assess the impact of different observation types, including conventional data (CONV), frequent surface observations (ASWS), satellite-derived winds (SATWND), and clear-sky satellite radiances (RAD), into a regional frequent-update ensemble-based data assimilation system. We used a case study approach of a massive MCS developed over Southern South America on Nov 22, 2018. 
 
 We evaluated the reliability of the ensemble using the RCRV calculated for each type of observation used in RAD. Conventional observations including surface data and upper air observations from soundings and aircraft, show a $sd RCRV$ near 1 indicating a good agreement between the ensemble spread and the observational errors with respect to the distance between the ensemble mean and the observations. For satellite-derived winds and radiance observations, the $sd RCRV$ is lower than 1, which could be the result of an underdispersive ensemble or an overestimation of the observation errors. However, taking into account that the errors of this type of observation are usually overestimated (to avoid strong impacts on the analysis for poor quality estimations) and that the results obtained for more reliable observations (such as soundings) were good, we conclude that the assembly has a reasonable spread. 
 
