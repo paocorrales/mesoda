@@ -9,15 +9,15 @@ library(mesoda)
 # Constante
 #future::plan("cluster", workers = 3)
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
-wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E5"
-run <- "ana_ens"
+wrf_path <- "/home/paola.corrales/datosmunin3/EXP/"
+exp <- "E8"
+run <- "fcst_ens"
 
-ini_date <- ymd_hms("20181120180000")
-ciclos <- 67
+ini_date <- ymd_hms("20181122060000")
+ciclos <- 31
 
 acumulado <- 6
-q <- c(1, 5, 10, 25) #10mm, para arrancar pensando en pp acumulada
+q <- c(1, 5, 10, 25, 50) #10mm, para arrancar pensando en pp acumulada
 w <- c(1, 5, 11, 51, 101) #ancho de cada box en puntos de grilla
 
 # Inicio
@@ -76,8 +76,8 @@ fss_out <- purrr::map_dfr(dates, function(d) {
                         acumulado, "h.rds")
 
     pp_wrf <- readRDS(files_wrf) %>%
-      .[, date := lead_time] %>%
-      .[, exp := exp] %>%
+      # .[, date := lead_time] %>%
+      # .[, exp := exp] %>%
       .[date == d]
 
   } else {

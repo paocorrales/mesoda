@@ -10,16 +10,16 @@ fisica <- data.table(mem = as.character(formatC(1:60, flag = "0", width = 3)),
                                     "BMJ-MYNN2",
                                     "GF-MYNN2"), length.out = 60)) %>% setDT()
 
-files <- Sys.glob(paste0(derived_data, "/interp_obs/2018112200/interp*"))
+files <- Sys.glob(paste0(derived_data, "/interp_obs/2018112206/interp*new.rds"))
 
 obs <- purrr::map(files, function(f) {
   print(f)
   read_rds(f) %>%
     .[, id := 1:.N, by = ens] %>%
-    .[, fcst_exp := "2018112200"] %>%
+    .[, fcst_exp := "2018112206"] %>%
     .[, mem := formatC(ens, flag = "0", width = 3)] %>%
     .[, exp := NULL] %>%
-    melt(measure.vars = c("E4", "E5", "E6", "E7"),
+    melt(measure.vars = c("E2", "E5", "E6", "E8"),
          variable.name = "exp",
          value.name = "fcst") %>%
     .[, ":="(obs = if_else(usage.flag == 1, obs, NA_real_),
@@ -35,13 +35,13 @@ obs <- purrr::map(files, function(f) {
 }) %>%
   rbindlist()
 
-write_rds(obs, paste0(derived_data, "/interp_obs/interp_obs_2018112200_mem.rds"))
+write_rds(obs, paste0(derived_data, "/interp_obs/interp_obs_2018112206_mem_new.rds"))
 
 
 
 # mean --------------------------------------------------------------------
 
-files <- Sys.glob(paste0(derived_data, "/interp_obs/2018112206/interp*"))
+files <- Sys.glob(paste0(derived_data, "/interp_obs/2018112200/interp*"))
 
 obs <- purrr::map(files, function(f) {
   print(f)
@@ -50,7 +50,7 @@ obs <- purrr::map(files, function(f) {
     .[, fcst_exp := "2018112206"] %>%
     .[, mem := formatC(ens, flag = "0", width = 3)] %>%
     .[, exp := NULL] %>%
-    melt(measure.vars = c("E4", "E5", "E6", "E7"),
+    melt(measure.vars = c("E2", "E5", "E6", "E8"),
          variable.name = "exp",
          value.name = "fcst") %>%
     .[, ":="(obs = if_else(usage.flag == 1, obs, NA_real_),
@@ -67,7 +67,7 @@ obs <- purrr::map(files, function(f) {
 }) %>%
   rbindlist()
 
-write_rds(obs, paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean2.rds"))
+write_rds(obs, paste0(derived_data, "/interp_obs/interp_obs_2018112206_mean_new.rds"))
 
 
 

@@ -14,12 +14,12 @@ library(foreach)
 library(doParallel)
 
 
-obs_path <- "/home/paola.corrales/datosmunin/EXP/derived_data/interp_obs/"
-fcst_path <- "/home/paola.corrales/datosmunin/EXP"
+obs_path <- "/home/paola.corrales/datosmunin3/EXP/derived_data/interp_obs/"
+fcst_path <- "/home/paola.corrales/datosmunin3/EXP"
 
-ini_date <- ymd_hms("20181122000000")
+ini_date <- ymd_hms("20181122060000")
 
-lead_time <- 36
+lead_time <- 30
 
 # out <- foreach(l = 0:lead_time),
 # .packages = c("data.table", "metR", "lubridate", "interp", "dplyr"),
@@ -46,7 +46,7 @@ purrr::map_dbl(c(0:lead_time), function(l) {
     .[, id := .N, by = .(mem, lon, lat, var)]
 
   #Leo pronostico para ese tiempo
-  files_fcst <- Sys.glob(paste0(fcst_path, "/E[4-7]/FCST/", format(ini_date, "%Y%m%d%H"),
+  files_fcst <- Sys.glob(paste0(fcst_path, "/E[2,5,6,8]/FCST/", format(ini_date, "%Y%m%d%H"),
                                 "/NPP/NPP_",
                                 format(ini_date, "%Y"), "-",
                                 format(ini_date, "%m"), "-",
@@ -57,7 +57,7 @@ purrr::map_dbl(c(0:lead_time), function(l) {
 
   fcst <- purrr::map(files_fcst, function(f) {
 
-    fcst_exp <- unglue(f, "/home/paola.corrales/datosmunin/EXP/{fcst_exp}/FCST/{info}")
+    fcst_exp <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/{fcst_exp}/FCST/{info}")
     fcst <- ReadNetCDF(f, vars = c("XLONG", "XLAT", p = "PSFC",
                                    t = "T2",q = "Q2", u = "U10", v = "V10")) %>%
       .[, fcst_exp := fcst_exp[[1]][["fcst_exp"]]] %>%
@@ -102,7 +102,7 @@ purrr::map_dbl(c(0:lead_time), function(l) {
     temp <- fcst_interp[obs, on = c("lon", "lat", "var", "ens" = "mem")]
 
     path_out <- paste0(obs_path, format(ini_date, "%Y%m%d%H"),
-                       "/interp_conv_", format(ini_date + hours(l), "%Y%m%d%H%M%S"), ".rds")
+                       "/interp_conv_", format(ini_date + hours(l), "%Y%m%d%H%M%S"), "_new.rds")
     write_rds(temp, path_out)
 
   l

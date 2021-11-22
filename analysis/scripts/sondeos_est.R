@@ -13,7 +13,7 @@ IOP <- tribble(
 ) %>% setDT()
 
 
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E*/FCST/*/sondeos/*")
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E[2,5,6,8]/FCST/*/sondeos/*")
 
 
 estadisticos <- list()
@@ -37,7 +37,8 @@ for (m in seq_len(miembros)) {
     rbindlist() %>%
     .[p >= 50] %>%
     .[, iop := fcase(launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")), "IOP07",
-                     launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08")] %>%
+                     launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")), "IOP08",
+                     default = "No IOP")] %>%
     .[variable %in% c("t", "td", "u", "v") & !str_detect(site, "/") & !is.na(fcst_value) & !is.na(iop)] %>%
     .[site != "Sao Borja, Brazil"] %>%
     .[, lev := cut_round(alt, c(seq(0, 3000, 500), seq(4000, 21000, 1000)))]

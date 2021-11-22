@@ -137,8 +137,8 @@ saveRDS(pp_wrf_mean, paste0(exp, "_fcst_", format(ini_date, "%Y%m%d%H"), "_mean_
 # Acumulados cada 6 horas -----------------------------------------------------
 
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
-wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E7"
+wrf_path <- "/home/paola.corrales/datosmunin3/EXP/"
+exp <- "E8"
 run <- "fcst"
 
 ini_date <- ymd_hms("20181122060000")

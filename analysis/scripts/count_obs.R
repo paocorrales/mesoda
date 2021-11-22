@@ -1,4 +1,4 @@
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E6/ANA/*/diagfiles/asim*ensmean")
+files <- Sys.glob("/home/paola.corrales3/datosmunin/EXP/E6/ANA/*/diagfiles/asim*ensmean")
 
 diag <- read_diag_conv(files, "E6", variable = "uv")
 
@@ -40,7 +40,7 @@ multiespectrales <- c("airs_aqua",
 
 asimilable <- satinfo[iuse == 1, .N, by = sensor]
 
-files <- Sys.glob("/home/paola.corrales/datosmunin/EXP/E8/ANA/*/diagfiles/asim*ensmean")
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E8/ANA/*/diagfiles/asim*ensmean")
 
 files <- files[str_detect(files, "conv", negate = TRUE)]
 
@@ -60,6 +60,21 @@ diag[, tipo := fifelse(sensor %in% multiespectrales, "multiespectral", "no-multi
 
 diag[tipo == "no-multiespectral", unique(sensor)]
 
+
+a <- diag[, tipo := fifelse(sensor %in% multiespectrales, "multiespectral", "no-multiespectral")] %>%
+  satinfo[., on = c("sensor", "channel")] %>%
+  .[errinv %between% c(0.0000316227, 1000) &
+      qc == 0 &
+      iuse == 1 &
+      peakwt %between% c(50, 1200)] %>%
+  asimilable[., on = c("sensor")] %>%
+  separate(sensor, into = c("sensor", "plataforma"), sep = "_") %>%
+  .[, .N, by = .(sensor, plataforma, channel)]
+
+
+
+a %>%
+  .[sensor == "mhs"]
 
 
 # Porcentaje de obs por experimento ---------------------------------------

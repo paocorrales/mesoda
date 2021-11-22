@@ -9,7 +9,7 @@ dominio <- fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>
   .[, c("x", "y") := wrf_project(lon, lat)]
 
 
-oficiales <- fread("/home/paola.corrales/E2_asim_conv_20181121120000.ensmean",
+oficiales <- fread("/home/paola.corrales/datosmunin3/EXP/E2/ANA/20181121120000/diagfiles/asim_conv_20181121120000.ensmean",
                    na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00", "0.100E+12")) %>%
   .[, c("V2", "V4") := NULL] %>%
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "alt", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>%
@@ -17,7 +17,7 @@ oficiales <- fread("/home/paola.corrales/E2_asim_conv_20181121120000.ensmean",
   .[!str_detect(stationID, pattern = "[A-Z]")] %>%
   .[, source := "Sfc - Official"]
 
-no_oficiales <- fread("/home/paola.corrales/E5_asim_conv_20181121120000.ensmean",
+no_oficiales <- fread("/home/paola.corrales/datosmunin3/EXP/E5/ANA/20181121120000/diagfiles/asim_conv_20181121120000.ensmean",
                       na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00", "0.100E+12")) %>%
   .[, c("V2", "V4") := NULL] %>%
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "alt", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>%
