@@ -1,0 +1,518 @@
+---
+title: "Assimilating GOES-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(here)
+library(patchwork)
+library(unglue)
+library(knitr)
+library(kableExtra)
+source(here::here("temp_R", "goes_functions.R"))
+
+map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+
+geom_mapa <- function() {
+  list(geom_sf(data = map, fill = NA, color = "black", size = 0.2, inherit.aes = FALSE),
+       coord_sf(xlim = c(-76, -52), ylim = c(-41, -20)))
+}
+
+#dominio de interés
+xlim <- c(2600, 3950)
+ylim <- c(3700, 4750)
+```
+
+## Cloud mask 
+
+```{r}
+nc <- ncdf4::nc_open('~/datosmunin3/DATA/GOES16/ABI-L2-ACMF/OR_ABI-L2-ACMF-M3_G16_s20183250000341_e20183250011108_c20183250011312.nc')
+
+cld_msk <- ReadNetCDF('~/datosmunin3/DATA/GOES16/ABI-L2-ACMF/OR_ABI-L2-ACMF-M3_G16_s20183250000341_e20183250011108_c20183250011312.nc', 
+                      vars = 'BCM', 
+                      subset = list(x = xlim,
+                                    y = ylim)) %>% 
+  .[, c("lon", "lat") := goes_projection(x, y, nc)]
+
+cld_msk %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = BCM == 0)) +
+  scale_color_manual(values = c("darkgrey", "white"), guide = NULL) +
+  geom_mapa() +
+  labs(x = NULL, y = NULL,
+       title = "Cloud Mask", subtitle = "Time: 2018-11-21 00 UTC")
+
+
+```
+
+## Channel 8
+
+```{r}
+f <- '~/datosmunin3/DATA/GOES16/ABI-L1b-RadF/2018/325/00/OR_ABI-L1b-RadF-M3C08_G16_s20183250000341_e20183250011108_c20183250011152.nc'
+
+nc <- ncdf4::nc_open(f)
+
+ch_8 <- ReadNetCDF(f, vars = c(rad = "Rad", 
+                               qf = "DQF", 
+                               sd = "std_dev_radiance_value_of_valid_pixels", 
+                               pixel = "valid_pixel_count"), 
+                   subset = list(x = xlim, y = ylim)) %>% 
+  .[, rad := calculate_rad(rad, nc)] %>% 
+  .[, tb := rad_to_tb(rad, nc)] %>% 
+  .[, c("lon", "lat") := goes_projection(x, y, nc)]
+
+
+
+ch_8 %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = tb)) +
+  scale_color_topes() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL)
+
+
+ch_8 %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = tb)) +
+  scale_color_topes() +
+  geom_point(data = cld_msk[BCM == 1], color = "darkgrey", size = 0.9) +
+  geom_mapa() +
+  labs(x = NULL, y = NULL)
+
+
+
+
+
+
+```
+
+## Channel 10
+
+```{r}
+
+files <- Sys.glob("~/datosmunin3/DATA/GOES16/ABI-L1b-RadF/2018/324/*/OR_ABI-L1b-RadF-M3C10_G16*")
+
+
+ch10 <- map(files, function(f){
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/DATA/GOES16/ABI-L1b-RadF/2018/{day}/{hour}/OR_ABI-L1b-RadF-M3C10_G16_{file}.nc")
+  
+  d <- chron::month.day.year(324, c(month = 1, day = 1, year = 2018))
+  
+  nc <- ncdf4::nc_open(f)
+  
+  ReadNetCDF(f, vars = c(rad = "Rad", 
+                         qf = "DQF", 
+                         sd = "std_dev_radiance_value_of_valid_pixels"), 
+             subset = list(x = xlim, y = ylim)) %>% 
+    .[, time := make_datetime(d$year, d$month, d$day, meta[[1]][["hour"]])] %>% 
+    .[, rad := calculate_rad(rad, nc)] %>% 
+    .[, tb := rad_to_tb(rad, nc)] %>% 
+    .[, c("lon", "lat") := goes_projection(x, y, nc)]
+  
+}) %>% 
+  rbindlist()
+
+
+```
+## Standar deviation
+
+```{r}
+
+ch10 %>%  
+  # data.table::copy() %>% 
+  .[, tb_std := with_matrix(tb ~ x | y, fun = rolling_2d_sd), 
+    by = .(time)] 
+  
+  
+a %>%   
+  .[tb_std >= 0.5] %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = tb_std)) +
+  scale_color_viridis_c() +
+  geom_mapa()
+
+fechas <- unique(ch10$time)
+
+for(d in fechas) {
+  
+  ch10 %>%   
+  .[tb_std >= 0.5 & time == d] %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = tb_std), size = 0.5) +
+  scale_color_viridis_c() +
+  geom_mapa() +
+  labs(title = "SDTB >= 0.5",
+       subtitle = paste0("Time: ", as_datetime(d)))
+  
+  ggsave(paste0("std_",d,".png"))
+  
+  
+}
+
+
+# xlim <- c(2600, 3950)
+# ylim <- c(3700, 4750)
+# 
+# tb_array <- matrix(a$tb, 
+#                    nrow = 4750-3700+1, 
+#                    ncol = 3950-2600+1,
+#                    byrow = TRUE)
+# 
+# filled.contour(tb_array)
+# 
+# sd_array <- raster::focal(as(tb_array, "RasterLayer"),
+#               w = matrix(1/9, ncol = 3, nrow = 3),
+#               fun = sd,
+#               na.rm = TRUE)
+# 
+# filled.contour(as(sd_array, "matrix"))
+
+
+
+```
+
+
+
+## Configuration
+
+* 11/21 - 00 UTC
+* Only 10 members (small test)
+* Only assimilates ch 8 (upper level water vapor)
+* Thinning 60 km
+
+```{r}
+diag <- fread("~/datosmunin3/EXP/prueba_abi/diag/diag_abi_g16_ges.ensmean.csv") %>% 
+  .[, ":="(V5 = ConvertLongitude(V5),
+           V2 = V2+6)]
+
+colnames(diag) <- c("sensor", "channel", "freq", "lat", "lon", "peak", "press", "dhr", "tb_obs", "tbc", "tbcnob", "errinv", "qc", "usage", "emis", "tlapchn", "rzen", "razi", "rlnd", "rice", "rsnw", "rcld", "rcldp", paste0("pred", seq(12)))
+```
+
+### Observations minus background
+
+```{r}
+diag %>% 
+  .[channel %in% c(8:10)] %>% 
+  ggplot(aes(lon, lat)) +
+  # geom_contour_fill(aes(z = tbc, fill = ..level..)) +
+  geom_point(aes(color = tbc), size = 1) +
+  scale_colour_divergent() +
+  geom_mapa() +
+  facet_wrap(~channel) +
+  labs(x =  NULL, y = NULL, color = "O-B [TB]") +
+  theme_minimal()
+
+
+```
+### Quality Control flags
+
+* 2 = crtm issues
+* 3 = gross check failed
+* 5 = surface issues
+* 7 = cloud contamination
+* 50 = standar deviation to big
+* 53 = issues with emissivity from surface
+
+```{r}
+diag %>% 
+    .[channel %in% c(8:10)] %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = factor(qc)), size = 0.9) +
+  geom_mapa() +
+  facet_wrap(~channel) +
+  labs(x =  NULL, y = NULL, color = "QC") +
+  theme_minimal()
+```
+
+## Assimilable observations 
+
+qc == 0, error !=0 and I shoud check the peakwt variable for outliers. 
+
+```{r}
+diag %>% 
+  .[channel %in% c(8:10) &
+      errinv != 0 & qc == 0] %>% 
+  ggplot(aes(lon, lat)) +
+  geom_point(aes(color = errinv)) +
+  geom_mapa() +
+  facet_wrap(~channel) +
+  labs(x =  NULL, y = NULL, color = "Error") +
+  theme_minimal()
+```
+
+```{r}
+diag %>% 
+   .[channel %in% c(8:10) &
+      errinv != 0 & qc == 0] %>% 
+  ggplot(aes(lon, lat)) +
+  # geom_contour_fill(aes(z = tbc, fill = ..level..)) +
+  geom_point(aes(color = tbc), size = 1) +
+  scale_colour_divergent() +
+  geom_mapa() +
+  facet_wrap(~channel) +
+  labs(x =  NULL, y = NULL, color = "O-B [TB]") +
+  theme_minimal()
+
+
+```
+
+usage flag = 4 on satinfo for the 3 channels. This means: assimilate without bias correction.
+
+```{r}
+diag %>% 
+  .[channel %in% c(8:10)] %>% 
+  melt(measure.vars = c("tbc", "tbcnob")) %>% 
+  # .[variable == "tbcnob"] %>% 
+  ggplot(aes(value)) + 
+  geom_density(aes(color = variable)) +
+  scale_color_discrete(labels = c("BC", "no BC")) +
+  facet_wrap(~channel) +
+  labs(x = "diff O-B", color = NULL) +
+  theme_minimal()
+```
+
+
+
+
+## Quality control analysis
+
+```{r}
+files <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*00/diagfiles/asim_abi_g16_*.ensmean")
+
+
+diag <- map(files, function(f) {
+ 
+  # meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/20181121000000/diagfiles/asim_abi_g16_20181121000000.ensmean")
+   
+  read_diag_rad(f, "EG1") %>% 
+    # .[, run := meta[[1]][["exp"]]] %>% 
+    .[, channel := channel + 6]
+  
+}) %>% 
+  rbindlist()
+
+```
+
+
+* **Gross check:** if tbc > errf reject obs. errf = min(3*errf, ermax_rad)
+
+
+* **Standar Deviation:** toss data from channel 10 and surface channels if standar deviations for channel 10 is >= 0.5. The std dev for each pixel is calculated from the bt 3x3 pixel area. For detection of cloud border? what about areas where the surface have a impact?
+
+* **Surface checks:** toss data depending on the channel and surface type. 
+
+```{r}
+
+diag %>% 
+  .[channel %in% c(8:10)] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  ggplot(aes(factor(channel))) +
+  geom_bar(aes(fill = factor(qc))) +
+  scale_fill_manual(values = c("darkorange","grey40", "grey60", "grey80"),
+                    labels = c("0" = "pass qc", 
+                               "3" = "gross check",
+                               "5" = "surface check",
+                               "50" = "std dev")) +
+  facet_wrap(~date, ncol = 7) +
+  labs(fill = NULL, x = "Channel") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+Looks like there are less observations rejected due to the standar deviation threshold on the last cycles. 00 UTC is 21 PM in Argentina, so it may be asociated to a diurnal cycle?
+
+```{r}
+diag %>% 
+    .[channel %in% c(10)] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_point(aes(color = factor(qc)), size = 0.9) +
+  geom_mapa() +
+  scale_color_manual(values = c("grey50", "grey70", "grey80", "cyan4"),
+                    labels = c("0" = "pass qc", 
+                               "3" = "gross check",
+                               "5" = "surface check",
+                               "50" = "std dev")) +
+  guides(color = guide_legend(override.aes = list(size = 2))) +
+  facet_wrap(~date, ncol = 4) +
+  labs(subtitle = "Channel 10", x =  NULL, y = NULL, color = "QC") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+Only a few observations are rejected at each cycle. These observations are located over The Andes (surface type = snow)
+
+```{r}
+diag[channel %in% c(8:10) & qc == 5] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_point(aes(color = factor(rsnw)), size = 0.9) +
+  geom_mapa() +
+  guides(color = guide_legend(override.aes = list(size = 2))) +
+  facet_grid(channel~date) +
+  labs(subtitle = "QC = 5 (surface type)", 
+       x =  NULL, y = NULL,
+       color = "snow?") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+
+```{r}
+diag[channel %in% c(8:10) & qc == 3] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  .[, gross := min(3*errinv, 2)] %>% 
+  ggplot(aes(tbc)) +
+  geom_histogram() +
+  # geom_point(aes(color = tbc), size = 0.9) +
+  # scale_color_divergent() +
+  # geom_mapa() +
+  facet_grid(channel~date) +
+  labs(x = "O-B", subtitle = "QC = 3 (Gross check)") +
+  theme_minimal()
+```
+
+
+
+## Analysis minus guess
+
+```{r}
+
+files_ana <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/20181121000000_*/analysis.mem001")
+
+ana <- map(files_ana, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/20181121000000_{exp}/analysis.mem001")
+  
+  ReadNetCDF("~/datosmunin3/EXP/prueba_abi/ANA/20181120180000/analysis.mem001", 
+                  vars = c(T_ana = "T", lon = "XLONG", lat = "XLAT")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[, run := meta[[1]][["exp"]]]
+  
+}) %>% 
+  rbindlist()
+
+
+
+gue <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/GUESS/20181121000000/wrfarw.mem001", 
+                  vars = c(T_guess = "T", lon = "XLONG", lat = "XLAT")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] 
+
+ana[gue, on = .NATURAL] %>% 
+  .[, ":="(level = fcase(bottom_top <= 10, "PBL",
+                         bottom_top %between% c(11, 15), "low",
+                         bottom_top %between% c(16, 20), "middle",
+                         bottom_top %between% c(21, 26), "upper",
+                         bottom_top %between% c(27, 36), "the rest"))] %>% 
+    .[, a_g := T_ana - T_guess] %>%
+  .[level %in% c("low", "middle", "upper") & run %in% c("all", "ch08")] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = "A-B") +
+  facet_grid(run~level) +
+  theme_minimal()
+
+
+ana[gue, on = .NATURAL] %>% 
+  .[, ":="(level = fcase(bottom_top <= 10, "PBL",
+                         bottom_top %between% c(11, 15), "low",
+                         bottom_top %between% c(16, 20), "middle",
+                         bottom_top %between% c(21, 26), "upper",
+                         bottom_top %between% c(27, 36), "the rest"))] %>% 
+    .[, a_g := T_ana - T_guess] %>%
+  .[bottom_top == 1] %>% 
+  dcast(x + y ~ run, value.var = "a_g") %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = all - noabi, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() 
+
+```
+
+
+```{r}
+ana <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/ANA/20181120180000/analysis.mem001", 
+                  vars = c(T_ana = "QVAPOR", lon = "XLONG", lat = "XLAT")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] 
+gue <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/ANA/analysis.mem001",
+# gue <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/GUESS/20181120180000/wrfarw.mem001", 
+                  vars = c(T_guess = "QVAPOR", lon = "XLONG", lat = "XLAT")) %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] 
+
+ana[gue, on = .NATURAL] %>% 
+  .[, a_g := T_ana - T_guess] %>%
+  .[bottom_top %in% c(2:7)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  facet_wrap(~bottom_top) +
+  theme_minimal()
+
+```
+```{r}
+ana[gue, on = .NATURAL] %>% 
+  .[, a_g := T_ana - T_guess] %>%
+  .[bottom_top %in% c(10:19)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  facet_wrap(~bottom_top) +
+  theme_minimal()
+```
+```{r}
+ana[gue, on = .NATURAL] %>% 
+  .[, ":="(level = fcase(bottom_top <= 10, "PBL",
+                         bottom_top %between% c(11, 15), "low",
+                         bottom_top %between% c(16, 20), "middle",
+                         bottom_top %between% c(21, 26), "upper",
+                         bottom_top %between% c(27, 36), "the rest"))] %>% 
+    .[, a_g := T_ana - T_guess] %>%
+  .[level %in% c("low", "middle", "upper")] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = "A-B") +
+  facet_wrap(~level) +
+  theme_minimal()
+
+ana[gue, on = .NATURAL] %>% 
+  .[, ":="(level = fcase(bottom_top <= 10, "PBL",
+                         bottom_top %between% c(11, 15), "low",
+                         bottom_top %between% c(16, 20), "middle",
+                         bottom_top %between% c(21, 26), "upper",
+                         bottom_top %between% c(27, 36), "the rest"))] %>% 
+    .[, a_g := T_ana - T_guess] %>%
+  .[bottom_top %in% c(13, 18, 25)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = "A-B") +
+  facet_wrap(~bottom_top) +
+  theme_minimal()
+
+```
+
+```{r}
+ana[gue, on = .NATURAL] %>% 
+  .[, a_g := T_ana - T_guess] %>%
+   .[bottom_top > 10 & lon %between% c(-55, -50)] %>% 
+  .[, .(mean_lat = mean(a_g)), by = .(lat, bottom_top)] %>% 
+  ggplot(aes(lat, bottom_top)) +
+  geom_contour_fill(aes(z = mean_lat, fill = stat(level))) +
+  scale_fill_divergent_discretised()
+```
