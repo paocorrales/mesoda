@@ -45,29 +45,29 @@ with_matrix <- function(formula, data = NULL, fun, fill = NULL) {
   c(g$matrix)[order(id)]
 }
 
-
+#
 library(ggplot2)
-library(terra)
-#> terra version 1.4.11
+# library(terra)
+# #> terra version 1.4.11
 library(raster)
-#> Loading required package: sp
-# Hace desvio estándard en una ventana movil de 3x3
+# #> Loading required package: sp
+# # Hace desvio estándard en una ventana movil de 3x3
 rolling_2d_sd <- function(m) {
   as(m, "RasterLayer") %>%
     raster::focal(w = matrix(1/9, ncol = 3, nrow = 3), fun = sd) %>%
     as("matrix")
 
 }
-
-library(metR)
-
-
-
-
-
-temperature[lev == 200] |>
-  data.table::copy() |>
-  D(, air_std := with_matrix(air ~ lon | lat, fun = rolling_2d_sd)) |>
-  ggplot(aes(lon, lat)) +
-  geom_contour_fill(aes(z = air_std)) +
-  geom_contour2(aes(z = air))
+#
+# library(metR)
+#
+#
+#
+#
+#
+# temperature[lev == 200] |>
+#   data.table::copy() |>
+#   D(, air_std := with_matrix(air ~ lon | lat, fun = rolling_2d_sd)) |>
+#   ggplot(aes(lon, lat)) +
+#   geom_contour_fill(aes(z = air_std)) +
+#   geom_contour2(aes(z = air))

@@ -125,14 +125,16 @@ ch10 <- map(files, function(f){
 ```
 ## Standar deviation
 
-```{r}
+```{r eval=FALSE, include=FALSE}
+
+source("~/mesoda/analysis/scripts/ejemplo_focus.R")
 
 ch10 %>%  
   # data.table::copy() %>% 
   .[, tb_std := with_matrix(tb ~ x | y, fun = rolling_2d_sd), 
     by = .(time)] 
-  
-  
+
+
 a %>%   
   .[tb_std >= 0.5] %>% 
   ggplot(aes(lon, lat)) +
@@ -145,13 +147,13 @@ fechas <- unique(ch10$time)
 for(d in fechas) {
   
   ch10 %>%   
-  .[tb_std >= 0.5 & time == d] %>% 
-  ggplot(aes(lon, lat)) +
-  geom_point(aes(color = tb_std), size = 0.5) +
-  scale_color_viridis_c() +
-  geom_mapa() +
-  labs(title = "SDTB >= 0.5",
-       subtitle = paste0("Time: ", as_datetime(d)))
+    .[tb_std >= 0.5 & time == d] %>% 
+    ggplot(aes(lon, lat)) +
+    geom_point(aes(color = tb_std), size = 0.5) +
+    scale_color_viridis_c() +
+    geom_mapa() +
+    labs(title = "SDTB >= 0.5",
+         subtitle = paste0("Time: ", as_datetime(d)))
   
   ggsave(paste0("std_",d,".png"))
   
@@ -224,7 +226,7 @@ diag %>%
 
 ```{r}
 diag %>% 
-    .[channel %in% c(8:10)] %>% 
+  .[channel %in% c(8:10)] %>% 
   ggplot(aes(lon, lat)) +
   geom_point(aes(color = factor(qc)), size = 0.9) +
   geom_mapa() +
@@ -251,7 +253,7 @@ diag %>%
 
 ```{r}
 diag %>% 
-   .[channel %in% c(8:10) &
+  .[channel %in% c(8:10) &
       errinv != 0 & qc == 0] %>% 
   ggplot(aes(lon, lat)) +
   # geom_contour_fill(aes(z = tbc, fill = ..level..)) +
@@ -290,9 +292,9 @@ files <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*00/diagfiles/asim_abi_g16_*
 
 
 diag <- map(files, function(f) {
- 
+  
   # meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/20181121000000/diagfiles/asim_abi_g16_20181121000000.ensmean")
-   
+  
   read_diag_rad(f, "EG1") %>% 
     # .[, run := meta[[1]][["exp"]]] %>% 
     .[, channel := channel + 6]
@@ -329,20 +331,40 @@ diag %>%
 
 ```
 
+
+```{r}
+diag %>% 
+  .[channel %in% c(8:10)] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_point(aes(color = factor(qc)), size = 0.9) +
+  geom_mapa() +
+  scale_color_manual(values = c("darkorange","grey40", "grey60", "grey80"),
+                     labels = c("0" = "pass qc", 
+                                "3" = "gross check",
+                                "5" = "surface check",
+                                "50" = "std dev")) +
+  guides(color = guide_legend(override.aes = list(size = 2))) +
+  facet_grid(channel~date) +
+  labs(subtitle = "Assimilated obs", x =  NULL, y = NULL, color = "QC") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
 Looks like there are less observations rejected due to the standar deviation threshold on the last cycles. 00 UTC is 21 PM in Argentina, so it may be asociated to a diurnal cycle?
 
 ```{r}
 diag %>% 
-    .[channel %in% c(10)] %>% 
+  .[channel %in% c(10)] %>% 
   .[, date := format(date, "%m/%d %H UTC")] %>%
   ggplot(aes(ConvertLongitude(lon), lat)) +
   geom_point(aes(color = factor(qc)), size = 0.9) +
   geom_mapa() +
   scale_color_manual(values = c("grey50", "grey70", "grey80", "cyan4"),
-                    labels = c("0" = "pass qc", 
-                               "3" = "gross check",
-                               "5" = "surface check",
-                               "50" = "std dev")) +
+                     labels = c("0" = "pass qc", 
+                                "3" = "gross check",
+                                "5" = "surface check",
+                                "50" = "std dev")) +
   guides(color = guide_legend(override.aes = list(size = 2))) +
   facet_wrap(~date, ncol = 4) +
   labs(subtitle = "Channel 10", x =  NULL, y = NULL, color = "QC") +
@@ -386,67 +408,169 @@ diag[channel %in% c(8:10) & qc == 3] %>%
 ## Analysis minus guess
 
 ```{r}
+files_ana <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*00/analysis.mem001")
 
-files_ana <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/20181121000000_*/analysis.mem001")
+coord <- ReadNetCDF(files_ana[1], vars = c(lon = "XLONG", lat = "XLAT"), subset = list(bottom_top = 1))
+
+
+levs <- c(200, 300, 400, 500, 600, 700, 800, 900, 1000)
 
 ana <- map(files_ana, function(f) {
   
-  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/20181121000000_{exp}/analysis.mem001")
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/{date}/analysis.mem001")
   
-  ReadNetCDF("~/datosmunin3/EXP/prueba_abi/ANA/20181120180000/analysis.mem001", 
-                  vars = c(T_ana = "T", lon = "XLONG", lat = "XLAT")) %>% 
-  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
-    .[, run := meta[[1]][["exp"]]]
+  ReadNetCDF(f, vars = c(t_ana = "T", p = "P", "PB", q_ana = "QVAPOR",
+                         lon = "XLONG", lat = "XLAT")) %>% 
+    .[, ":="(t_ana = tk(t_ana, p + PB, T_BASE = 290) - 273.15,
+             p = p + PB,
+             PB = NULL)] %>% 
+    .[, date := ymd_hms(meta[[1]][["date"]])] %>% 
+    .[, .(lev = levs,
+          t_ana = approx(p, t_ana, xout = levs*100)$y,
+          q_ana = approx(p, q_ana, xout = levs*100)$y),
+      by = .(date, south_north, west_east)] %>%
+    coord[., on = .NATURAL] %>% 
+    .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[]
   
 }) %>% 
   rbindlist()
 
+files_gue <- Sys.glob("~/datosmunin3/EXP/prueba_abi/GUESS/*00/wrfarw.mem001")
 
-
-gue <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/GUESS/20181121000000/wrfarw.mem001", 
-                  vars = c(T_guess = "T", lon = "XLONG", lat = "XLAT")) %>% 
-  .[, c("x", "y") := wrf_project(lon, lat)] 
-
-ana[gue, on = .NATURAL] %>% 
-  .[, ":="(level = fcase(bottom_top <= 10, "PBL",
-                         bottom_top %between% c(11, 15), "low",
-                         bottom_top %between% c(16, 20), "middle",
-                         bottom_top %between% c(21, 26), "upper",
-                         bottom_top %between% c(27, 36), "the rest"))] %>% 
-    .[, a_g := T_ana - T_guess] %>%
-  .[level %in% c("low", "middle", "upper") & run %in% c("all", "ch08")] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
-  scale_fill_divergent_discretised() +
-  geom_mapa() +
-  labs(x = NULL, y = NULL, fill = "A-B") +
-  facet_grid(run~level) +
-  theme_minimal()
-
-
-ana[gue, on = .NATURAL] %>% 
-  .[, ":="(level = fcase(bottom_top <= 10, "PBL",
-                         bottom_top %between% c(11, 15), "low",
-                         bottom_top %between% c(16, 20), "middle",
-                         bottom_top %between% c(21, 26), "upper",
-                         bottom_top %between% c(27, 36), "the rest"))] %>% 
-    .[, a_g := T_ana - T_guess] %>%
-  .[bottom_top == 1] %>% 
-  dcast(x + y ~ run, value.var = "a_g") %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = all - noabi, fill = ..level..), proj = norargentina_lambert) +
-  scale_fill_divergent_discretised() +
-  geom_mapa() 
+gue <- map(files_gue, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/GUESS/{date}/wrfarw.mem001")
+  
+  ReadNetCDF(f, vars = c(t_gue = "T", p = "P", "PB", q_gue = "QVAPOR",
+                         lon = "XLONG", lat = "XLAT")) %>% 
+    .[, ":="(t_gue = tk(t_gue, p + PB, T_BASE = 290) - 273.15,
+             p = p + PB,
+             PB = NULL)] %>% 
+    .[, date := ymd_hms(meta[[1]][["date"]])] %>% 
+    .[, .(lev = levs,
+          t_gue = approx(p, t_gue, xout = levs*100)$y,
+          q_gue = approx(p, q_gue, xout = levs*100)$y),
+      by = .(date, south_north, west_east)] %>%
+    coord[., on = .NATURAL] %>% 
+    .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[]
+  
+}) %>% 
+  rbindlist()
 
 ```
 
 
 ```{r}
+dates <- unique(ana$date)
+
+for (i in 1:length(dates)) {
+
+  ana[gue, on = .NATURAL] %>% 
+  .[date == dates[i]] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  .[, a_g := t_ana - t_gue] %>%
+  .[lev %in% c(300, 500, 700)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised(trans = mesoda::symlog_trans()) +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = "A-B",
+       title = "Temperature",
+       subtitle = as.character(dates[i])) +
+  facet_grid(date~lev) +
+  theme_minimal()
+  
+  ggsave(paste0("t_ab_", format(dates[i], "%Y-%m-%d_%H"), ".png"), height = 3)
+
+
+  ana[gue, on = .NATURAL] %>% 
+  .[date == dates[i]] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  .[, a_g := q_ana - q_gue] %>%
+  .[lev %in% c(300, 500, 700)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g*1000, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised(trans = mesoda::symlog_trans()) +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = "A-B",
+       title = "Humidity",
+       subtitle = as.character(dates[i])) +
+  facet_grid(date~lev) +
+  theme_minimal()
+  
+  ggsave(paste0("q_ab_", format(dates[i], "%Y-%m-%d_%H"), ".png"), height = 3)
+  
+}
+```
+
+```{r}
+
+for (i in 1:length(levs)) {
+
+  ana[gue, on = .NATURAL] %>% 
+  .[lev == levs[i]] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  .[, a_g := t_ana - t_gue] %>%
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = "A-B",
+       title = "Temperature",
+       subtitle = paste(as.character(levs[i]), "hPa")) +
+  facet_wrap(~date, ncol = 4) +
+  theme_minimal()
+  
+  ggsave(paste0("t_ab_", levs[i], ".png"), height = 4)
+
+
+  ana[gue, on = .NATURAL] %>% 
+  .[lev == levs[i]] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  .[, a_g := q_ana - q_gue] %>%
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = a_g*1000, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = "A-B",
+       title = "Humidity",
+       subtitle = paste(as.character(levs[i]), "hPa")) +
+   facet_wrap(~date, ncol = 4) +
+  theme_minimal()
+  
+  
+  ggsave(paste0("q_ab_", levs[i], ".png"), height = 4)
+  
+}
+
+```
+```{r}
+files <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*00/diagfiles/asim_conv*.ensmean")
+
+read_diag_conv(files, "EG1") %>% 
+  .[type %in% c(120)] %>% 
+  unique(., by = c("stationID", "lat", "lon", "date")) %>% 
+  .[] %>% 
+  ggplot(aes(ConvertLongitude(lon), lat)) + 
+  geom_point() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, 
+       title = "Soundings",
+       subtitle = "2018-11-21 00 UTC")
+
+```
+
+
+
+
+```{r eval=FALSE, include=FALSE}
 ana <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/ANA/20181120180000/analysis.mem001", 
                   vars = c(T_ana = "QVAPOR", lon = "XLONG", lat = "XLAT")) %>% 
   .[, c("x", "y") := wrf_project(lon, lat)] 
-gue <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/ANA/analysis.mem001",
-# gue <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/GUESS/20181120180000/wrfarw.mem001", 
+
+gue <- ReadNetCDF("~/datosmunin3/EXP/prueba_abi/GUESS/20181120180000/wrfarw.mem001",
                   vars = c(T_guess = "QVAPOR", lon = "XLONG", lat = "XLAT")) %>% 
   .[, c("x", "y") := wrf_project(lon, lat)] 
 
@@ -455,13 +579,16 @@ ana[gue, on = .NATURAL] %>%
   .[bottom_top %in% c(2:7)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
-  scale_fill_divergent_discretised() +
+  # scale_fill_divergent_discretised() +
   geom_mapa() +
   facet_wrap(~bottom_top) +
   theme_minimal()
 
 ```
-```{r}
+
+
+
+```{r eval=FALSE, include=FALSE}
 ana[gue, on = .NATURAL] %>% 
   .[, a_g := T_ana - T_guess] %>%
   .[bottom_top %in% c(10:19)] %>% 
@@ -472,14 +599,14 @@ ana[gue, on = .NATURAL] %>%
   facet_wrap(~bottom_top) +
   theme_minimal()
 ```
-```{r}
+```{r eval=FALSE, include=FALSE}
 ana[gue, on = .NATURAL] %>% 
   .[, ":="(level = fcase(bottom_top <= 10, "PBL",
                          bottom_top %between% c(11, 15), "low",
                          bottom_top %between% c(16, 20), "middle",
                          bottom_top %between% c(21, 26), "upper",
                          bottom_top %between% c(27, 36), "the rest"))] %>% 
-    .[, a_g := T_ana - T_guess] %>%
+  .[, a_g := T_ana - T_guess] %>%
   .[level %in% c("low", "middle", "upper")] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
@@ -495,7 +622,7 @@ ana[gue, on = .NATURAL] %>%
                          bottom_top %between% c(16, 20), "middle",
                          bottom_top %between% c(21, 26), "upper",
                          bottom_top %between% c(27, 36), "the rest"))] %>% 
-    .[, a_g := T_ana - T_guess] %>%
+  .[, a_g := T_ana - T_guess] %>%
   .[bottom_top %in% c(13, 18, 25)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
@@ -507,10 +634,10 @@ ana[gue, on = .NATURAL] %>%
 
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ana[gue, on = .NATURAL] %>% 
   .[, a_g := T_ana - T_guess] %>%
-   .[bottom_top > 10 & lon %between% c(-55, -50)] %>% 
+  .[bottom_top > 10 & lon %between% c(-55, -50)] %>% 
   .[, .(mean_lat = mean(a_g)), by = .(lat, bottom_top)] %>% 
   ggplot(aes(lat, bottom_top)) +
   geom_contour_fill(aes(z = mean_lat, fill = stat(level))) +
