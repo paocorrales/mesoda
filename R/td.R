@@ -3,7 +3,7 @@
 #' @param QVAPOR vector con la humedad especifica en kg/kg
 #' @param P vector con la presión en Pa
 #'
-#'  @export
+#' @export
 td <- function(QVAPOR, P) {
 
   # qv en kg/kg
