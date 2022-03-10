@@ -4,7 +4,7 @@
 \alias{read_diag_rad}
 \title{Lectura de archivos diag para radianzas}
 \usage{
-read_diag_rad(file_list, exp)
+read_diag_rad(file_list, this_exp)
 }
 \arguments{
 \item{file_list}{lista de archivos}

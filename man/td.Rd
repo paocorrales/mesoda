@@ -9,9 +9,7 @@ td(QVAPOR, P)
 \arguments{
 \item{QVAPOR}{vector con la humedad especifica en kg/kg}
 
-\item{P}{vector con la presión en Pa
-
-@export}
+\item{P}{vector con la presión en Pa}
 }
 \description{
 Dew Point
