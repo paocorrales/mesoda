@@ -1,5 +1,5 @@
 ---
-title: "Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO. Part I: Impact on the Analysis and First-guess"
+title: "Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO"
 author:
 - name: Paola Belén Corrales
   email: paola.corrales@cima.fcen.uba.ar
