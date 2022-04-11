@@ -40,19 +40,18 @@ multiespectrales <- c("airs_aqua",
 
 asimilable <- satinfo[iuse == 1, .N, by = sensor]
 
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E8/ANA/*/diagfiles/asim*ensmean")
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E9/ANA/*/diagfiles/asim*ensmean")
 
 files <- files[str_detect(files, "conv", negate = TRUE)]
 
-diag <- read_diag_rad(files, "E8")
+diag <- read_diag_rad(files, "E9")
 
 diag[, tipo := fifelse(sensor %in% multiespectrales, "multiespectral", "no-multiespectral")] %>%
   satinfo[., on = c("sensor", "channel")] %>%
   .[errinv %between% c(0.0000316227, 1000) &
   qc == 0 &
-  iuse == 1 &
-  peakwt %between% c(0.001, 1200)] %>%
-  .[, .(prop = round(.N*100/456774, 2)), by = sensor] %>%
+  iuse > 0] %>%
+  .[, .(prop = round(.N*100/146511, 2)), by = sensor] %>%
   asimilable[., on = c("sensor")] %>%
  separate(sensor, into = c("sensor", "plataforma"), sep = "_") %>%
   write_csv("analysis/data/derived_data/tabla_radianzas.csv")

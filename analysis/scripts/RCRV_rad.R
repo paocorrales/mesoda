@@ -6,7 +6,7 @@ library(metR)
 
 sensor <- "iasi"
 
-path <- paste0("/home/paola.corrales/datosmunin/EXP/E8/ANA/*/diagfiles/asim_", sensor, "*ensmean*")
+path <- paste0("/home/paola.corrales/datosmunin3/EXP/E9/ANA/*/diagfiles/asim_", sensor, "*ensmean*")
 
 files <- Sys.glob(path)
 
@@ -28,12 +28,12 @@ satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>%
 
 perfiles <- purrr::map(dates, function(d) {
 
-  files_date <- Sys.glob(paste0("/home/paola.corrales/datosmunin/EXP/E8/ANA/", d, "/diagfiles/asim_iasi*_", d, ".mem", formatC(1: 60, width = 3, flag = "0")))
+  files_date <- Sys.glob(paste0("/home/paola.corrales/datosmunin3/EXP/E9/ANA/", d, "/diagfiles/asim_iasi*_", d, ".mem", formatC(1: 60, width = 3, flag = "0")))
 
   files_date <- files_date[str_detect(files_date, "metop-a")]
   print(files_date[1])
 
-  out <- read_diag_rad(files_date, exp = "E8") %>%
+  out <- read_diag_rad(files_date, "E9") %>%
     satinfo[., on = c("sensor", "channel")] %>%
     .[iuse == 1] %>%
     .[, ":="(level = cut_round(peakwt, breaks = c(seq(0, 500, 100), seq(550, 1050, 50))))] %>%

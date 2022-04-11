@@ -5,19 +5,19 @@ library(lubridate)
 library(data.table)
 
 year <- 2018
-day <- 324
+day <- 312
 hour <- 00
 keystart <- paste0("ABI-L1b-RadF/", year, "/", day, "/", hour, "/*")
 
 goes16 <- aws.s3::get_bucket_df(bucket = 'noaa-goes16',
                                 marker = keystart,
-                                max = 7000)
+                                max = 20000)
 
 goes16 <- goes16 %>%
   setDT() %>%
   .[, start := lubridate::parse_date_time(str_extract(str_extract(Key, "s\\d{14}"), "\\d{13}"), "%Y%j%H%%M%S") ] %>%
   .[, channel := as.numeric(str_extract(str_extract(Key, "C\\d{2}"), "\\d{2}"))] %>%
-  .[minute(start) == 0 & channel %in% c(7:16) & day(start) < 24] %>%
+  .[minute(start) == 0 & channel %in% c(7:16) & day(start) < 20] %>%
   .[]
 
 

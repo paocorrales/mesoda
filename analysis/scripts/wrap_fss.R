@@ -10,8 +10,9 @@ library(mesoda)
 #future::plan("cluster", workers = 3)
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
 wrf_path <- "/home/paola.corrales/datosmunin3/EXP/"
-exp <- "E8"
+exp <- "E9"
 run <- "fcst_ens"
+domain <- "d02"  #only for fcst_det
 
 ini_date <- ymd_hms("20181122060000")
 ciclos <- 31
@@ -25,8 +26,8 @@ dates <- seq.POSIXt(ini_date + hours(acumulado), by = "hour",
                     length.out = ciclos - acumulado)
 
 
+# pp_imerg_all <- readRDS(paste0(imerg_path, "IMERG_", acumulado, "h_d02.rds"))
 pp_imerg_all <- readRDS(paste0(imerg_path, "IMERG_", acumulado, "h.rds"))
-
 
 fss_out <- purrr::map_dfr(dates, function(d) {
 
@@ -80,6 +81,30 @@ fss_out <- purrr::map_dfr(dates, function(d) {
       # .[, exp := exp] %>%
       .[date == d]
 
+  } else if (run == "fcst_det") {
+
+    files_wrf <- purrr::map(seq(acumulado, 0), function(l) {
+
+      paste0(wrf_path, exp, "/FCST/", format(ini_date, "%Y%m%d%H"), "_det/wrfout_", domain, "_",
+                        format(date - hours(l), "%Y-%m-%d_%H:%M:%S"))
+
+    }) %>% unlist()
+
+    pp_wrf <- purrr::map(files_wrf, function(f) {
+      ReadNetCDF(f, vars = c("PREC_ACC_C", "PREC_ACC_NC",
+                             lon = "XLONG", lat = "XLAT")) %>%
+        .[, ":="(pp_acum = PREC_ACC_C + PREC_ACC_NC,
+                 exp = exp,
+                 date = date)] %>%
+        .[, ":="(PREC_ACC_C = NULL,
+                 PREC_ACC_NC = NULL,
+                 Time = NULL)]
+    }) %>%
+      rbindlist() %>%
+      .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)] %>%
+      .[, c("x", "y") := wrf_project(lon, lat, round = c(-3, -3))]
+
+
   } else {
 
     lead_time <- as.numeric(difftime(date, ini_date, units = "hours"))
@@ -119,8 +144,17 @@ fss_out <- purrr::map_dfr(dates, function(d) {
 
   # browser()
 
-  pp_imerg <- pp_imerg[x %between% c(-900000, 900000) & y %between% c(-1100000, 1100000)]
-  pp_wrf <- pp_wrf[x %between% c(-900000, 900000) & y %between% c(-1100000, 1100000)]
+  if (run == "fcst_det") {
+
+    pp_imerg <- pp_imerg[x %between% c(-350000, 840000) & y %between% c(-1045000, 1035000)]
+    pp_wrf <- pp_wrf[x %between% c(-350000, 840000) & y %between% c(-1045000, 1035000)]
+
+  } else {
+
+    pp_imerg <- pp_imerg[x %between% c(-900000, 900000) & y %between% c(-1100000, 1100000)]
+    pp_wrf <- pp_wrf[x %between% c(-900000, 900000) & y %between% c(-1100000, 1100000)]
+
+  }
 
   obs <- pp_imerg %>%
     .[, .(pp = list(dcast(.SD, x ~ y, value.var = "pp_acum") %>%
@@ -167,7 +201,13 @@ fss_out <- purrr::map_dfr(dates, function(d) {
 })
 
 if (run %in% c("ana", "ana_ens")) {
-  fwrite(fss_out, file = paste0("fss_nob_", acumulado, "h_", run, "_", exp, ".csv"))
+  print("Write output file")
+  fwrite(fss_out, file = paste0("fss_", acumulado, "h_", run, "_", exp, ".csv"))
+
+} else if (run == "fcst_det") {
+
+  fwrite(fss_out, file = paste0("~/mesoda/analysis/data/derived_data/fss_", acumulado, "h_", run, "_",
+                                format(ini_date, "%Y%m%d%H"), "_", exp, "_", domain, ".csv"))
 
 } else {
 

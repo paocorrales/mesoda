@@ -19,7 +19,7 @@ td_colors <- c("#341A02", "#56300B", "#7D4813", "#A46522", "#C6893E", "#DBB773",
                "#DCF2D9", "#BAE4B8", "#8BD290", "#59BC71", "#259F57",
                "#A9CFE4", "#5FA9D2", "#227CB9", "#00488F", "#0000AC")
 
-wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
+wrf_path <- "/home/paola.corrales/datosmunin3/EXP/"
 ini_date <- ymd_hms("20181120180000")
 ciclos <- 67
 
@@ -33,9 +33,9 @@ for (d in seq_along(dates)) {
   print(dates[d])
 
 
-  files_ana <- Sys.glob(paste0(wrf_path, "E[2,5,6,8]/ANA/", format(dates[d], "%Y%m%d%H%M%S"), "/analysis.ensmean"))
+  files_ana <- Sys.glob(paste0(wrf_path, "E[9]/ANA/", format(dates[d], "%Y%m%d%H%M%S"), "/analysis.ensmean"))
 
-  files_gue <- Sys.glob(paste0(wrf_path, "E[2,5,6,8]/GUESS/", format(dates[d], "%Y%m%d%H%M%S"), "/wrfarw.ensmean"))
+  files_gue <- Sys.glob(paste0(wrf_path, "E[9]/GUESS/", format(dates[d], "%Y%m%d%H%M%S"), "/wrfarw.ensmean"))
 
   ana <- purrr::map(files_ana, function(f) {
 

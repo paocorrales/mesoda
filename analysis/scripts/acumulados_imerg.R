@@ -18,27 +18,24 @@ wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
 ini_date <- ymd_hms("20181120000000")
 ciclos <- 85
 
-acumulado <- 6
+acumulado <- 1
 
 # Inicio
 dates <- seq.POSIXt(ini_date + hours(acumulado), by = "hour",
                     length.out = ciclos - acumulado)
 
 # Modelo
-pp_wrf <- purrr::map("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181122060000/analysis.ensmean", function(f) {
-  ReadNetCDF(f, vars = c("RAINNC", "RAINC", "RAINSH",
+pp_wrf <- ReadNetCDF("/home/paola.corrales/datosmunin3/EXP/E9/FCST/2018112200_det/wrfout_d02_2018-11-22_00:00:00",
+             vars = c("RAINNC", "RAINC", "RAINSH",
                          lon = "XLONG", lat = "XLAT")) %>%
-    .[, ":="(pp_acum = RAINNC + RAINC + RAINSH,
-             exp = exp,
-             date = date)] %>%
+    .[, ":="(pp_acum = RAINNC + RAINC + RAINSH)] %>%
     .[, ":="(RAINNC = NULL,
              RAINC = NULL,
              RAINSH = NULL,
-             Time = NULL)]
-}) %>%
-  rbindlist() %>%
-  .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, date, exp)] %>%
-  .[, c("x", "y") := wrf_project(lon, lat)]
+             Time = NULL)] %>%
+  .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat)] %>%
+  .[, c("x", "y") := wrf_project(lon, lat, round = c(-3, -3))]
+
 
 
 interpolate <- function(x, y, pp) {
@@ -73,7 +70,7 @@ pp_acum_imerg <- furrr::future_map_dfr(dates, function(d) {
     rbindlist() %>%
     setnames(c("Grid/lon", "Grid/lat"), c("lon", "lat")) %>%
     .[, .(pp_acum = sum(pp)), by = .(lon, lat)] %>%
-    .[, c("x", "y") := wrf_project(lon, lat)]
+    .[, c("x", "y") := wrf_project(lon, lat, round = c(-3, -3))]
 
 
   pp_imerg_interp <- pp_imerg[, interpolate(x, y, pp_acum)] %>%
@@ -84,79 +81,77 @@ pp_acum_imerg <- furrr::future_map_dfr(dates, function(d) {
 
 })
 
-saveRDS(pp_acum_imerg, file = paste0("IMERG_", acumulado, "h.rds"))
-
-
+saveRDS(pp_acum_imerg, file = paste0("IMERG_", acumulado, "h_d02.rds"))
 
 # Acumulados 30 horas -----------------------------------------------------
 
 
-imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
-wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-#exp <- "E4"
-#run <- "ana"
-
-ini_date <- ymd_hms("20181122060000")
-ciclos <- 85
-
-acumulado <- 30
-
-# Inicio
-ini_acum <- ymd_hms("20181122060000")
-dates <- seq.POSIXt(ini_date, by = "hour",
-                    length.out = acumulado)
-
-# Modelo
-pp_wrf <- ReadNetCDF("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181122060000/analysis.ensmean",
-                     vars = c("RAINNC", "RAINC", "RAINSH",
-                         lon = "XLONG", lat = "XLAT")) %>%
-    .[, ":="(pp_acum = RAINNC + RAINC + RAINSH,
-             exp = exp)] %>%
-    .[, ":="(RAINNC = NULL,
-             RAINC = NULL,
-             RAINSH = NULL,
-             Time = NULL)] %>%
-  .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, exp)] %>%
-  .[, c("x", "y") := wrf_project(lon, lat)]
-
-
-interpolate <- function(x, y, pp) {
-
-  data <- akima::interp(x, y, pp,
-                        xo = unique(pp_wrf$x),
-                        yo = unique(pp_wrf$y))
-  dimnames(data$z) <- list(x = data$x,
-                           y = data$y)
-  reshape2::melt(data$z)
-}
-
-
-files_imerg <- purrr::map(seq(0, acumulado-1, 1), function(l) {
-  list.files(imerg_path, pattern = format(ini_acum + hours(l), "%Y%m%d-S%H"), full.names = TRUE)
-}) %>% unlist()
-
-pp_imerg <- purrr::map(files_imerg, function(f) {
-    meta <- unglue(basename(f), "3B-HHR-L.MS.MRG.3IMERG.{dia}-S{hora_ini}-E{hora_fin}.{algo}.V05B.RT-H5")
-    ReadNetCDF(f,
-               vars = c(pp = "Grid/precipitationCal"),
-               subset = list("Grid/lon" = -80:-50,
-                             "Grid/lat" = -45:-15)) %>%
-      .[, fecha := ymd_hms(paste0(meta[[1]][[1]], meta[[1]][[3]]))]
-
-  }) %>%
-    rbindlist() %>%
-    setnames(c("Grid/lon", "Grid/lat"), c("lon", "lat")) %>%
-    .[, .(pp_acum = sum(pp)), by = .(lon, lat)] %>%
-    .[, c("x", "y") := wrf_project(lon, lat)]
-
-
-pp_imerg_interp <- pp_imerg[, interpolate(x, y, pp_acum)] %>%
-    setnames(c("value"), c("pp_acum")) %>%
-    setDT() %>%
-    .[, ini_date := date]
-
-
-
-saveRDS(pp_imerg_interp, file = paste0("IMERG_", acumulado, "h.rds"))
-
-
+# imerg_path <- "/home/paula.maldonado/datosalertar1/RRA_VERIF/data/raw/imerg_raw"
+# wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
+# #exp <- "E4"
+# #run <- "ana"
+#
+# ini_date <- ymd_hms("20181122060000")
+# ciclos <- 85
+#
+# acumulado <- 30
+#
+# # Inicio
+# ini_acum <- ymd_hms("20181122060000")
+# dates <- seq.POSIXt(ini_date, by = "hour",
+#                     length.out = acumulado)
+#
+# # Modelo
+# pp_wrf <- ReadNetCDF("/home/paola.corrales/datosmunin/EXP/E7/ANA/20181122060000/analysis.ensmean",
+#                      vars = c("RAINNC", "RAINC", "RAINSH",
+#                          lon = "XLONG", lat = "XLAT")) %>%
+#     .[, ":="(pp_acum = RAINNC + RAINC + RAINSH,
+#              exp = exp)] %>%
+#     .[, ":="(RAINNC = NULL,
+#              RAINC = NULL,
+#              RAINSH = NULL,
+#              Time = NULL)] %>%
+#   .[, .(pp_acum = sum(pp_acum, na.rm = TRUE)), by = .(lon, lat, exp)] %>%
+#   .[, c("x", "y") := wrf_project(lon, lat)]
+#
+#
+# interpolate <- function(x, y, pp) {
+#
+#   data <- akima::interp(x, y, pp,
+#                         xo = unique(pp_wrf$x),
+#                         yo = unique(pp_wrf$y))
+#   dimnames(data$z) <- list(x = data$x,
+#                            y = data$y)
+#   reshape2::melt(data$z)
+# }
+#
+#
+# files_imerg <- purrr::map(seq(0, acumulado-1, 1), function(l) {
+#   list.files(imerg_path, pattern = format(ini_acum + hours(l), "%Y%m%d-S%H"), full.names = TRUE)
+# }) %>% unlist()
+#
+# pp_imerg <- purrr::map(files_imerg, function(f) {
+#     meta <- unglue(basename(f), "3B-HHR-L.MS.MRG.3IMERG.{dia}-S{hora_ini}-E{hora_fin}.{algo}.V05B.RT-H5")
+#     ReadNetCDF(f,
+#                vars = c(pp = "Grid/precipitationCal"),
+#                subset = list("Grid/lon" = -80:-50,
+#                              "Grid/lat" = -45:-15)) %>%
+#       .[, fecha := ymd_hms(paste0(meta[[1]][[1]], meta[[1]][[3]]))]
+#
+#   }) %>%
+#     rbindlist() %>%
+#     setnames(c("Grid/lon", "Grid/lat"), c("lon", "lat")) %>%
+#     .[, .(pp_acum = sum(pp)), by = .(lon, lat)] %>%
+#     .[, c("x", "y") := wrf_project(lon, lat)]
+#
+#
+# pp_imerg_interp <- pp_imerg[, interpolate(x, y, pp_acum)] %>%
+#     setnames(c("value"), c("pp_acum")) %>%
+#     setDT() %>%
+#     .[, ini_date := date]
+#
+#
+#
+# saveRDS(pp_imerg_interp, file = paste0("IMERG_", acumulado, "h.rds"))
+#
+#

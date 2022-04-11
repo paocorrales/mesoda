@@ -78,7 +78,7 @@ saveRDS(pp_wrf_mean, paste0(exp, "_fcst_", format(ini_date, "%Y%m%d%H"), "_mean_
 # Acumulados horarios -----------------------------------------------------
 
 
-acumulado <- 1
+acumulado <- 6
 q <- c(1, 5, 10, 25, 50)
 
 # Inicio
@@ -218,14 +218,14 @@ saveRDS(pp_wrf$pp_wrf_mean, paste0(exp, "_fcst_", format(ini_date, "%Y%m%d%H"), 
 # Acumulados horarios ANA ------------------------------------------------
 
 imerg_path <- "/home/paola.corrales/mesoda/analysis/data/derived_data/"
-wrf_path <- "/home/paola.corrales/datosmunin/EXP/"
-exp <- "E8"
+wrf_path <- "/home/paola.corrales/datosmunin3/EXP/"
+exp <- "E9"
 run <- "ana"
 
 ini_date <- ymd_hms("20181120180000")
 ciclos <- 67
 
-acumulado <- 6
+acumulado <- 1
 q <- c(1, 5, 10, 25, 50)
 
 
@@ -280,8 +280,8 @@ pp_wrf_out <- purrr::map_dbl(dates, function(d) {
     rbindlist()
 
 
-  saveRDS(pp_prop, paste0(exp, "_ana_", format(date, "%Y%m%d%H"), "_prop_acum_", acumulado, "h.rds"))
-  saveRDS(pp_wrf_mean, paste0(exp, "_ana_", format(date, "%Y%m%d%H"), "_mean_acum_", acumulado, "h.rds"))
+  saveRDS(pp_prop, paste0(wrf_path, "/derived_data/ppacum/", exp, "_ana_", format(date, "%Y%m%d%H"), "_prop_acum_", acumulado, "h.rds"))
+  saveRDS(pp_wrf_mean, paste0(wrf_path, "/derived_data/ppacum/", exp, "_ana_", format(date, "%Y%m%d%H"), "_mean_acum_", acumulado, "h.rds"))
 
 d
 })
