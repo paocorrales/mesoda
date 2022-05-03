@@ -1,0 +1,126 @@
+---
+title: "Deterministic hires forecasts"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(here)
+library(patchwork)
+library(unglue)
+library(tagger)
+library(knitr)
+library(kableExtra)
+#source(here::here("temp_R", "goes_functions.R"))
+
+map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+
+geom_mapa <- function() {
+  list(geom_sf(data = map, fill = NA, color = "black", size = 0.1, inherit.aes = FALSE),
+       coord_sf(xlim = c(-76, -52), ylim = c(-41, -20)))
+}
+
+#dominio de interés
+xlim <- c(2600, 3950)
+ylim <- c(3700, 4750)
+
+lon_band <- c(-66.5, -61.5)
+lat_band <- c(-35.5, -29)
+
+scale_date <- function(ini = 20181120180000, end = 20181123120000,
+                       break_bin = "6 hour") {
+  scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin),
+                   labels = function(x) {
+                     fifelse(hour(x) == 0, format(x, "%H\n%b %d"), format(x, "%H"))
+                   }) 
+}
+
+derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
+
+colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", 
+                 E9 = "#CC3311", E10 = "chartreuse4") 
+
+channels <- c("8" = "Ch 8 - upper level", 
+              "9" = "Ch 9 - middle level", 
+              "10" = "Ch 10 - lower level")
+
+satinfo <- fread("~/mesoda/analysis/data/derived_data/satinfo.txt") %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+```
+
+```{r}
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_1h_fcst_det_201811220*_E*_d02.csv")
+
+fss_fcst <- purrr::map(files, function(f) {
+  meta <- unglue(f, "/home/paola.corrales/mesoda/analysis/data/derived_data/fss_1h_fcst_det_{init}_{exp}_d02.csv")
+  
+  fread(f) %>% 
+    .[, date := as_datetime(date)] %>% 
+    .[, run := meta[[1]][["init"]]]
+}) %>% 
+  rbindlist()
+
+# 
+# files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E*[1-9]*.csv")
+# 
+# fss_ana <- purrr::map(files, function(f) {
+#   
+#   fread(f) %>% 
+#     .[, date := as_datetime(date)] %>% 
+#     .[, run := "ana"]
+# }) %>% 
+#   rbindlist()
+
+fss_fcst %>% 
+  .[w %in% c(1, 5, 11) & q %in% c(1, 5, 25)] %>% 
+  # .[date %between% c(ymd_hms(20181122000000), ymd_hms(20181123120000))] %>% 
+  ggplot(aes(date, fss)) +
+  geom_hline(yintercept = 1, color = "darkgray") +
+  geom_line(aes(color = exp, linetype = run)) +
+  # geom_point(aes(color = exp)) +
+  scale_color_manual(values = c(colores_exp, EG3 = "blue"), 
+                     labels = c(E2 = "CONV", E5 = "ASWS", 
+                                E6 = "SATWND", EG3 = "only ABI",
+                                E9 = "RAD", E10 = "ABI")) +
+  scale_date(20181122000000, 20181123000000, "12 hours") +
+  coord_cartesian(xlim = c(ymd_hms(20181122000000), ymd_hms(20181123120000))) +
+  facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
+                                            "10" = "10 mm", "25" = "25 mm"),
+                                      w = c("1" = "2 km", "5" = "10 km", "11" = "20 km", 
+                                            "51" = "500 km", "101" = "1000 km"))) +
+  tagger::tag_facets(position = list(x = 0.05, y = 0.90)) +
+  labs(color = NULL, x = NULL, y = "FSS", linetype = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+fss_fcst %>% 
+  .[w %in% c(1, 5, 11) & q %in% c(1, 5, 25)] %>% 
+  # .[date %between% c(ymd_hms(20181122000000), ymd_hms(20181123120000))] %>% 
+  ggplot(aes(date, fss)) +
+  geom_hline(yintercept = 1, color = "darkgray") +
+  geom_line(aes(color = exp, linetype = run)) +
+  # geom_point(aes(color = exp)) +
+  scale_color_manual(values = c(colores_exp, EG3 = "blue"), 
+                     labels = c(E2 = "CONV", E5 = "ASWS", 
+                                E6 = "SATWND", EG3 = "only ABI",
+                                E9 = "RAD", E10 = "ABI")) +
+  scale_date(20181122000000, 20181123000000, "12 hours") +
+  coord_cartesian(xlim = c(ymd_hms(20181122000000), ymd_hms(20181123100000))) +
+  facet_grid(w + q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
+                                            "10" = "10 mm", "25" = "25 mm"),
+                                      w = c("1" = "2 km", "5" = "10 km", "11" = "20 km", 
+                                            "51" = "500 km", "101" = "1000 km"))) +
+  tagger::tag_facets(position = list(x = 0.05, y = 0.90)) +
+  labs(color = NULL, x = NULL, y = "FSS", linetype = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+

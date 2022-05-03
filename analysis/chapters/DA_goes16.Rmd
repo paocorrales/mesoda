@@ -16,7 +16,7 @@ library(patchwork)
 library(unglue)
 library(knitr)
 library(kableExtra)
-source(here::here("temp_R", "goes_functions.R"))
+# source(here::here("temp_R", "goes_functions.R"))
 
 map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
 
@@ -34,9 +34,9 @@ ylim <- c(3700, 4750)
 ## Cloud mask 
 
 ```{r}
-nc <- ncdf4::nc_open('~/datosmunin3/DATA/GOES16/ABI-L2-ACMF/OR_ABI-L2-ACMF-M3_G16_s20183250000341_e20183250011108_c20183250011312.nc')
+  nc <- ncdf4::nc_open('~/datosmunin3/DATA/GOES16/ABI-L2-ACMF/OR_ABI-L2-ACMF-M3_G16_s20183240000342_e20183240011109_c20183240011270.nc')
 
-cld_msk <- ReadNetCDF('~/datosmunin3/DATA/GOES16/ABI-L2-ACMF/OR_ABI-L2-ACMF-M3_G16_s20183250000341_e20183250011108_c20183250011312.nc', 
+cld_msk <- ReadNetCDF('~/datosmunin3/DATA/GOES16/ABI-L2-ACMF/OR_ABI-L2-ACMF-M3_G16_s20183240000342_e20183240011109_c20183240011270.nc', 
                       vars = 'BCM', 
                       subset = list(x = xlim,
                                     y = ylim)) %>% 
@@ -48,7 +48,7 @@ cld_msk %>%
   scale_color_manual(values = c("darkgrey", "white"), guide = NULL) +
   geom_mapa() +
   labs(x = NULL, y = NULL,
-       title = "Cloud Mask", subtitle = "Time: 2018-11-21 00 UTC")
+       title = "Cloud Mask", subtitle = "Time: 2018-11-20 00 UTC")
 
 
 ```
@@ -288,21 +288,49 @@ diag %>%
 ## Quality control analysis
 
 ```{r}
-files <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*00/diagfiles/asim_abi_g16_*.ensmean")
+files <- Sys.glob("~/datosmunin3/EXP/E10/ANA/*00/diagfiles/asim_abi_g16_*.ensmean")
 
 
 diag <- map(files, function(f) {
   
-  # meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/20181121000000/diagfiles/asim_abi_g16_20181121000000.ensmean")
-  
-  read_diag_rad(f, "EG1") %>% 
-    # .[, run := meta[[1]][["exp"]]] %>% 
+  read_diag_rad(f, "E10") %>% 
     .[, channel := channel + 6]
   
 }) %>% 
   rbindlist()
 
+files <- Sys.glob("~/datosmunin3/EXP/EG2/ANA/*00/diagfiles/asim_abi_g16_*.ensmean")
+
+
+diag_eg2 <- map(files, function(f) {
+  
+  read_diag_rad(f, "EG2") %>% 
+    .[, channel := channel + 6]
+  
+}) %>% 
+  rbindlist()
+
+
 ```
+
+```{r}
+rbind(diag, diag_eg2) %>% 
+  .[channel %in% c(8:10), .N, by = .(qc, date, channel, exp)] %>% 
+  ggplot(aes(date, N)) +
+  geom_point(aes(color = factor(qc))) +
+  geom_line(aes(color = factor(qc))) +
+  # scale_color_manual(values = c("darkorange","grey40", "grey60", "grey80"),
+  #                    labels = c("0" = "pass qc", 
+  #                               "3" = "gross check",
+  #                               "5" = "surface check",
+  #                               "50" = "std dev")) +
+  labs(x = NULL, y = NULL, color = NULL) +
+  facet_grid(exp~channel,  scales = "free_y",
+             labeller = labeller(channel = channels)) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
 
 
 * **Gross check:** if tbc > errf reject obs. errf = min(3*errf, ermax_rad)
@@ -325,11 +353,31 @@ diag %>%
                                "5" = "surface check",
                                "50" = "std dev")) +
   facet_wrap(~date, ncol = 7) +
-  labs(fill = NULL, x = "Channel") +
+  labs(fill = NULL, x = "Channel", subtitle = "EG1") +
   theme_minimal() +
   theme(legend.position = "bottom")
 
 ```
+
+```{r}
+
+diag_eg2 %>% 
+  .[channel %in% c(8:10)] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  ggplot(aes(factor(channel))) +
+  geom_bar(aes(fill = factor(qc))) +
+  scale_fill_manual(values = c("darkorange","grey40", "grey60", "grey80"),
+                    labels = c("0" = "pass qc", 
+                               "3" = "gross check",
+                               "5" = "surface check",
+                               "50" = "std dev")) +
+  facet_wrap(~date, ncol = 7) +
+  labs(fill = NULL, x = "Channel", subtitle = "EG2") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
 
 
 ```{r}
@@ -351,6 +399,27 @@ diag %>%
   theme(legend.position = "bottom")
 ```
 
+```{r}
+diag_eg2 %>% 
+  .[channel %in% c(8:10)] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_point(aes(color = factor(qc)), size = 0.9) +
+  geom_mapa() +
+  scale_color_manual(values = c("darkorange","grey40", "grey60", "grey80"),
+                     labels = c("0" = "pass qc", 
+                                "3" = "gross check",
+                                "5" = "surface check",
+                                "50" = "std dev")) +
+  guides(color = guide_legend(override.aes = list(size = 2))) +
+  facet_grid(channel~date) +
+  labs(subtitle = "Assimilated obs (EG2)", x =  NULL, y = NULL, color = "QC") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+```
+
+
 Looks like there are less observations rejected due to the standar deviation threshold on the last cycles. 00 UTC is 21 PM in Argentina, so it may be asociated to a diurnal cycle?
 
 ```{r}
@@ -368,6 +437,26 @@ diag %>%
   guides(color = guide_legend(override.aes = list(size = 2))) +
   facet_wrap(~date, ncol = 4) +
   labs(subtitle = "Channel 10", x =  NULL, y = NULL, color = "QC") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+
+```{r}
+diag_eg2 %>% 
+  .[channel %in% c(10)] %>% 
+  .[, date := format(date, "%m/%d %H UTC")] %>%
+  ggplot(aes(ConvertLongitude(lon), lat)) +
+  geom_point(aes(color = factor(qc)), size = 0.9) +
+  geom_mapa() +
+  scale_color_manual(values = c("grey50", "grey70", "grey80", "cyan4"),
+                     labels = c("0" = "pass qc", 
+                                "3" = "gross check",
+                                "5" = "surface check",
+                                "50" = "std dev")) +
+  guides(color = guide_legend(override.aes = list(size = 2))) +
+  facet_wrap(~date, ncol = 4) +
+  labs(subtitle = "Channel 10 (EG2)", x =  NULL, y = NULL, color = "QC") +
   theme_minimal() +
   theme(legend.position = "bottom")
 ```
@@ -408,7 +497,7 @@ diag[channel %in% c(8:10) & qc == 3] %>%
 ## Analysis minus guess
 
 ```{r}
-files_ana <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*00/analysis.mem001")
+files_ana <- Sys.glob("~/datosmunin3/EXP/E9/ANA/*00/analysis.mem001")[c(1:7)]
 
 coord <- ReadNetCDF(files_ana[1], vars = c(lon = "XLONG", lat = "XLAT"), subset = list(bottom_top = 1))
 
@@ -417,7 +506,7 @@ levs <- c(200, 300, 400, 500, 600, 700, 800, 900, 1000)
 
 ana <- map(files_ana, function(f) {
   
-  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/{date}/analysis.mem001")
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/E6/ANA/{date}/analysis.mem001")
   
   ReadNetCDF(f, vars = c(t_ana = "T", p = "P", "PB", q_ana = "QVAPOR",
                          lon = "XLONG", lat = "XLAT")) %>% 
@@ -436,11 +525,11 @@ ana <- map(files_ana, function(f) {
 }) %>% 
   rbindlist()
 
-files_gue <- Sys.glob("~/datosmunin3/EXP/prueba_abi/GUESS/*00/wrfarw.mem001")
+files_gue <- Sys.glob("~/datosmunin3/EXP/EG2/GUESS/*00/wrfarw.mem001")
 
 gue <- map(files_gue, function(f) {
   
-  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/GUESS/{date}/wrfarw.mem001")
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/EG2/GUESS/{date}/wrfarw.mem001")
   
   ReadNetCDF(f, vars = c(t_gue = "T", p = "P", "PB", q_gue = "QVAPOR",
                          lon = "XLONG", lat = "XLAT")) %>% 
@@ -459,6 +548,115 @@ gue <- map(files_gue, function(f) {
 }) %>% 
   rbindlist()
 
+files_conv <- Sys.glob("~/datosmunin3/EXP/E2/ANA/*00/analysis.mem001")[1:7]
+
+
+ana_conv <- map(files_conv, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/E2/ANA/{date}/analysis.mem001")
+  
+  ReadNetCDF(f, vars = c(t_conv = "T", p = "P", "PB", q_conv = "QVAPOR",
+                         lon = "XLONG", lat = "XLAT")) %>% 
+    .[, ":="(t_conv = tk(t_conv, p + PB, T_BASE = 290) - 273.15,
+             p = p + PB,
+             PB = NULL)] %>% 
+    .[, date := ymd_hms(meta[[1]][["date"]])] %>% 
+    .[, .(lev = levs,
+          t_conv = approx(p, t_conv, xout = levs*100)$y,
+          q_conv = approx(p, q_conv, xout = levs*100)$y),
+      by = .(date, south_north, west_east)] %>%
+    coord[., on = .NATURAL] %>% 
+    .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[]
+  
+}) %>% 
+  rbindlist()
+
+
+files_conv <- Sys.glob("~/datosmunin3/EXP/*/ANA/20181121000000/analysis.ensmean")[c(1:5,7:8)]
+
+
+ana_conv <- map(files_conv, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/{run}/ANA/20181121000000/analysis.ensmean")
+  
+  ReadNetCDF(f, vars = c(t_conv = "T", p = "P", "PB", q_conv = "QVAPOR",
+                         lon = "XLONG", lat = "XLAT")) %>% 
+    .[, ":="(t_conv = tk(t_conv, p + PB, T_BASE = 290) - 273.15,
+             p = p + PB,
+             PB = NULL)] %>% 
+    .[, date := meta[[1]][["run"]]] %>% 
+    .[, .(lev = levs,
+          t_conv = approx(p, t_conv, xout = levs*100)$y,
+          q_conv = approx(p, q_conv, xout = levs*100)$y),
+      by = .(date, south_north, west_east)] %>%
+    coord[., on = .NATURAL] %>% 
+    .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[]
+  
+}) %>% 
+  rbindlist()
+```
+
+
+```{r}
+temp <- ana_conv %>% 
+  dcast(x + y + lev ~ date, value.var = "q_conv") %>% 
+  .[, ":="(aut = E5 - E2,
+           satwnd = E6 - E5,
+           rad_bad = E7 - E6,
+           rad = E8 - E6,
+           # abi_old = prueba_abi - E2,
+           abi = EG2 - E6,
+           abi_sat = EG2 - E5,
+           abi_sat_aut = EG2 - E2)] %>% 
+  melt(measure.vars = c("aut", "satwnd", "rad_bad", "rad", "abi", "abi_sat", "abi_sat_aut"))
+
+temp2 <- ana_conv %>% 
+  dcast(x + y + lev ~ date, value.var = "t_conv") %>% 
+  .[, ":="(aut = E5 - E2,
+           satwnd = E6 - E5,
+           rad_bad = E7 - E6,
+           rad = E8 - E6,
+           # abi_old = prueba_abi - E2,
+           abi = EG2 - E6,
+           abi_sat = EG2 - E5,
+           abi_sat_aut = EG2 - E2)] %>% 
+  melt(measure.vars = c("aut", "satwnd", "rad_bad", "rad", "abi", "abi_sat", "abi_sat_aut"))
+
+for (i in 1:length(levs)) {
+  temp %>% 
+    .[lev == levs[i]] %>% 
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = value*1000, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised(trans = mesoda::symlog_trans(),
+                                     guide = guide_colorsteps(barhight = 10)) +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = NULL,
+         title = "Humidity",
+         subtitle = as.character(levs[i])) +
+    facet_wrap(~variable, ncol = 4) +
+    theme_minimal()
+  
+   ggsave(paste0("impact_2018112100_q_", levs[i], ".png"), height = 4)
+  
+   
+  temp2 %>% 
+    .[lev == levs[i]] %>% 
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = value, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised(trans = mesoda::symlog_trans(),
+                                     guide = guide_colorsteps(barhight = 10)) +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = NULL,
+         title = "Temperature",
+         subtitle = as.character(levs[i])) +
+    facet_wrap(~variable, ncol = 4) +
+    theme_minimal()
+  
+   ggsave(paste0("impact_2018112100t_", levs[i], ".png"), height = 4)
+  
+}
 ```
 
 
@@ -466,41 +664,41 @@ gue <- map(files_gue, function(f) {
 dates <- unique(ana$date)
 
 for (i in 1:length(dates)) {
-
-  ana[gue, on = .NATURAL] %>% 
-  .[date == dates[i]] %>% 
-  .[, date := format(date, "%m/%d %H UTC")] %>%
-  .[, a_g := t_ana - t_gue] %>%
-  .[lev %in% c(300, 500, 700)] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
-  scale_fill_divergent_discretised(trans = mesoda::symlog_trans()) +
-  geom_mapa() +
-  labs(x = NULL, y = NULL, fill = "A-B",
-       title = "Temperature",
-       subtitle = as.character(dates[i])) +
-  facet_grid(date~lev) +
-  theme_minimal()
   
-  ggsave(paste0("t_ab_", format(dates[i], "%Y-%m-%d_%H"), ".png"), height = 3)
-
-
   ana[gue, on = .NATURAL] %>% 
-  .[date == dates[i]] %>% 
-  .[, date := format(date, "%m/%d %H UTC")] %>%
-  .[, a_g := q_ana - q_gue] %>%
-  .[lev %in% c(300, 500, 700)] %>% 
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = a_g*1000, fill = ..level..), proj = norargentina_lambert) +
-  scale_fill_divergent_discretised(trans = mesoda::symlog_trans()) +
-  geom_mapa() +
-  labs(x = NULL, y = NULL, fill = "A-B",
-       title = "Humidity",
-       subtitle = as.character(dates[i])) +
-  facet_grid(date~lev) +
-  theme_minimal()
+    .[date == dates[i]] %>% 
+    .[, date := format(date, "%m/%d %H UTC")] %>%
+    .[, a_g := t_ana - t_gue] %>%
+    .[lev %in% c(300, 500, 700)] %>% 
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised(trans = mesoda::symlog_trans()) +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = "A-B",
+         title = "Temperature",
+         subtitle = as.character(dates[i])) +
+    facet_grid(date~lev) +
+    theme_minimal()
   
-  ggsave(paste0("q_ab_", format(dates[i], "%Y-%m-%d_%H"), ".png"), height = 3)
+  ggsave(paste0("EG2_t_ab_", format(dates[i], "%Y-%m-%d_%H"), ".png"), height = 3)
+  
+  
+  ana[gue, on = .NATURAL] %>% 
+    .[date == dates[i]] %>% 
+    .[, date := format(date, "%m/%d %H UTC")] %>%
+    .[, a_g := q_ana - q_gue] %>%
+    .[lev %in% c(300, 500, 700)] %>% 
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = a_g*1000, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised(trans = mesoda::symlog_trans()) +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = "A-B",
+         title = "Humidity",
+         subtitle = as.character(dates[i])) +
+    facet_grid(date~lev) +
+    theme_minimal()
+  
+  ggsave(paste0("EG2_q_ab_", format(dates[i], "%Y-%m-%d_%H"), ".png"), height = 3)
   
 }
 ```
@@ -508,44 +706,145 @@ for (i in 1:length(dates)) {
 ```{r}
 
 for (i in 1:length(levs)) {
-
+  
   ana[gue, on = .NATURAL] %>% 
-  .[lev == levs[i]] %>% 
-  .[, date := format(date, "%m/%d %H UTC")] %>%
-  .[, a_g := t_ana - t_gue] %>%
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
-  scale_fill_divergent_discretised() +
-  geom_mapa() +
-  labs(x = NULL, y = NULL, fill = "A-B",
-       title = "Temperature",
-       subtitle = paste(as.character(levs[i]), "hPa")) +
-  facet_wrap(~date, ncol = 4) +
-  theme_minimal()
+    .[lev == levs[i]] %>% 
+    .[, date := format(date, "%m/%d %H UTC")] %>%
+    .[, a_g := t_ana - t_gue] %>%
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised() +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = "A-B",
+         title = "Temperature",
+         subtitle = paste(as.character(levs[i]), "hPa")) +
+    facet_wrap(~date, ncol = 4) +
+    theme_minimal()
   
-  ggsave(paste0("t_ab_", levs[i], ".png"), height = 4)
-
-
+  ggsave(paste0("EG2_t_ab_", levs[i], ".png"), height = 4)
+  
+  
   ana[gue, on = .NATURAL] %>% 
-  .[lev == levs[i]] %>% 
-  .[, date := format(date, "%m/%d %H UTC")] %>%
-  .[, a_g := q_ana - q_gue] %>%
-  ggplot(aes(x, y)) +
-  geom_contour_fill(aes(z = a_g*1000, fill = ..level..), proj = norargentina_lambert) +
-  scale_fill_divergent_discretised() +
-  geom_mapa() +
-  labs(x = NULL, y = NULL, fill = "A-B",
-       title = "Humidity",
-       subtitle = paste(as.character(levs[i]), "hPa")) +
-   facet_wrap(~date, ncol = 4) +
-  theme_minimal()
+    .[lev == levs[i]] %>% 
+    .[, date := format(date, "%m/%d %H UTC")] %>%
+    .[, a_g := q_ana - q_gue] %>%
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = a_g*1000, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised() +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = "A-B",
+         title = "Humidity",
+         subtitle = paste(as.character(levs[i]), "hPa")) +
+    facet_wrap(~date, ncol = 4) +
+    theme_minimal()
   
   
-  ggsave(paste0("q_ab_", levs[i], ".png"), height = 4)
+  ggsave(paste0("EG2_q_ab_", levs[i], ".png"), height = 4)
   
 }
 
 ```
+
+```{r}
+for (i in 1:length(levs)) {
+  
+  ana[ana_conv, on = .NATURAL] %>% 
+    .[lev == levs[i]] %>% 
+    .[, date := format(date, "%m/%d %H UTC")] %>%
+    .[, a_g := t_ana - t_conv] %>%
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = a_g, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised() +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = "SATWND-CONV",
+         title = "Temperature",
+         subtitle = paste(as.character(levs[i]), "hPa")) +
+    facet_wrap(~date, ncol = 4) +
+    theme_minimal()
+  
+  ggsave(paste0("E62_t_ac_", levs[i], ".png"), height = 4)
+  
+  
+  ana[ana_conv, on = .NATURAL] %>% 
+    .[lev == levs[i]] %>% 
+    .[, date := format(date, "%m/%d %H UTC")] %>%
+    .[, a_g := q_ana - q_conv] %>%
+    ggplot(aes(x, y)) +
+    geom_contour_fill(aes(z = a_g*1000, fill = ..level..), proj = norargentina_lambert) +
+    scale_fill_divergent_discretised() +
+    geom_mapa() +
+    labs(x = NULL, y = NULL, fill = "SATWND-CONV",
+         title = "Humidity",
+         subtitle = paste(as.character(levs[i]), "hPa")) +
+    facet_wrap(~date, ncol = 4) +
+    theme_minimal()
+  
+  
+  ggsave(paste0("E62_q_ac_", levs[i], ".png"), height = 4)
+  
+}
+```
+```{r}
+files_ana <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*_*/analysis.mem001")[c(1,3:5)]
+
+ana <- map(files_ana, function(f) {
+  
+  meta <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/prueba_abi/ANA/20181121000000_{run}/analysis.mem001")
+  
+  ReadNetCDF(f, vars = c(t_ana = "T", p = "P", "PB", q_ana = "QVAPOR",
+                         lon = "XLONG", lat = "XLAT")) %>% 
+    .[, ":="(t_ana = tk(t_ana, p + PB, T_BASE = 290) - 273.15,
+             p = p + PB,
+             PB = NULL)] %>% 
+    .[, run := meta[[1]][["run"]]] %>% 
+    .[, .(lev = levs,
+          t_ana = approx(p, t_ana, xout = levs*100)$y,
+          q_ana = approx(p, q_ana, xout = levs*100)$y),
+      by = .(run, south_north, west_east)] %>%
+    coord[., on = .NATURAL] %>% 
+    .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+    .[]
+  
+}) %>% 
+  rbindlist()
+
+ana %>% 
+  .[lev == levs[i]] %>% 
+  # .[, date := format(date, "%m/%d %H UTC")] %>%
+  # .[, a_g := q_ana - q_conv] %>%
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = q_ana*1000, fill = ..level..), proj = norargentina_lambert) +
+  # scale_fill_divergent_discretised() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = NULL,
+       title = "Humidity",
+       subtitle = paste(as.character(levs[i]), "hPa")) +
+  facet_wrap(~run, ncol = 4) +
+  theme_minimal()
+
+ana[run != "all"] %>% 
+  dcast(x + y + lev ~ run, value.var = "q_ana") %>% 
+  .[ana[run == "all"], on = .NATURAL] %>% 
+  .[, ":="(all_8 = t_ana - ch08,
+           all_9 = t_ana - ch09,
+           all_0 = t_ana - ch10)] %>% 
+  melt(measure.vars = c("all_8", "all_9", "all_0")) %>% 
+  .[lev == levs[4]] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = ..level..), proj = norargentina_lambert) +
+  scale_fill_divergent_discretised() +
+  geom_mapa() +
+  labs(x = NULL, y = NULL, fill = NULL,
+       title = "Humidity",
+       subtitle = paste(as.character(levs[i]), "hPa")) +
+  facet_wrap(~variable, ncol = 4) +
+  theme_minimal()
+
+
+```
+
+
+
 ```{r}
 files <- Sys.glob("~/datosmunin3/EXP/prueba_abi/ANA/*00/diagfiles/asim_conv*.ensmean")
 

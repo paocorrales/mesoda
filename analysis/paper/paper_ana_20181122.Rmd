@@ -114,7 +114,7 @@ geom_mapa <- function(fill = NA) {
 }
 
 arg_topo <- metR::GetTopography(-75+360, -50+360, -20, -60, resolution = 1/10, 
-                                file.dir = "~/mesoda/analysis/data/derived_data/")
+                                file.dir = here("analysis/data/derived_data/"))
 arg_topo[, lon := metR::ConvertLongitude(lon)]
 
 cordillera <- list(
@@ -169,12 +169,11 @@ multiespectrales <- c("airs_aqua",
                       "iasi_metop-a",
                       "iasi_metop-b")
 
-experiments <- c("E4", "E5", "E6", "E7")
-#Color blind friendly but E4 y E7 parecidos en Desaturated
 colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E9 = "#CC3311") 
-# colores_exp <- c(E4 = "#225555", E5 = "#CCBB44", E6 = "#CC6677", E7 = "#882255")
+
 satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
   setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+
 derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
 
 ```
@@ -425,7 +424,7 @@ fread(here("analysis", "data", "derived_data", "tabla_radianzas.csv")) %>%
 (ref:obs-horizontal) Horizontal spatial distribution of the mean available observations per analysis cycle for the a) CONV, b) AWS, c) SATWND, and d) RAD experiments calculated over 2.5$^{\circ}$ boxes.
 
 ```{r obs-horizontal, fig.cap="(ref:obs-horizontal)", out.width="100%", fig.height=7}
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E2/ANA/*/diagfiles/asim*ensmean")[1:67]
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E2/ANA/*/diagfiles/asim*ensmean")
 
 conv <- read_diag_conv(files, exp = "E2", member = "000") 
 
@@ -439,7 +438,7 @@ conv[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
            lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
 
 
-files <- files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E5/ANA/*/diagfiles/asim*ensmean")[1:67]
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E5/ANA/*/diagfiles/asim*ensmean")[1:67]
 
 aut <- read_diag_conv(files, exp = "E5", member = "000") 
 
@@ -452,7 +451,7 @@ aut[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
   .[, ":="(lon.box = cut_round(lon, breaks = seq(284, 309, 2.5)),
            lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
 
-files <- files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E6/ANA/*/diagfiles/asim*ensmean")[1:67]
+files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E6/ANA/*/diagfiles/asim*ensmean")[1:67]
 
 satwnd <- read_diag_conv(files, exp = "E6", member = "000") 
 
@@ -561,9 +560,6 @@ rbind(conv, aut, satwnd, rad_conv) %>%
                                 E6 = "SATWND", E9 = "RAD")) +
   scale_shape_manual(values = c(15, 16, 17, 18), labels = c(E2 = "CONV", E5 = "AWS", 
                                                             E6 = "SATWND", E9 = "RAD")) +
-  # geom_tile(aes(fill = obs_cycle)) +
-  # scale_fill_viridis_c(option = "D", trans = scales::log10_trans(),
-  #                      guide = guide_colorbar(barheight = NULL)) +
   scale_y_log10() +
   scale_x_reverse() +
   coord_flip() +
@@ -787,7 +783,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
         legend.title = element_text(size = 6),
         tagger.panel.tag.text = element_text(size = 8)) +
   
-  purrr::map(Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/rcrv_*_perfil.csv")[1:6], function(f) {
+  purrr::map(Sys.glob(here("analysis/data/derived_data/rcrv_*_perfil.csv"))[1:6], function(f) {
     meta <- unglue::unglue(basename(f), "rcrv_{sensor}_perfil.csv")
     fread(f) %>%
       .[, sensor := meta[[1]][["sensor"]]]
@@ -839,8 +835,7 @@ Comparing the specific humidity in the experiments (Figures \@ref(fig:TQ-diff)d-
 (ref:TQ-diff) Difference between analysis ensemble mean experiments a) and d) AWS-CONV, b) and e) SATWND-AWS, and c) and f) RAD-SATWND for the spatially averaged vertical profiles of temperature (a, b, and c, in $K$) and specific humidity (d, e, and f in $gkg^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
 
 ```{r TQ-diff, fig.cap="(ref:TQ-diff)", fig.env="figure*", fig.height=5.5, fig.align="center",fig.pos="th"}
-files <- list.files(derived_data, recursive = TRUE, full.names = TRUE,
-                    pattern = "perfiles_ana")
+files <- Sys.glob(paste0(derived_data, "perfiles_ana_E[2,5,6,9].csv"))
 
 perfiles <- purrr::map(files, function(f) {
   exp <- unglue(basename(f), "perfiles_{run}_{exp}.csv")
@@ -1029,7 +1024,7 @@ The analyzed distribution of temperature and moisture in the PBL (Figure \@ref(f
 
 ```{r summary-fields, fig.cap="(ref:summary-fields)", out.width="100%", fig.height=12, fig.width=10.5, fig.env="figure*"}
 
-files <- Sys.glob(paste0(derived_data, "pw/pw_ana_E[2,5,6,9]*"))
+files <- Sys.glob(paste0(derived_data, "pw/pw_ana_E[2,5,6,9]_20181122000000.nc"))
 
 dates <- c("20181122000000")
 
@@ -1191,7 +1186,7 @@ First, we analyze the impact of assimilating different observation types in term
 
 ```{r pp-hov, fig.cap="(ref:pphov)", fig.height=4, fig.env="figure*", fig.pos="h"}
 
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/derived_data/ppacum/E[2569]_ana*_pp_pmm.rds")
+files <- Sys.glob(paste0(derived_data, "ppacum/E[2569]_ana*_pp_pmm.rds"))
 
 ppacum_1h <- purrr::map(files, function(f) {
   
@@ -1204,7 +1199,7 @@ ppacum_1h <- purrr::map(files, function(f) {
   .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] 
 
 
-readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %>% 
+readRDS(here("analysis/data/derived_data/IMERG_1h.rds")) %>% 
   .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
   .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] %>% 
   .[end_date %between% c(as_datetime("20181121180000"), as_datetime("20181123120000"))] %>% 
@@ -1271,7 +1266,7 @@ To quantify the spatial match between the observed precipitation and the short-r
 (ref:fss) FSS calculated over 1-h forecast precipitation accumulated in a 6-hour moving window for 1 mm (a and c) and 25 mm (b and d) thresholds, on 10 km (a and b) and 100 km (c and d) scales, for the first-guess of CONV (blue line), AWS (light blue line), SATWND (orange line) and RAD (red line) experiments.
 
 ```{r fss, fig.cap="(ref:fss)", fig.width=3.5, fig.height=3.5, fig.pos="t"}
-files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_ana_ens_E[2569].csv")
+files <- Sys.glob(here("analysis/data/derived_data/fss_6h_ana_ens_E[2569].csv"))
 
 fss <- purrr::map(files, function(f) {
   
@@ -1337,23 +1332,13 @@ files <- Sys.glob(paste0(derived_data, "dbz/E[29]_ana_", dates, "_dbz_pmm.rds"))
 dbz_ana <- purrr::map(files, function(f){
   
   read_rds(f)
-  
-  # meta <- unglue(basename(f), "maxdbz_ana_{exp}_{date}.nc")
-  # ReadNetCDF(f, vars = c(lon = "XLONG", lat = "XLAT", "max_dbz")) %>% 
-  #   .[, ":="(exp = meta[[1]][["exp"]],
-  #            date = ymd_hms(meta[[1]][["date"]]))] %>% 
-  #   .[, c("x", "y") := wrf_project(lon, lat)] 
+
 }) %>% 
   rbindlist()  %>% 
   .[, run := fifelse(exp == "E9", "RAD", "CONV")] %>%
   .[, ":="(ens_mean = NULL,
            rank = NULL,
            exp = NULL)]
-
-# values <- c(-19.5, -12, -7.5, -3, 1.5, 6, 9, 12, 15, 16.5, 18, 19.5, 21,
-#             22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5,
-#             42, 43.5, 45, 46.5, 48, 49.5, 51, 52.5, 54, 55.5, 57, 58.5, 60,
-#             61.5, 63, 64.5, 66, 69, 76.5)
 
 values <- c(9, 12, 15, 16.5, 18, 19.5, 21,
             22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5,
@@ -1388,7 +1373,6 @@ rbind(dbz_obs, dbz_ana) %>%
                                              title.position = "left", 
                                              title.vjust = 1,
                                              frame.colour = "black")) +
-  # geom_point(data = rad_loc, aes(lon, lat, color = factor(nradar)), size = 2) +
   geom_path(data = rad_loc, aes(lon, lat, group = ID), size = 0.2, color = "grey20") +
   geom_mapa() +
   coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)) +
@@ -1401,7 +1385,6 @@ rbind(dbz_obs, dbz_ana) %>%
   labs(x = NULL, y = NULL, fill = "COLMAX (dBZ)") +
   theme_minimal(base_size = 9) +
   theme(legend.position = "bottom",
-        # axis.text.x = element_blank(),
         plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) 
@@ -1414,7 +1397,7 @@ For IOP 8 (Figures \@ref(fig:soundings)e-h), the densely observed area was behin
 (ref:soundings) RMSE (solid line) and Bias (dashed line) of a) temperature ($K$), b) dew point temperature ($K$), c) u wind ($ms^{-1}$) and d) v wind ($ms^{-1}$) calculated by comparing the analysis of each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8. The blue line corresponds to CONV, the light blue line to AWS, SATWND is represented with an orange line, and RAD with a red line.
 
 ```{r soundings, fig.cap="(ref:soundings)", fig.env="figure*", fig.pos="t", fig.align="center"}
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/derived_data/sondeos/ANA/sondeo_E[2569]_ana*")
+files <- Sys.glob(paste0(derived_data, "sondeos/ANA/sondeo_E[2569]_ana*")
 
 sondeos <- purrr::map(files, function(f){
   
@@ -1468,7 +1451,7 @@ The satellite-derived wind observations show a clearly positive impact on the fo
 
 ```{r fssfcst, fig.cap="(ref:fssfcst)", fig.width=3.5, fig.height=4}
 
-files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_fcst_ens_*_E[2,5,6,9]_ens.csv")
+files <- Sys.glob(here("analysis/data/derived_data/fss_6h_fcst_ens_*_E[2,5,6,9]_ens.csv"))
 
 fss <- purrr::map(files, function(f) {
   

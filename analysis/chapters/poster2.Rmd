@@ -1,0 +1,419 @@
+---
+title: "Poster 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(mesoda)
+library(metR)
+library(tidyverse)
+library(lubridate)
+library(data.table)
+library(here)
+library(patchwork)
+library(unglue)
+library(knitr)
+library(kableExtra)
+
+map <- rnaturalearth::ne_states(country = c("argentina", "Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
+
+
+geom_mapa <- function(fill = NA) {
+  list(geom_sf(data = map, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       # geom_sf(data = map_limitrofes, fill = fill, color = "black", size = 0.1, inherit.aes = FALSE),
+       coord_sf(ylim = c(-42, -19), xlim = c(-76, -50)),
+       scale_x_longitude(ticks = 5),
+       scale_y_latitude(ticks = 5))
+}
+
+arg_topo <- metR::GetTopography(-75+360, -50+360, -20, -60, resolution = 1/10, 
+                                file.dir = "~/mesoda/analysis/data/derived_data/")
+arg_topo[, lon := metR::ConvertLongitude(lon)]
+
+cordillera <- list(
+  ggnewscale::new_scale_fill(),
+  geom_contour_fill(data = arg_topo, aes(x = lon, y = lat,
+                                         z = h),
+                    breaks = seq(1500, 8000, by = 700)),
+  scale_fill_gradient(low = "#E2E6E6", high = "#7E7E7E", guide = "none",
+                      oob = scales::squish))
+
+scale_date <- function(ini = 20181120180000, end = 20181123120000,
+                       break_bin = "6 hour") {
+  scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin),
+                   labels = function(x) {
+                     fifelse(hour(x) == 0, format(x, "%H UTC\n%b %d"), format(x, "%H"))
+                   }) 
+}
+
+experiments <- c("E4", "E5", "E6", "E7")
+colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E8 = "#CC3311") 
+
+satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
+```
+
+
+## Analysis
+
+```{r summary-fields}
+
+files <- Sys.glob(paste0(derived_data, "pw/pw_2*"))
+
+dates <- c("20181122000000", "20181122060000")
+
+pw <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "pw_{date}_{exp}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "pw", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      .[]
+  }
+}) %>% 
+  rbindlist() %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)]
+
+files <- c(Sys.glob(paste0(derived_data, "mucape/mcape_ana_E[2,5,6,8]_20181122000000.nc")),
+           Sys.glob(paste0(derived_data, "mucape/mcape_ana_E[2,5,6,8]_20181122060000.nc")))
+
+mucape <- purrr::map(files, function(f) {
+  details <- unglue::unglue(basename(f), "mcape_ana_{exp}_{date}.nc")[[1]]
+  
+  if (details$date %in% dates) {
+    
+    ReadNetCDF(f, vars = c(value = "cape_2d", lon = "XLONG", lat = "XLAT")) %>% 
+      .[, `:=`(exp = details$exp, 
+               date = lubridate::ymd_hms(details$date))] %>%
+      setnames(old = "mcape_mcin_lcl_lfc", new = "variable") %>% 
+      .[]
+  }
+}) %>% 
+  rbindlist() 
+
+
+
+fcsts <- expand_grid(fcsts = c("20181122000000", "20181122060000"),
+                     exp = c("E2", "E5", "E6", "E8"))
+
+ana <- lapply(seq_len(nrow(fcsts)), function(f) {
+  
+  tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
+    .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
+    .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>%     .[, date :=  ymd_hms(fcsts[f, 1])] %>% 
+    .[, exp := fcsts[f, 2]] %>%  
+    .[]
+}) %>% 
+  rbindlist() 
+
+cor <- ana[bottom_top %in% c(1, 16)] %>% 
+  dcast(date + exp + south_north + west_east ~ bottom_top, value.var = c("u", "v")) %>% 
+  .[, cortante := Mag(u_16 - u_1, v_16 - v_1)] %>% 
+  .[, ":="(u_1 = NULL, 
+           u_16 = NULL,
+           v_1 = NULL,
+           v_16 = NULL)]
+
+ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)), 
+    by = .(south_north, west_east, date, exp)] %>% 
+  .[pw, on = .NATURAL] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)),
+                    proj = norargentina_lambert) +
+  colorspace::scale_fill_continuous_divergingx(super = ScaleDiscretised,
+                                               palette = "PRGn", mid = 25,
+                                               guide = guide_colorsteps(barwidth = 25,
+                                                                        barheight = 0.5, 
+                                                                        title.position = "left", 
+                                                                        title.vjust = 1,
+                                                                        frame.colour = "black")) +
+  geom_contour2(aes(z = v_mean, size = stat(level)),
+                proj = norargentina_lambert, color = "black", 
+                breaks = c(-10, -5)) +
+  scale_size_continuous(breaks = c(-10, -5), range = c(0.8, 0.4),
+                        labels = c("-10", "-5")) +
+  labs(fill = latex2exp::TeX("Precipitable\nwater ($Kgm^{-2}$)"), size = latex2exp::TeX("V ($ms^{-1})")) +
+  cordillera +
+  geom_mapa() +
+  facet_grid(date ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E8 = "RAD"),
+                                 date = c("2018-11-22 00:00:00" = "00 UTC", "2018-11-22 06:00:00" = "06 UTC"))) +
+  theme_minimal(base_size = 16) +
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 10),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+
+ggsave("pw_ana.png", width = 30, height = 20, units = "cm")
+
+mucape %>% 
+  .[variable == "mcape"] %>% 
+  .[, c("x", "y") := wrf_project(lon, lat)] %>% 
+  .[cor, on = .NATURAL] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = value, fill = stat(level_d)), 
+                    proj = norargentina_lambert, limits = c(500, 6000)) +
+  scale_fill_distiller(super = ScaleDiscretised,
+                       palette = "YlOrRd", direction = 1,
+                       labels = function(x) JumpBy(x, 2, fill = ""),
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.5, 
+                                                title.position = "left", 
+                                                title.vjust = 1,
+                                                frame.colour = "black")) +
+  geom_contour2(aes(z = cortante, size = stat(level)),
+                proj = norargentina_lambert, color = "black", 
+                breaks = c(15, 30)) +
+  scale_size_continuous(breaks = c(15, 30), range = c(0.8, 0.4),
+                        labels = c("15", "30")) +
+  labs(fill = latex2exp::TeX("MCAPE ($JKg^{-1}$)"), size = latex2exp::TeX("Wind\nshear ($ms^{-1}$)")) +
+  cordillera +
+  geom_mapa() +
+  facet_grid(date ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                         E6 = "SATWND", E8 = "RAD"),
+                                 date = c("2018-11-22 00:00:00" = "00 UTC", "2018-11-22 06:00:00" = "06 UTC"))) +
+  theme_minimal(base_size = 16) +
+  theme(legend.position = "bottom",
+        axis.text = element_text(size = 10),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+
+ggsave("mcape_ana.png", width = 30, height = 20, units = "cm")
+```
+## Pronóstico
+
+```{r}
+files <- Sys.glob("/home/paola.corrales/mesoda/analysis/data/derived_data/fss_6h_fcst_ens_*_E[2,5,6,8]_ens.csv")
+
+fss <- purrr::map(files, function(f) {
+  
+  meta <- unglue(basename(f), "fss_6h_fcst_ens_{ini_date}_{exp}_ens.csv")
+  
+  fread(f) %>% 
+    .[, date := as_datetime(date)] %>% 
+    .[, ini_date := ymd_h(meta[[1]][["ini_date"]])]
+}) %>% 
+  rbindlist()
+
+fss %>% 
+  .[w %in% c(1, 11) & q %in% c(5, 25) & exp %in% c("E2", "E5", "E6", "E8")] %>% 
+  ggplot(aes(date, fss)) +
+  geom_hline(yintercept = 1, color = "darkgray") +
+  geom_line(aes(color = exp, linetype = factor(ini_date))) +
+  geom_vline(xintercept = c(as_datetime("2018-11-22 14:00:00"), as_datetime("2018-11-23 06:00:00")), 
+             size = 0.5,
+             color = "darkgrey") +
+  # geom_point(aes(color = exp)) +
+  scale_color_manual(values = colores_exp, labels = c(E2 = "CONV", E5 = "AUT", 
+                                                      E6 = "SATWND", E8 = "RAD")) +
+  scale_linetype_discrete(labels = c("2018-11-22 00:00:00" = "00 UTC", "2018-11-22 06:00:00" = "06 UTC")) +
+  scale_date(20181122000000, 20181123120000, "12 hours") +
+  facet_grid(w~q, labeller = labeller(q = c("1" = "1 mm", "5" = "5 mm", 
+                                            "10" = "10 mm", "25" = "25 mm"),
+                                      w = c("1" = "10 km", "5" = "50 km", 
+                                            "11" = "100 km", 
+                                            "51" = "500 km", "101" = "1000 km"))) +
+  labs(color = NULL, x = NULL, y = "FSS", linetype = NULL) +
+  theme_minimal()
+
+ggsave("fss2.png", width = 15, height = 10, unit = "cm")
+```
+
+
+```{r}
+
+values <- c(-19.5, -12, -7.5, -3, 1.5, 6, 9, 12, 15, 16.5, 18, 19.5, 21, 
+            22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 
+            42, 43.5, 45, 46.5, 48, 49.5, 51, 52.5, 54, 55.5, 57, 58.5, 60, 
+            61.5, 63, 64.5, 66, 69, 76.5)
+
+colours <- c("#3D4170", "#3D4E7C", "#3B5B84", "#3A6695", "#3672A4", "#3188BD", 
+             "#2F89B9", "#2896C7", "#24A4CF", "#2AB1D6", "#53F336", "#4BE231", 
+             "#44D12F", "#3FC12B", "#3AAF25", "#32A11F", "#2C881E", "#227216", 
+             "#EEEF39", "#DEE539", "#D7DA35", "#CED130", "#C4C52B", "#CBAE1F", 
+             "#D59716", "#DB8116", "#EC0A2E", "#CB001A", "#C20013", "#B10009", 
+             "#990000", "#C3005D", "#D600A2", "#E901E9", "#CC00CC", "#B100B5", 
+             "#9800A0", "#FEFFFF", "#DFF5EC", "#C5F1E0", "#B7ECD8", "#A6ECCF", 
+             "#95E3C5", "#85E0BD")
+
+coord <- ReadNetCDF("~/datosmunin3/EXP/E2/FCST/2018112200/NPP/NPP_2018-11-22_00_FC14.nc", vars = c("XLAT", "XLONG")) 
+
+# files <- c(Sys.glob("~/datosmunin3/EXP/E[2,5,6,8]/FCST/201811220*/NPP/NPP_2018-11-22_00_FC14.nc"),
+#            Sys.glob("~/datosmunin3/EXP/E[2,5,6,8]/FCST/201811220*/NPP/NPP_2018-11-22_06_FC08.nc"))
+# 
+# pp <- purrr::map_df(files, function(f) {
+#   
+#   d <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/{exp}/FCST/{ini_date}/NPP/NPP_2018-11-22_{other}_FC{val_date}.nc")
+#   
+#   ReadNetCDF(f, vars = "PP") %>% 
+#     .[, .(PP = mean(PP)), by = .(lon, lat)] %>%
+#     .[, ":="(fecha_ini = d[[1]][["ini_date"]],
+#              hora_val = d[[1]][["val_date"]],
+#              exp = d[[1]][["exp"]])]
+#   
+# }) %>% 
+#   coord[., on = .NATURAL] %>% 
+#   .[, ":="(lon = XLONG, lat = XLAT)] %>% 
+#   .[, ":="(XLONG = NULL, XLAT = NULL)] %>% 
+#   .[, c("x", "y") := wrf_project(lon, lat)] 
+
+files <- Sys.glob("~/datosmunin3/EXP/derived_data/ppacum/E[2,5,6,8]_fcst_201811220[0,6]_mean_acum_1h.rds")
+
+pp <- map_df(files, function(f) { 
+  
+  d <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/derived_data/ppacum/{exp}_fcst_{ini_date}_mean_acum_1h.rds")
+  
+  if (d[[1]][["exp"]] %in% c("E2", "E8")) { 
+    
+    read_rds(f) %>% 
+      .[, ":="(fecha_ini = d[[1]][["ini_date"]],
+               lead_time = date)] 
+    
+  } else { 
+    read_rds(f) %>% 
+      .[, ":="(fecha_ini = d[[1]][["ini_date"]],
+               date = lead_time)] 
+    
+  }
+  
+  
+}) %>% 
+  .[lead_time %in% c(as_datetime("20181122140000"), as_datetime("20181123060000"))]
+
+pp %>%  
+  # .[lead_time == as_datetime("20181123060000")] %>%
+  .[, lead_time := factor(lead_time)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level)),  breaks = c(seq(1, 45, 5), Inf),
+                    proj = norargentina_lambert) +
+  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(1, 45, 5)) +
+  scale_fill_distiller(palette = "YlGnBu",
+                       direction = 1,, 
+                       labels = function(x) JumpBy(x, 3, fill = ""),
+                       super = ScaleDiscretised,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.4, 
+                                                title.position = "left", 
+                                                title.vjust = 1,
+                                                frame.colour = "black")) +
+  geom_mapa() +
+  # coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)) +
+  # scale_x_longitude(ticks = 5, labels = NULL) +
+  labs(x = NULL, y = NULL, fill = "COLMAX (dBZ)") +
+  facet_grid(lead_time + fecha_ini ~ exp, labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", 
+                                                                      E6 = "SATWND", E8 = "RAD"),
+                                                              fecha_ini = c("2018112200" = "00 UTC", "2018112206" = "06 UTC"))) +
+  theme_minimal(base_size = 9) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_blank(),
+        plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+
+obs_pp <- readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %>% 
+  .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
+  .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000) & 
+      end_date %in% c(as_datetime("20181122140000"), as_datetime("20181123060000"))] 
+
+obs_pp %>% 
+  .[, end_date := factor(end_date)] %>% 
+  # .[end_date == as_datetime("20181122140000")] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = pp_acum, fill = stat(level)),  breaks = c(seq(1, 45, 5), Inf),
+                    proj = norargentina_lambert) +
+  geom_contour2(aes(z = pp_acum), color = "black", size = 0.02, breaks = seq(1, 45, 5)) +
+  scale_fill_distiller(palette = "YlGnBu",
+                       direction = 1,, 
+                       labels = function(x) JumpBy(x, 3, fill = ""),
+                       super = ScaleDiscretised,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.4, 
+                                                title.position = "left", 
+                                                title.vjust = 1,
+                                                frame.colour = "black")) +
+  geom_mapa() +
+  facet_wrap(~end_date) +
+  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Acumulated\nprecipitation ($mmh^{-1}$)")) +
+  theme_minimal(base_size = 9) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_blank(),
+        plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+```
+
+```{r}
+files <- Sys.glob("~/datosmunin3/EXP/derived_data/ppacum/E[2,5,6,8]_fcst_201811220[0,6]_prop_acum_1h.rds")
+
+pp <- map_df(files, function(f) { 
+  
+  d <- unglue(f, "/home/paola.corrales/datosmunin3/EXP/derived_data/ppacum/{exp}_fcst_{ini_date}_prop_acum_1h.rds")
+  
+  if (d[[1]][["exp"]] %in% c("E2", "E8")) { 
+    
+    read_rds(f) %>% 
+      .[, ":="(fecha_ini = d[[1]][["ini_date"]],
+               lead_time = date)] 
+    
+  } else { 
+    read_rds(f) %>% 
+      .[, ":="(fecha_ini = d[[1]][["ini_date"]],
+               exp = d[[1]][["exp"]],
+               date = lead_time)] 
+    
+  }
+  
+  
+}) %>% 
+  .[lead_time %in% c(as_datetime("20181122140000"), as_datetime("20181123060000"))]
+
+obs_pp <- readRDS("/home/paola.corrales/mesoda/analysis/data/derived_data/IMERG_1h.rds") %>% 
+  .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
+  .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000) & 
+      end_date %in% c(as_datetime("20181122140000"), as_datetime("20181123060000"))] 
+
+pp %>%  
+  # .[lead_time == as_datetime("20181123060000")] %>%
+  .[umbral == 5] %>% 
+  .[, lead_time := factor(lead_time)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = prop*100, fill = stat(level)),  breaks = seq(10, 100, 10),
+                    proj = norargentina_lambert) +
+  scale_fill_distiller(palette = "Spectral",
+                       direction = -1,
+                       labels = function(x) JumpBy(x, 1, fill = ""),
+                       super = ScaleDiscretised,
+                       guide = guide_colorsteps(barwidth = 25,
+                                                barheight = 0.4,
+                                                title.position = "left",
+                                                title.vjust = 1,
+                                                frame.colour = "black")) +
+  geom_contour2(data = obs_pp %>% .[, lead_time := end_date], aes(z = pp_acum), color = "red", size = 0.2, 
+                breaks = c(5),
+                proj = norargentina_lambert) +
+  geom_mapa() +
+  # coord_sf(ylim = c(-42, -19), xlim = c(-76, -51)) +
+  # scale_x_longitude(ticks = 5, labels = NULL) +
+  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Probability of 5 $mmh^{-1}$\n precipitation")) +
+  facet_grid(lead_time + fecha_ini ~ exp, 
+             labeller = labeller(exp = c(E2 = "CONV", E5 = "AUT", E6 = "SATWND", E8 = "RAD"),
+                                 fecha_ini = c("2018112200" = "FCST: 00 UTC", "2018112206" = " FCST: 06 UTC"),
+                                 lead_time = c("2018-11-22 14:00:00" = "11/22 14:00", "2018-11-23 06:00:00" = "11/23 06:00"))) +
+  theme_minimal(base_size = 9) +
+  theme(legend.position = "bottom",
+        plot.margin = margin(t = 0, r = 0, b = 0, l = 0, unit = "pt"),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) 
+
+ggsave("pp.png", width = 20, height = 20, units = "cm")
+```
+
