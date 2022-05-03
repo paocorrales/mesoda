@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2018.11.2)  10 APR 2022 19:20
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016/Debian) (preloaded format=pdflatex 2018.11.2)  2 MAY 2022 21:42
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1447,66 +1447,66 @@ LaTeX Info: Redefining \nameref on input line 78.
 \@outlinefile=\write4
 \openout4 = `paper_ana_20181122.out'.
 
-LaTeX Font Info:    Try loading font information for OT1+lmr on input line 113.
+LaTeX Font Info:    Try loading font information for OT1+lmr on input line 116.
 
 (/usr/share/texmf/tex/latex/lm/ot1lmr.fd
 File: ot1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OML+lmm on input line 113.
+LaTeX Font Info:    Try loading font information for OML+lmm on input line 116.
 
 (/usr/share/texmf/tex/latex/lm/omllmm.fd
 File: omllmm.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 113
+LaTeX Font Info:    Try loading font information for OMS+lmsy on input line 116
 .
 (/usr/share/texmf/tex/latex/lm/omslmsy.fd
 File: omslmsy.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
-LaTeX Font Info:    Try loading font information for OMX+lmex on input line 113
+LaTeX Font Info:    Try loading font information for OMX+lmex on input line 116
 .
 (/usr/share/texmf/tex/latex/lm/omxlmex.fd
 File: omxlmex.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10> on input line 113.
+(Font)              <10> on input line 116.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <7> on input line 113.
+(Font)              <7> on input line 116.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <5> on input line 113.
-LaTeX Font Info:    Try loading font information for OT1+txr on input line 113.
+(Font)              <5> on input line 116.
+LaTeX Font Info:    Try loading font information for OT1+txr on input line 116.
 
 (/usr/share/texlive/texmf-dist/tex/latex/txfonts/ot1txr.fd
 File: ot1txr.fd 2000/12/15 v3.1
 ) (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-ptm.cfg
 File: mt-ptm.cfg 2006/04/20 v1.7 microtype config. file: Times (RS)
 )
-LaTeX Font Info:    Try loading font information for U+txmia on input line 113.
+LaTeX Font Info:    Try loading font information for U+txmia on input line 116.
 
 (/usr/share/texlive/texmf-dist/tex/latex/txfonts/utxmia.fd
 File: utxmia.fd 2000/12/15 v3.1
 )
-LaTeX Font Info:    Try loading font information for U+msa on input line 113.
+LaTeX Font Info:    Try loading font information for U+msa on input line 116.
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 ) (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 113.
+LaTeX Font Info:    Try loading font information for U+msb on input line 116.
 (/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) (/usr/share/texlive/texmf-dist/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-LaTeX Font Info:    Try loading font information for U+txsyc on input line 113.
+LaTeX Font Info:    Try loading font information for U+txsyc on input line 116.
 
 (/usr/share/texlive/texmf-dist/tex/latex/txfonts/utxsyc.fd
 File: utxsyc.fd 2000/12/15 v3.1
 )
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 113.
+(Font)              <8> on input line 116.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 113.
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 113.
+(Font)              <6> on input line 116.
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 116.
 
 (/usr/share/texmf/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
@@ -1515,191 +1515,200 @@ Package microtype Info: Loading generic settings for font family
 (microtype)             `lmtt' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
 [1{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}
 
 
-] [2] <../figures/dominio-1.png, id=118, 469.755pt x 325.215pt>
+]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+[2] <../figures/dominio-1.png, id=120, 469.755pt x 325.215pt>
 File: ../figures/dominio-1.png Graphic file (type png)
 <use ../figures/dominio-1.png>
-Package pdftex.def Info: ../figures/dominio-1.png used on input line 172.
+Package pdftex.def Info: ../figures/dominio-1.png used on input line 174.
 (pdftex.def)             Requested size: 252.0pt x 174.4622pt.
-[3]
-Underfull \vbox (badness 2828) has occurred while \output is active []
-
-
-Overfull \hbox (4.44493pt too wide) in paragraph at lines 207--207
-[]|\T1/lmr/m/n/6 Temperature|  
- []
-
-
-Overfull \hbox (4.44493pt too wide) in paragraph at lines 215--215
-[]|\T1/lmr/m/n/6 Temperature|  
- []
-
-
-Overfull \hbox (5.19997pt too wide) in paragraph at lines 219--219
-[]|\T1/lmr/m/n/6 ADPUPA|  
- []
-
-
-Overfull \hbox (6.7112pt too wide) in paragraph at lines 219--219
-[]|\T1/lmr/m/n/6 Radiosondes|  
- []
-
-
-Overfull \hbox (4.44493pt too wide) in paragraph at lines 221--221
-[]|\T1/lmr/m/n/6 Temperature|  
- []
-
-
-Overfull \hbox (2.63301pt too wide) in paragraph at lines 223--223
-[]|\T1/lmr/m/n/6 AIRCFT|  
- []
-
-
-Overfull \hbox (6.32727pt too wide) in paragraph at lines 225--225
-[]|\T1/lmr/m/n/6 ASCATW|  
- []
-
-
-Overfull \hbox (4.44493pt too wide) in paragraph at lines 229--229
-[]|\T1/lmr/m/n/6 Temperature|  
- []
-
-
-Overfull \hbox (2.47746pt too wide) in paragraph at lines 233--233
-[]|\T1/lmr/m/n/6 SFCSHP|  
- []
-
-
-Overfull \hbox (6.59978pt too wide) in paragraph at lines 235--235
-[]|\T1/lmr/m/n/6 SATWND|  
- []
-
-
-Overfull \hbox (5.99655pt too wide) in paragraph at lines 201--241
- [][] 
- []
-
-[4pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) 
+[3pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) 
 has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.248 
-      pdfTeX warning (ext4): destination with the same identifier (name{table.1
-}) has been already used, duplicate ignored
+l.184 
+       <../figures/dominio-1.png (PNG copy)>]
+Overfull \hbox (4.44493pt too wide) in paragraph at lines 209--209
+[]|\T1/lmr/m/n/6 Temperature|  
+ []
+
+
+Overfull \hbox (4.44493pt too wide) in paragraph at lines 217--217
+[]|\T1/lmr/m/n/6 Temperature|  
+ []
+
+
+Overfull \hbox (5.19997pt too wide) in paragraph at lines 221--221
+[]|\T1/lmr/m/n/6 ADPUPA|  
+ []
+
+
+Overfull \hbox (6.7112pt too wide) in paragraph at lines 221--221
+[]|\T1/lmr/m/n/6 Radiosondes|  
+ []
+
+
+Overfull \hbox (4.44493pt too wide) in paragraph at lines 223--223
+[]|\T1/lmr/m/n/6 Temperature|  
+ []
+
+
+Overfull \hbox (2.63301pt too wide) in paragraph at lines 225--225
+[]|\T1/lmr/m/n/6 AIRCFT|  
+ []
+
+
+Overfull \hbox (6.32727pt too wide) in paragraph at lines 227--227
+[]|\T1/lmr/m/n/6 ASCATW|  
+ []
+
+
+Overfull \hbox (4.44493pt too wide) in paragraph at lines 231--231
+[]|\T1/lmr/m/n/6 Temperature|  
+ []
+
+
+Overfull \hbox (2.47746pt too wide) in paragraph at lines 235--235
+[]|\T1/lmr/m/n/6 SFCSHP|  
+ []
+
+
+Overfull \hbox (6.59978pt too wide) in paragraph at lines 237--237
+[]|\T1/lmr/m/n/6 SATWND|  
+ []
+
+
+Overfull \hbox (5.99655pt too wide) in paragraph at lines 203--243
+ [][] 
+ []
+
+
+Underfull \vbox (badness 1117) has occurred while \output is active []
+
+[4pdfTeX warning (ext4): destination with the same identifier (name{table.1}) h
+as been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.248 
-       <../figures/dominio-1.png (PNG copy)>]
-LaTeX Font Info:    Try loading font information for TS1+lmr on input line 257.
+l.252 
+      ]
+LaTeX Font Info:    Try loading font information for TS1+lmr on input line 259.
 
 (/usr/share/texmf/tex/latex/lm/ts1lmr.fd
 File: ts1lmr.fd 2009/10/30 v1.6 Font defs for Latin Modern
-) <../figures/obs-horizontal-1.png, id=151, 469.755pt x 505.89pt>
+) <../figures/obs-horizontal-1.png, id=152, 469.755pt x 505.89pt>
 File: ../figures/obs-horizontal-1.png Graphic file (type png)
 <use ../figures/obs-horizontal-1.png>
-Package pdftex.def Info: ../figures/obs-horizontal-1.png used on input line 292
+Package pdftex.def Info: ../figures/obs-horizontal-1.png used on input line 294
 .
 (pdftex.def)             Requested size: 252.0pt x 271.38565pt.
-<../figures/obs-cycle-1.png, id=152, 505.89pt x 252.945pt>
+<../figures/obs-cycle-1.png, id=153, 505.89pt x 252.945pt>
 File: ../figures/obs-cycle-1.png Graphic file (type png)
 <use ../figures/obs-cycle-1.png>
-Package pdftex.def Info: ../figures/obs-cycle-1.png used on input line 298.
+Package pdftex.def Info: ../figures/obs-cycle-1.png used on input line 300.
 (pdftex.def)             Requested size: 505.88875pt x 252.94438pt.
+
+Underfull \vbox (badness 3209) has occurred while \output is active []
+
 [5pdfTeX warning (ext4): destination with the same identifier (name{table.2}) h
 as been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.305 
-      pdfTeX warning (ext4): destination with the same identifier (name{figure.
-2}) has been already used, duplicate ignored
+l.315 \end{itemize}
+                   pdfTeX warning (ext4): destination with the same identifier 
+(name{figure.2}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.305 
-       <../figures/obs-horizontal-1.png (PNG copy)>] [6pdfTeX warning (ext4): d
-estination with the same identifier (name{figure.3}) has been already used, dup
-licate ignored
-
-\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
-                                                  \fi \fi 
-l.321 
-       <../figures/obs-cycle-1.png (PNG copy)>]
-Overfull \hbox (4.4pt too wide) in paragraph at lines 339--339
+l.315 \end{itemize}
+                    <../figures/obs-horizontal-1.png (PNG copy)>]
+Overfull \hbox (4.4pt too wide) in paragraph at lines 341--341
  []\T1/lmr/m/n/10 (-20) CONV| 
  []
 
 
-Overfull \hbox (13.94725pt too wide) in paragraph at lines 339--339
+Overfull \hbox (13.94725pt too wide) in paragraph at lines 341--341
  []\T1/lmr/m/n/10 (-20) SATWND| 
  []
 
 
-</home/paola.corrales/mesoda/analysis/figures/analysis_cycle.png, id=181, 963.6
+</home/paola.corrales/mesoda/analysis/figures/analysis_cycle.png, id=175, 963.6
 pt x 542.025pt>
 File: /home/paola.corrales/mesoda/analysis/figures/analysis_cycle.png Graphic f
 ile (type png)
 <use /home/paola.corrales/mesoda/analysis/figures/analysis_cycle.png>
 Package pdftex.def Info: /home/paola.corrales/mesoda/analysis/figures/analysis_
-cycle.png used on input line 345.
+cycle.png used on input line 347.
 (pdftex.def)             Requested size: 252.0pt x 141.75023pt.
-[7pdfTeX warning (ext4): destination with the same identifier (name{table.3}) h
-as been already used, duplicate ignored
+[6pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) 
+has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.381 
+l.356 
+       <../figures/obs-cycle-1.png (PNG copy)>] [7pdfTeX warning (ext4): destin
+ation with the same identifier (name{table.3}) has been already used, duplicate
+ ignored
+
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.383 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.
 4}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.381 
+l.383 
        </home/paola.corrales/mesoda/analysis/figures/analysis_cycle.png (PNG co
-py)>] <../figures/rcrv-sfc-1.png, id=195, 469.755pt x 361.35pt>
+py)>] <../figures/rcrv-sfc-1.png, id=197, 469.755pt x 361.35pt>
 File: ../figures/rcrv-sfc-1.png Graphic file (type png)
 <use ../figures/rcrv-sfc-1.png>
-Package pdftex.def Info: ../figures/rcrv-sfc-1.png used on input line 407.
+Package pdftex.def Info: ../figures/rcrv-sfc-1.png used on input line 409.
 (pdftex.def)             Requested size: 252.0pt x 193.84691pt.
-<../figures/rcrv-profile-1.png, id=196, 505.89pt x 252.945pt>
+<../figures/rcrv-profile-1.png, id=198, 505.89pt x 252.945pt>
 File: ../figures/rcrv-profile-1.png Graphic file (type png)
 <use ../figures/rcrv-profile-1.png>
-Package pdftex.def Info: ../figures/rcrv-profile-1.png used on input line 413.
+Package pdftex.def Info: ../figures/rcrv-profile-1.png used on input line 415.
 (pdftex.def)             Requested size: 505.88875pt x 252.94438pt.
 [8pdfTeX warning (ext4): destination with the same identifier (name{figure.5}) 
 has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.421 
+l.423 
        <../figures/rcrv-sfc-1.png (PNG copy)>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-<../figures/TQ-diff-1.png, id=217, 469.755pt x 397.485pt>
+<../figures/TQ-diff-1.png, id=220, 469.755pt x 397.485pt>
 File: ../figures/TQ-diff-1.png Graphic file (type png)
 <use ../figures/TQ-diff-1.png>
-Package pdftex.def Info: ../figures/TQ-diff-1.png used on input line 428.
+Package pdftex.def Info: ../figures/TQ-diff-1.png used on input line 430.
 (pdftex.def)             Requested size: 469.75386pt x 397.48402pt.
 
-Underfull \vbox (badness 6526) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 [9pdfTeX warning (ext4): destination with the same identifier (name{figure.6}) 
 has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.436 
+l.438 
        <../figures/rcrv-profile-1.png (PNG copy)>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
-<../figures/UV-diff-1.png, id=232, 469.755pt x 397.485pt>
+<../figures/UV-diff-1.png, id=238, 469.755pt x 397.485pt>
 File: ../figures/UV-diff-1.png Graphic file (type png)
 <use ../figures/UV-diff-1.png>
-Package pdftex.def Info: ../figures/UV-diff-1.png used on input line 443.
+Package pdftex.def Info: ../figures/UV-diff-1.png used on input line 445.
 (pdftex.def)             Requested size: 469.75386pt x 397.48402pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -1709,7 +1718,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.451 
+l.453 
        <../figures/TQ-diff-1.png (PNG copy)>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -1718,68 +1727,75 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.453 
+l.455 
        <../figures/UV-diff-1.png (PNG copy)>] <../figures/summary-fields-1.png,
- id=249, 758.835pt x 867.24pt>
+ id=255, 758.835pt x 867.24pt>
 File: ../figures/summary-fields-1.png Graphic file (type png)
 <use ../figures/summary-fields-1.png>
-Package pdftex.def Info: ../figures/summary-fields-1.png used on input line 457
+Package pdftex.def Info: ../figures/summary-fields-1.png used on input line 459
 .
 (pdftex.def)             Requested size: 522.0pt x 596.58334pt.
-<../figures/pp-hov-1.png, id=254, 469.755pt x 289.08pt>
+<../figures/pp-hov-1.png, id=260, 469.755pt x 289.08pt>
 File: ../figures/pp-hov-1.png Graphic file (type png)
 <use ../figures/pp-hov-1.png>
-Package pdftex.def Info: ../figures/pp-hov-1.png used on input line 468.
+Package pdftex.def Info: ../figures/pp-hov-1.png used on input line 470.
 (pdftex.def)             Requested size: 469.75386pt x 289.07928pt.
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-<../figures/fss-1.png, id=256, 252.945pt x 252.945pt>
+<../figures/fss-1.png, id=263, 252.945pt x 252.945pt>
 File: ../figures/fss-1.png Graphic file (type png)
 <use ../figures/fss-1.png>
-Package pdftex.def Info: ../figures/fss-1.png used on input line 477.
+Package pdftex.def Info: ../figures/fss-1.png used on input line 479.
 (pdftex.def)             Requested size: 252.94438pt x 252.94438pt.
 
-Overfull \hbox (0.94438pt too wide) in paragraph at lines 477--478
+Overfull \hbox (0.94438pt too wide) in paragraph at lines 479--480
  [][] 
  []
+
+<../figures/dbz-mean-1.png, id=271, 578.16pt x 469.755pt>
+File: ../figures/dbz-mean-1.png Graphic file (type png)
+<use ../figures/dbz-mean-1.png>
+Package pdftex.def Info: ../figures/dbz-mean-1.png used on input line 492.
+(pdftex.def)             Requested size: 522.0pt x 424.14467pt.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
 
 [12] [13pdfTeX warning (ext4): destination with the same identifier (name{figur
 e.9}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.486 
-       <../figures/summary-fields-1.png (PNG copy)>] <../figures/dbz-mean-1.png
-, id=280, 578.16pt x 469.755pt>
-File: ../figures/dbz-mean-1.png Graphic file (type png)
-<use ../figures/dbz-mean-1.png>
-Package pdftex.def Info: ../figures/dbz-mean-1.png used on input line 490.
-(pdftex.def)             Requested size: 522.0pt x 424.14467pt.
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
+l.496 
+       <../figures/summary-fields-1.png (PNG copy)>] <../figures/soundings-1.pn
+g, id=291, 469.755pt x 325.215pt>
+File: ../figures/soundings-1.png Graphic file (type png)
+<use ../figures/soundings-1.png>
+Package pdftex.def Info: ../figures/soundings-1.png used on input line 501.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [14pdfTeX warning (ext4): destination with the same identifier (name{figure.10}
 ) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.494 
+l.514 
       pdfTeX warning (ext4): destination with the same identifier (name{figure.
 11}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.494 
+l.514 
        <../figures/pp-hov-1.png (PNG copy)> <../figures/fss-1.png (PNG copy)>] 
-<../figures/soundings-1.png, id=286, 469.755pt x 325.215pt>
-File: ../figures/soundings-1.png Graphic file (type png)
-<use ../figures/soundings-1.png>
-Package pdftex.def Info: ../figures/soundings-1.png used on input line 499.
-(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+<../figures/fssfcst-1.png, id=301, 252.945pt x 289.08pt>
+File: ../figures/fssfcst-1.png Graphic file (type png)
+<use ../figures/fssfcst-1.png>
+Package pdftex.def Info: ../figures/fssfcst-1.png used on input line 519.
+(pdftex.def)             Requested size: 252.94438pt x 289.07928pt.
+
+Overfull \hbox (0.94438pt too wide) in paragraph at lines 519--520
+ [][] 
+ []
+
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -1788,17 +1804,9 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.512 
-       <../figures/dbz-mean-1.png (PNG copy)>] <../figures/fssfcst-1.png, id=29
-6, 252.945pt x 289.08pt>
-File: ../figures/fssfcst-1.png Graphic file (type png)
-<use ../figures/fssfcst-1.png>
-Package pdftex.def Info: ../figures/fssfcst-1.png used on input line 517.
-(pdftex.def)             Requested size: 252.94438pt x 289.07928pt.
-
-Overfull \hbox (0.94438pt too wide) in paragraph at lines 517--518
- [][] 
- []
+l.529 
+       <../figures/dbz-mean-1.png (PNG copy)>]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -1808,102 +1816,102 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.529 
+l.533 
        <../figures/soundings-1.png (PNG copy)>] [17pdfTeX warning (ext4): desti
 nation with the same identifier (name{figure.14}) has been already used, duplic
 ate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.535 
+l.553 
        <../figures/fssfcst-1.png (PNG copy)>]
-Underfull \hbox (badness 2229) in paragraph at lines 567--569
+Underfull \hbox (badness 2229) in paragraph at lines 572--574
 [][]\T1/lmr/m/n/10 (+20) Chang, W., Jacques, D., Fil-lion, L., Baek, S.-
  []
 
 
-Underfull \hbox (badness 2903) in paragraph at lines 567--569
+Underfull \hbox (badness 2903) in paragraph at lines 572--574
 \T1/lmr/m/n/10 (+20) J., 2017. As-sim-i-la-tion of Hourly Sur-face Ob-ser-
  []
 
 
-Underfull \hbox (badness 2478) in paragraph at lines 567--569
+Underfull \hbox (badness 2478) in paragraph at lines 572--574
 \T1/lmr/m/n/10 (+20) va-tions with the Cana-dian High-Resolution En-sem-
  []
 
 
-Underfull \hbox (badness 6978) in paragraph at lines 570--572
+Underfull \hbox (badness 6978) in paragraph at lines 575--577
 [][]\T1/lmr/m/n/10 (+20) Chen, F., Dud-hia, J., 2001. Cou-pling an
  []
 
 
-Underfull \hbox (badness 2343) in paragraph at lines 570--572
+Underfull \hbox (badness 2343) in paragraph at lines 575--577
 \T1/lmr/m/n/10 (+20) Ad-vanced Land Surface--Hydrology Model with the
  []
 
 
-Underfull \hbox (badness 2393) in paragraph at lines 570--572
+Underfull \hbox (badness 2393) in paragraph at lines 575--577
 \T1/lmr/m/n/10 (+20) Penn State--NCAR MM5 Mod-el-ing Sys-tem. Part
  []
 
 
-Underfull \hbox (badness 1253) in paragraph at lines 570--572
+Underfull \hbox (badness 1253) in paragraph at lines 575--577
 \T1/lmr/m/n/10 (+20) I: Model Im-ple-men-ta-tion and Sen-si-tiv-ity. Monthly
  []
 
 
-Underfull \hbox (badness 3690) in paragraph at lines 570--572
+Underfull \hbox (badness 3690) in paragraph at lines 575--577
 \T1/lmr/m/n/10 (+20) Weather Re-view 129, 569--585. doi:[]10.1175/1520-
  []
 
 [18]
-Underfull \hbox (badness 1424) in paragraph at lines 657--659
+Underfull \hbox (badness 1424) in paragraph at lines 665--667
 [][]\T1/lmr/m/n/10 (+20) Mallick, S., Jones, T.A., 2020. As-sim-i-la-tion of
  []
 
 
-Underfull \hbox (badness 2221) in paragraph at lines 657--659
+Underfull \hbox (badness 2221) in paragraph at lines 665--667
 \T1/lmr/m/n/10 (+20) GOES-16 satel-lite de-rived winds into the warn-on-
  []
 
 
-Underfull \hbox (badness 2894) in paragraph at lines 666--668
+Underfull \hbox (badness 2894) in paragraph at lines 674--676
 [][]\T1/lmr/m/n/10 (+20) Nakanishi, M., Ni-ino, H., 2009. De-vel-op-ment
  []
 
 
-Underfull \hbox (badness 1769) in paragraph at lines 666--668
+Underfull \hbox (badness 1769) in paragraph at lines 674--676
 \T1/lmr/m/n/10 (+20) of an Im-proved Tur-bu-lence Clo-sure Model for the
  []
 
 
-Underfull \hbox (badness 1824) in paragraph at lines 666--668
+Underfull \hbox (badness 1824) in paragraph at lines 674--676
 \T1/lmr/m/n/10 (+20) At-mo-spheric Bound-ary Layer. JMSJ 87, 895--912.
  []
 
 [19]
-Underfull \hbox (badness 1014) in paragraph at lines 720--722
+Underfull \hbox (badness 1014) in paragraph at lines 728--730
 [][]\T1/lmr/m/n/10 (+20) Wheatley, D.M., Sten-srud, D.J., 2010. The Im-
  []
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 751.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 759.
 [20]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 751.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 759.
 (./paper_ana_20181122.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 751.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 751.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 759.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 759.
 Package rerunfilecheck Info: File `paper_ana_20181122.out' has not changed.
 (rerunfilecheck)             Checksum: 69F2A8BC825FB122D24965C0FCC4637E;3265.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 751.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 759.
  ) 
 Here is how much of TeX's memory you used:
- 15925 strings out of 494945
- 225860 string characters out of 6181032
- 352064 words of memory out of 5000000
- 18578 multiletter control sequences out of 15000+600000
- 94545 words of font info for 158 fonts, out of 8000000 for 9000
+ 15931 strings out of 494945
+ 225851 string characters out of 6181032
+ 355576 words of memory out of 5000000
+ 18579 multiletter control sequences out of 15000+600000
+ 94629 words of font info for 159 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 39i,25n,38p,2171b,588s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 39i,25n,38p,1734b,588s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf/fonts/enc/dvips/lm/lm-rm.enc}{/usr/share/texmf/fonts/enc/dv
 ips/lm/lm-ts1.enc}{/usr/share/texmf/fonts/enc/dvips/lm/lm-mathit.enc}{/usr/shar
 e/texmf/fonts/enc/dvips/lm/lm-mathex.enc}{/usr/share/texmf/fonts/enc/dvips/lm/l
@@ -1921,10 +1929,10 @@ public/lm/lmri8.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy10.pfb></usr/sh
 are/texmf/fonts/type1/public/lm/lmsy5.pfb></usr/share/texmf/fonts/type1/public/
 lm/lmsy6.pfb></usr/share/texmf/fonts/type1/public/lm/lmsy7.pfb></usr/share/texm
 f/fonts/type1/public/lm/lmtt8.pfb>
-Output written on paper_ana_20181122.pdf (20 pages, 8428312 bytes).
+Output written on paper_ana_20181122.pdf (20 pages, 8011954 bytes).
 PDF statistics:
- 563 PDF objects out of 1000 (max. 8388607)
- 500 compressed objects within 5 object streams
- 157 named destinations out of 1000 (max. 500000)
+ 578 PDF objects out of 1000 (max. 8388607)
+ 514 compressed objects within 6 object streams
+ 160 named destinations out of 1000 (max. 500000)
  26863 words of extra memory for PDF output out of 29859 (max. 10000000)
 
