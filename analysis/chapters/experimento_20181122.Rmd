@@ -1890,7 +1890,7 @@ dbz %>%
 ```
 
 ```{r dbz-ens}
-files <- Sys.glob(paste0(derived_data, "dbz/maxdbz_ana_E[4-7]_0*_20181122100000.nc"))
+files <- Sys.glob(paste0(derived_data, "dbz/maxdbz_ana_E[5,6,8]_0*_20181122130000.nc"))
 
 dbz <- purrr::map(files, function(f){
   
@@ -1906,6 +1906,20 @@ dbz <- purrr::map(files, function(f){
   separate(fisica, into = c("cumulus", "pbl"))
 
 
+values <- c(-19.5, -12, -7.5, -3, 1.5, 6, 9, 12, 15, 16.5, 18, 19.5, 21, 
+            22.5, 24, 25.5, 27, 28.5, 30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 
+            42, 43.5, 45, 46.5, 48, 49.5, 51, 52.5, 54, 55.5, 57, 58.5, 60, 
+            61.5, 63, 64.5, 66, 69, 76.5)
+
+colours <- c("#3D4170", "#3D4E7C", "#3B5B84", "#3A6695", "#3672A4", "#3188BD", 
+             "#2F89B9", "#2896C7", "#24A4CF", "#2AB1D6", "#53F336", "#4BE231", 
+             "#44D12F", "#3FC12B", "#3AAF25", "#32A11F", "#2C881E", "#227216", 
+             "#EEEF39", "#DEE539", "#D7DA35", "#CED130", "#C4C52B", "#CBAE1F", 
+             "#D59716", "#DB8116", "#EC0A2E", "#CB001A", "#C20013", "#B10009", 
+             "#990000", "#C3005D", "#D600A2", "#E901E9", "#CC00CC", "#B100B5", 
+             "#9800A0", "#FEFFFF", "#DFF5EC", "#C5F1E0", "#B7ECD8", "#A6ECCF", 
+             "#95E3C5", "#85E0BD")
+
 dbz %>% 
   .[, .(max_dbz = mean(max_dbz, na.rm = TRUE)), by = .(cumulus, exp, date, lon, lat, x, y)] %>% 
   # .[date %in% unique(date)[1:2]] %>% 
@@ -1915,20 +1929,54 @@ dbz %>%
                     proj = norargentina_lambert,
                     breaks = values) +
   scale_fill_manual(values = colours, 
-                    drop = FALSE, guide = guide_colorsteps(barwidth = 0.8, 
-                                                           barheight = 30)) +
+                    labels = function(x) JumpBy(x, 3, fill = ""),
+                    drop = FALSE, 
+                    guide = guide_colorsteps(barwidth = 25,
+                                             barheight = 0.4, 
+                                             title.position = "left", 
+                                             title.vjust = 1,
+                                             frame.colour = "black")) +
   geom_mapa() +
   ggh4x::facet_nested(date + cumulus ~ exp, 
                       labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
-                                                  E6 = "SATWND", E7 = "RAD"))) +
+                                                  E6 = "SATWND", E8 = "RAD"))) +
   labs(fill = NULL) +
   theme_minimal() +
-  theme(#legend.position = "bottom",
+  theme(legend.position = "bottom",
     legend.box.spacing = margin(0, 0, 0, 0),
     panel.ontop = TRUE,
     panel.grid = element_line(linetype = 3))
 
 # rm(dbz)
+
+dbz %>% 
+  .[, .(max_dbz = mean(max_dbz, na.rm = TRUE)), by = .(exp, date, lon, lat, x, y)] %>% 
+  # .[date %in% unique(date)[1:2]] %>% 
+  .[, date := factor(date)] %>% 
+  ggplot(aes(x, y)) +
+  geom_contour_fill(aes(z = max_dbz, fill = stat(level)), 
+                    proj = norargentina_lambert,
+                    breaks = values) +
+  scale_fill_manual(values = colours, 
+                    labels = function(x) JumpBy(x, 3, fill = ""),
+                    drop = FALSE, 
+                    guide = guide_colorsteps(barwidth = 25,
+                                             barheight = 0.4, 
+                                             title.position = "left", 
+                                             title.vjust = 1,
+                                             frame.colour = "black")) +
+  geom_mapa() +
+  # ggh4x::facet_nested(date + cumulus ~ exp, 
+  #                     labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+  #                                                 E6 = "SATWND", E8 = "RAD"))) +
+  facet_wrap(~exp, labeller = labeller(exp = c(E4 = "CONV", E5 = "AUT", 
+                                                  E6 = "SATWND", E8 = "RAD"))) +
+  labs(fill = NULL) +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+    legend.box.spacing = margin(0, 0, 0, 0),
+    panel.ontop = TRUE,
+    panel.grid = element_line(linetype = 3))
 ```
 #### FSS for the analysis
 
