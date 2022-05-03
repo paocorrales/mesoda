@@ -3,8 +3,6 @@
 
 # mesoda
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/paocorrales/mesoda/master?urlpath=rstudio)
-
 This repository contains the data and code for our paper:
 
 > Corrales et. at., (YYYY). *Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO campaign*. In review
