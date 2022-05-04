@@ -100,9 +100,9 @@ map_arg <- rnaturalearth::ne_states(country = c("argentina"),
                                     returnclass = "sf")
 map_limitrofes <- rnaturalearth::ne_countries(country = c("Brazil", "Chile", "Uruguay", "Paraguay", "Bolivia"), returnclass = "sf")
 
-square <- fread(here("analysis", "data", "derived_data", "dominio_square.csv"))
-square2 <- fread(here("analysis", "data", "derived_data", "dominio_square2.csv"))
-coord <- fread(here("analysis", "data", "derived_data", "coordenadas.csv"))
+square <- fread(here("analysis/data/derived_data/sample_obs/dominio_square.csv"))
+square2 <- fread(here("analysis/data/derived_data/sample_obs/dominio_square2.csv"))
+coord <- fread(here("analysis/data/derived_data/sample_obs/coordenadas.csv"))
 
 
 geom_mapa <- function(fill = NA) {
@@ -171,8 +171,6 @@ multiespectrales <- c("airs_aqua",
 
 colores_exp <- c(E2 = "#0077BB", E5 = "#88CCEE", E6 = "#EE7733", E9 = "#CC3311") 
 
-satinfo <- fread(here("analysis", "data", "derived_data", "satinfo.txt")) %>% 
-  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
 
 derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
 
@@ -238,7 +236,7 @@ A relaxation-to-prior inflation [@whitaker2012] is applied with an inflation par
 
 ```{r dominio, fig.cap="(ref:dominio)", out.width="100%"}
 
-oficiales <- fread(here("analysis", "data", "raw_data", "E2_asim_conv_20181121120000.ensmean"), 
+oficiales <- fread(here("analysis/data/derived_data/sample_obs/E2_asim_conv_20181121120000.ensmean"), 
                    na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
   .[, c("V2", "V4") := NULL] %>% 
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>% 
@@ -246,7 +244,7 @@ oficiales <- fread(here("analysis", "data", "raw_data", "E2_asim_conv_2018112112
   .[!str_detect(stationID, pattern = "[A-Z]")] %>% 
   .[, source := "Sfc - Official"]
 
-no_oficiales <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_20181121120000.ensmean"), 
+no_oficiales <- fread(here("analysis/data/derived_data/sample_obs/E5_asim_conv_20181121120000.ensmean"), 
                       na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
   .[, c("V2", "V4") := NULL] %>% 
   setnames(colnames(.), c("var", "stationID", "type", "dhr", "lat", "lon", "pressure", "usage.flag", "flag", "obs", "obs.guess", "obs2", "obs.guess2", "rerr")) %>% 
@@ -259,13 +257,13 @@ no_oficiales <- fread(here("analysis", "data", "raw_data", "E5_asim_conv_2018112
 
 obs <- rbind(no_oficiales, oficiales)
 
-lista_sondeos <- fread(here("analysis/data/derived_data/lista_sondeos.csv")) %>% 
+lista_sondeos <- fread(here("analysis/data/derived_data/sample_obs/lista_sondeos.csv")) %>% 
   .[, periodo := fcase(nominal_launch_time %between% c(ymd_hms("20181121150000"), ymd_hms("20181121210000")),  "IOP 7", 
                        nominal_launch_time %between% c(ymd_hms("20181122140000"), ymd_hms("20181122200000")),  "IOP 8", 
                        default = "Others")
   ]
 
-dominio <- fread(here("analysis", "data", "derived_data", "dominio_hgt.csv")) %>% 
+dominio <- fread(here("analysis/data/derived_data/sample_obs/dominio_hgt.csv")) %>% 
   .[, c("x", "y") := wrf_project(lon, lat)]
 
 g1 <- dominio %>% 
@@ -368,8 +366,7 @@ Satellite-derived wind observations are also included in the PREPBUFR files avai
 
 
 ```{r table-obs}
-fread(here("analysis/data/derived_data/table1.csv")) %>% 
-  # str()
+fread(here("analysis/data/derived_data/tables/table1.csv")) %>% 
   kbl(caption = "Characteristics of the assimilated observations: The code for each observation type and its source, the available variables, the observation error, and the gross check thresholds used.",
       col.names = c("Code", "Platform", "Variable", "Error", "Gross check"),
       booktabs = TRUE,
@@ -405,7 +402,7 @@ In the GSI system, the $\beta_i$ coefficients are trained using a variational es
 In our experiments, only clear-sky observations are used. For microwave radiances, observations potentially contaminated by clouds are detected using the scattering and Liquid Water Path (LWP) indexes [@weston2019; @zhu2016]. For the infrared channels, cloud contaminated observations are detected using the transmittance profile calculated within the CRTM algorithms. Additionally, the GSI quality control for infrared sensors looks for observations over water with a large zenith angle (over 60°) to reject channels near the visible range that can be contaminated with reflection. It also performs an emissivity check for observations over land for both infrared and microwave radiances. 
 
 ```{r table-rad}
-fread(here("analysis", "data", "derived_data", "tabla_radianzas.csv")) %>% 
+fread(here("analysis/data/derived_data/tables/tabla_radianzas.csv")) %>% 
   .[, ":="(sensor = toupper(sensor),
            plataforma = toupper(plataforma),
            prop = paste0(prop, " \\", "%"))] %>% 
@@ -424,7 +421,10 @@ fread(here("analysis", "data", "derived_data", "tabla_radianzas.csv")) %>%
 (ref:obs-horizontal) Horizontal spatial distribution of the mean available observations per analysis cycle for the a) CONV, b) AWS, c) SATWND, and d) RAD experiments calculated over 2.5$^{\circ}$ boxes.
 
 ```{r obs-horizontal, fig.cap="(ref:obs-horizontal)", out.width="100%", fig.height=7}
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E2/ANA/*/diagfiles/asim*ensmean")
+satinfo <- fread(here("analysis/data/derived_data/sample_obs/satinfo.txt")) %>% 
+  setnames(c("!sensor/instr/sat", "chan"), c("sensor", "channel"))
+
+files <- Sys.glob(here("analysis/data/derived_data/omb_diagfiles/E2/asim*ensmean"))
 
 conv <- read_diag_conv(files, exp = "E2", member = "000") 
 
@@ -438,7 +438,7 @@ conv[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
            lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
 
 
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E5/ANA/*/diagfiles/asim*ensmean")[1:67]
+files <- Sys.glob(here("analysis/data/derived_data/omb_diagfiles/E5/asim*ensmean"))
 
 aut <- read_diag_conv(files, exp = "E5", member = "000") 
 
@@ -451,7 +451,7 @@ aut[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
   .[, ":="(lon.box = cut_round(lon, breaks = seq(284, 309, 2.5)),
            lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
 
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E6/ANA/*/diagfiles/asim*ensmean")[1:67]
+files <- Sys.glob(here("analysis/data/derived_data/omb_diagfiles/E6/asim*ensmean"))
 
 satwnd <- read_diag_conv(files, exp = "E6", member = "000") 
 
@@ -465,7 +465,7 @@ satwnd[, bufr_code := fcase(type %in% c(181, 187, 281, 287), "ADPSFC",
            lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
 
 
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E9/ANA/*/diagfiles/asim*ensmean")
+files <- Sys.glob(here("analysis/data/derived_data/omb_diagfiles/E9/asim*ensmean"))
 
 files <- files[!str_detect(files, "conv")]
 
@@ -474,7 +474,7 @@ rad <- read_diag_rad(files, "E9") %>%
   .[, ":="(lon.box = cut_round(lon, breaks = seq(284, 309, 2.5)),
            lat.box = cut_round(lat, breaks = seq(-42, -17, 2.5)))] 
 
-files <- Sys.glob("/home/paola.corrales/datosmunin3/EXP/E9/ANA/*/diagfiles/asim*ensmean")
+files <- Sys.glob(here("analysis/data/derived_data/omb_diagfiles/E9/asim*ensmean"))
 
 files <- files[str_detect(files, "conv")]
 
@@ -657,9 +657,9 @@ $$\mathit{BIAS} = \frac{1}{N}\sum_{i = 1}^{N} (X_i - O_i)$$
 
 where $O$ and $X$ stand for independent observations, and the simulations respectively and N is the sample size. 
 
-For the comparison of the first-guess precipitation with the IMERG precipitation estimates, we compute a probabilistic Fractions Skill Score (FSS, @roberts2008) for different neighborhood length scales and thresholds.  Following @maldonado2021 the definition of the FSS is slightly modified in that the probability of having rain exceeding a particular threshold and over a particular region is computed taking into account all the ensemble members : 
+For the comparison of the first-guess precipitation with the IMERG precipitation estimates, we compute a Fractions Skill Score (FSS, @roberts2008) for different neighborhood length scales and thresholds. Following @maldonado2021 the definition of the FSS is slightly modified in that the probability of having rain exceeding a particular threshold and over a particular region is computed taking into account all the ensemble members: 
 
-$$\mathit{FSS} = 1-\frac{\frac{1}{N}\sum_{i=1}^{N} ({P_x}_i-{P_o}_i)^{2}}{\frac{1}{N}\sum_{i=1}^{N} ({P_x}_i)^{2}+\frac{1}{N}\sum_{i=1}^{N} ({P_o}_i)^{2}} $$
+$$\mathit{FSS} = 1-\frac{\sum_{i=1}^{N} ({P_x}_i-{P_o}_i)^{2}}{\sum_{i=1}^{N} ({P_x}_i)^{2}+\sum_{i=1}^{N} ({P_o}_i)^{2}} $$
 
 where $P_{xi}$ is the probability of occurrence of accumulated rainfall over a specified threshold computed from the ensemble and $P_{oi}$ is the proportion of grid points in each sampling area in which the observed accumulated precipitation is over the same threshold. Since the precipitation forecast of all the ensemble members is considered in the computation of $P_{xi}$, the smoothing effect of the ensemble mean is avoided. The FSS was computed from the accumulated precipitation over 6 hr periods by adding the 1-hr accumulated precipitation forecasts over 6 consecutive assimilation cycles.
 
@@ -683,15 +683,13 @@ The mean RCRV profiles calculated from the radiance observations (Figure \@ref(f
 
 Overall, these results indicate that the ensemble spread is consistent with the short-range forecast error and that systematic errors are relatively small for most of the observation types used in this work. Moreover, these results suggest the inflation parameter $\alpha = 0.9$ is adequate for the system. 
 
- 
-
 
 (ref:rcrv-sfc) First guess $sd RCRV$ calculated for surface observations (from PREPBUFR and AWS) of a) wind, and b) temperature averaged over 2.5º boxes for the RAD experiment. Observations were aggregated every hourly cycle for the entire experiment period. 
 
 ```{r rcrv-sfc, fig.cap="(ref:rcrv-sfc)", out.width="100%", fig.height=5}
 
-rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
-      fread(here("analysis", "data", "derived_data", "rcrv_t_box.csv"))) %>%   
+rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_box.csv")),
+      fread(here("analysis/data/derived_data/RCRV/rcrv_t_box.csv"))) %>%   
   .[, type.obs := type] %>% 
   .[, type.obs := fcase(type.obs == 181, 281,
                         type.obs == 187, 287,
@@ -727,8 +725,8 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_box.csv")),
 
 ```{r rcrv-profile, fig.cap="(ref:rcrv-profile)", fig.env="figure*", fig.height=3.5, fig.width=7}
 
-rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")), 
-      fread(here("analysis", "data", "derived_data", "rcrv_t_perfil.csv"))) %>% 
+rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")), 
+      fread(here("analysis/data/derived_data/RCRV/rcrv_t_perfil.csv"))) %>% 
   obs.type[., on = "type"] %>%   
   .[type != 130] %>%
   melt(measure.vars = c("mean.y", "sd.y")) %>% 
@@ -757,7 +755,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   
-  read_csv(here::here("analysis", "data", "derived_data", "rcrv_satwind.csv")) %>% 
+  read_csv(here("analysis/data/derived_data/RCRV/rcrv_satwind.csv")) %>% 
   setDT() %>% 
   .[!(sat_type %in% c("GOES visible", "EUMETSAT visible") & error.level == 700)] %>% 
   .[, sat_type := fifelse(sat_type == "EUMETSAT WV deep layer winds", "EUMETSAT WV", sat_type)] %>% 
@@ -783,7 +781,7 @@ rbind(fread(here("analysis", "data", "derived_data", "rcrv_V_perfil.csv")),
         legend.title = element_text(size = 6),
         tagger.panel.tag.text = element_text(size = 8)) +
   
-  purrr::map(Sys.glob(here("analysis/data/derived_data/rcrv_*_perfil.csv"))[1:6], function(f) {
+  purrr::map(Sys.glob(here("analysis/data/derived_data/RCRV/rcrv_*_perfil.csv"))[1:6], function(f) {
     meta <- unglue::unglue(basename(f), "rcrv_{sensor}_perfil.csv")
     fread(f) %>%
       .[, sensor := meta[[1]][["sensor"]]]
@@ -835,7 +833,7 @@ Comparing the specific humidity in the experiments (Figures \@ref(fig:TQ-diff)d-
 (ref:TQ-diff) Difference between analysis ensemble mean experiments a) and d) AWS-CONV, b) and e) SATWND-AWS, and c) and f) RAD-SATWND for the spatially averaged vertical profiles of temperature (a, b, and c, in $K$) and specific humidity (d, e, and f in $gkg^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
 
 ```{r TQ-diff, fig.cap="(ref:TQ-diff)", fig.env="figure*", fig.height=5.5, fig.align="center",fig.pos="th"}
-files <- Sys.glob(paste0(derived_data, "perfiles_ana_E[2,5,6,9].csv"))
+files <- Sys.glob(here("analysis/data/derived_data/analysis_variables/perfiles_ana_E[2569].csv"))
 
 perfiles <- purrr::map(files, function(f) {
   exp <- unglue(basename(f), "perfiles_{run}_{exp}.csv")
@@ -1024,7 +1022,7 @@ The analyzed distribution of temperature and moisture in the PBL (Figure \@ref(f
 
 ```{r summary-fields, fig.cap="(ref:summary-fields)", out.width="100%", fig.height=12, fig.width=10.5, fig.env="figure*"}
 
-files <- Sys.glob(paste0(derived_data, "pw/pw_ana_E[2,5,6,9]_20181122000000.nc"))
+files <- Sys.glob(here("analysis/data/derived_data/analysis_variables/pw/pw_ana_E[2569]_20181122000000.nc"))
 
 dates <- c("20181122000000")
 
@@ -1042,7 +1040,7 @@ pw <- purrr::map(files, function(f) {
   rbindlist() %>% 
   .[, c("x", "y") := wrf_project(lon, lat)]
 
-files <- Sys.glob(paste0(derived_data, "mucape/mcape_ana_E[2,5,6,9]_20181122000000.nc"))
+files <- Sys.glob(here("analysis/data/derived_data/analysis_variables/mcape/mcape_ana_E[2569]_20181122000000.nc"))
 
 mucape <- purrr::map(files, function(f) {
   details <- unglue::unglue(basename(f), "mcape_ana_{exp}_{date}.nc")[[1]]
@@ -1061,12 +1059,14 @@ mucape <- purrr::map(files, function(f) {
 fcsts <- expand_grid(fcsts = c("20181122000000"),
                      exp = c("E2", "E5", "E6", "E9"))
 
+dir <- here("analysis/data/derived_data/analysis_variables")
+
 ana <- lapply(seq_len(nrow(fcsts)), function(f) {
   
-  tmp <- ReadNetCDF(paste0(derived_data, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
-    .[, v := ReadNetCDF(paste0(derived_data, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
-    .[, q := ReadNetCDF(paste0(derived_data, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>% 
-    .[, theta := ReadNetCDF(paste0(derived_data, "/theta_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(th = "theta"), out = "vector")] %>%
+  tmp <- ReadNetCDF(paste0(dir, "/u_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(u = "uvmet")) %>% 
+    .[, v := ReadNetCDF(paste0(dir, "/v_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(v = "uvmet"), out = "vector")] %>% 
+    .[, q := ReadNetCDF(paste0(dir, "/q_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(q = "QVAPOR"), out = "vector")] %>% 
+    .[, theta := ReadNetCDF(paste0(dir, "/theta_", fcsts[f, 1], "_", fcsts[f, 2], ".nc"), vars = c(th = "theta"), out = "vector")] %>%
     .[, date :=  ymd_hms(fcsts[f, 1])] %>% 
     .[, exp := fcsts[f, 2]] %>%  
     .[]
@@ -1186,7 +1186,7 @@ First, we analyze the impact of assimilating different observation types in term
 
 ```{r pp-hov, fig.cap="(ref:pphov)", fig.height=4, fig.env="figure*", fig.pos="h"}
 
-files <- Sys.glob(paste0(derived_data, "ppacum/E[2569]_ana*_pp_pmm.rds"))
+files <- Sys.glob(here("analysis/data/derived_data/analysis_variables/pp_pmm/E[2569]_ana*_pp_pmm.rds"))
 
 ppacum_1h <- purrr::map(files, function(f) {
   
@@ -1199,7 +1199,7 @@ ppacum_1h <- purrr::map(files, function(f) {
   .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] 
 
 
-readRDS(here("analysis/data/derived_data/IMERG_1h.rds")) %>% 
+readRDS(here("analysis/data/derived_data/observations/IMERG_1h.rds")) %>% 
   .[, c("lon", "lat") := wrf_project(x, y, inverse = TRUE, round = FALSE)] %>% 
   .[x %between% c(-300000, 800000) & y %between% c(-800000, 1090000)] %>% 
   .[end_date %between% c(as_datetime("20181121180000"), as_datetime("20181123120000"))] %>% 
@@ -1266,7 +1266,7 @@ To quantify the spatial match between the observed precipitation and the short-r
 (ref:fss) FSS calculated over 1-h forecast precipitation accumulated in a 6-hour moving window for 1 mm (a and c) and 25 mm (b and d) thresholds, on 10 km (a and b) and 100 km (c and d) scales, for the first-guess of CONV (blue line), AWS (light blue line), SATWND (orange line) and RAD (red line) experiments.
 
 ```{r fss, fig.cap="(ref:fss)", fig.width=3.5, fig.height=3.5, fig.pos="t"}
-files <- Sys.glob(here("analysis/data/derived_data/fss_6h_ana_ens_E[2569].csv"))
+files <- Sys.glob(here("analysis/data/derived_data/FSS/fss_6h_ana_ens_E[2569].csv"))
 
 fss <- purrr::map(files, function(f) {
   
@@ -1300,7 +1300,7 @@ Finally, Figure \@ref(fig:soundings) shows the RMSE and bias calculated by compa
 IOP 7 (Figures \@ref(fig:soundings)a-d) provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. In general, the experiments show a similar RMSE and bias for all the variables. AWS observations were able to reduce the RMSE for temperature and dew point temperature in the PBL and reduce a small dry bias. However, AWS degradated the zonal wind between 7 and 12 km increasing the bias and RMSE (Figure \@ref(fig:soundings)c).
 
 
-(ref:dbz-mean) Maximum reflectivity in the column (COLMAX in $dBZ$), observed (upper row) and 1-hr forecast ensemble mean column maximum reflectivity for CONV (second row) and RAD (third row) at 10 UTC (first column), 13 UTC (second column), 16 UTC (third column), and 19 UTC (fourth column) Nov 22, 2018. Black circles in first row show the observation range of each radar. 
+(ref:dbz-mean) Maximum reflectivity in the column (COLMAX in $dBZ$), observed (upper row) and 1-hr forecast probability matched mean column maximum reflectivity for CONV (second row) and RAD (third row) at 10 UTC (first column), 13 UTC (second column), 16 UTC (third column), and 19 UTC (fourth column) Nov 22, 2018. Black circles in first row show the observation range of each radar. 
 
 ```{r dbz-mean, fig.cap="(ref:dbz-mean)", out.width="100%", fig.height=6.5, fig.width=8, fig.env="figure*", fig.pos="h"}
 proj_radar <- "+proj=tmerc +lon_0=-61.5 +lat_0=-32 +k_0=1 +ellps=WGS84"
@@ -1308,7 +1308,7 @@ proj_radar <- "+proj=tmerc +lon_0=-61.5 +lat_0=-32 +k_0=1 +ellps=WGS84"
 rad_loc <- fread(here("analysis", "data", "derived_data", "radar_loc.csv")) %>% 
   .[, run := "OBSERVATIONS"]
 
-files <- Sys.glob("/home/jruiz/datosmunin3/datos/DATOS_RADAR/MOSAICO/*.nc")[seq(1, 12, 3)]
+files <- Sys.glob(here("analysis/data/derived_data/observations/*.nc"))
 # Solo un par de horarios 10, 13, 16 y 19 UTC
 
 dbz_obs <- purrr::map(files, function(f) {
@@ -1325,9 +1325,7 @@ dbz_obs <- purrr::map(files, function(f) {
 }) %>% rbindlist() %>% 
   .[, run := "OBSERVATIONS"]
 
-dates <- c("20181122100000", "20181122130000", 
-           "20181122160000", "20181122190000")
-files <- Sys.glob(paste0(derived_data, "dbz/E[29]_ana_", dates, "_dbz_pmm.rds"))
+files <- Sys.glob(here("analysis/data/derived_data/analysis_variables/dbz_pmm/E[29]_ana_*_dbz_pmm.rds"))
 
 dbz_ana <- purrr::map(files, function(f){
   
@@ -1397,7 +1395,7 @@ For IOP 8 (Figures \@ref(fig:soundings)e-h), the densely observed area was behin
 (ref:soundings) RMSE (solid line) and Bias (dashed line) of a) temperature ($K$), b) dew point temperature ($K$), c) u wind ($ms^{-1}$) and d) v wind ($ms^{-1}$) calculated by comparing the analysis of each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8. The blue line corresponds to CONV, the light blue line to AWS, SATWND is represented with an orange line, and RAD with a red line.
 
 ```{r soundings, fig.cap="(ref:soundings)", fig.env="figure*", fig.pos="t", fig.align="center"}
-files <- Sys.glob(paste0(derived_data, "sondeos/ANA/sondeo_E[2569]_ana*")
+files <- Sys.glob(here("analysis/data/derived_data/soundings/sondeo_E[2569]_ana*"))
 
 sondeos <- purrr::map(files, function(f){
   
@@ -1451,7 +1449,7 @@ The satellite-derived wind observations show a clearly positive impact on the fo
 
 ```{r fssfcst, fig.cap="(ref:fssfcst)", fig.width=3.5, fig.height=4}
 
-files <- Sys.glob(here("analysis/data/derived_data/fss_6h_fcst_ens_*_E[2,5,6,9]_ens.csv"))
+files <- Sys.glob(here("analysis/data/derived_data/FSS/fss_6h_fcst_ens_*_E[2569]_ens.csv"))
 
 fss <- purrr::map(files, function(f) {
   
