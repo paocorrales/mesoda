@@ -30,8 +30,8 @@ abstract: |
 
   We used the GSI-4DLETKF data assimilation package to produce analyses assimilating observations every hour with 10-km horizontal grid spacing and a 60-member multiphysics ensemble. We conducted four assimilation experiments using different sets of observations: CONV, consisting of conventional observations from NCEP’s prepBUFR files; AWS combining CONV and dense automatic surface weather station networks, SATWND, combining AWS with satellite-derived winds and RAD, including SATWND; and satellite radiances from different microwave and infrared sensors. We found that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed in this case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation. We also ran ensemble forecasts initialized from each experiment and evaluated their skill to predict precipitation. We found that the hourly assimilation of the observations in AWS, SATWND, and RAD helped to improve the precipitation forecast.
 journal: Atmospheric Research
-#layout: authoryear,preprint,review,12pt
-layout: final,5p,times,twocolumn,authoryear
+layout: authoryear,preprint,review,12pt
+#layout: final,5p,times,twocolumn,authoryear
 address:
 - code: UBA
   address: Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Departamento de Ciencias de la Atmósfera y los Océanos. Buenos Aires, Argentina.
@@ -339,7 +339,7 @@ g2 <- dominio %>%
 
 ggdraw(plot_grid(plot_grid(g1, g2, ncol = 2, rel_widths = c(1, 0.5), 
                            labels = c("a)", "b)"), label_size = 11), legend, 
-                 ncol = 1, rel_heights = c(1, 0.05)))
+                 ncol = 1, rel_heights = c(1, 0.08)))
 
 
 
@@ -659,7 +659,7 @@ For the comparison of the first-guess precipitation with the IMERG precipitation
 
 $$\mathit{FSS} = 1-\frac{\sum_{i=1}^{N} ({P_x}_i-{P_o}_i)^{2}}{\sum_{i=1}^{N} ({P_x}_i)^{2}+\sum_{i=1}^{N} ({P_o}_i)^{2}} $$
 
-Where $P_{oi}$ is the fraction of grid points in the $i-th$ sampling area in which the observed accumulated precipitation is greater than a specified threshold. Following @maldonado2021, $P_{xi}$ is calculated from the ensemble probability precipitation over the same threshold in each grid point by averaging over the $i-th$ sampling area. 
+Where $P_{oi}$ is the fraction of grid points in the $i-th$ sampling area in which the observed accumulated precipitation is greater than a specified threshold. Following @roberts2020, $P_{xi}$ is calculated from the ensemble probability precipitation over the same threshold in each grid point by averaging over the $i-th$ sampling area. 
 The FSS was computed from the accumulated precipitation over 6 hr periods by adding the 1-hr accumulated precipitation forecasts over 6 consecutive assimilation cycles.
 
 
@@ -1500,7 +1500,7 @@ To summarize, in this study we conclude that the assimilation of surface observa
  
 # Code and data availability
 
-A version-controlled repository of the code used to create this analysis, including the code used to download the data can be found at <https://github.com/paocorrales/mesoda>. The derived data that support the findings of this study are also openly available in Zenodo at http://doi.org/[doi], reference number [reference number]. 
+A version-controlled repository of the code used to create this analysis, including the code used to download the data can be found at <https://github.com/paocorrales/mesoda>. The derived data that support the findings of this study are also openly available in Zenodo at http://doi.org/10.5072/zenodo.1060834, version 0.9.0. 
 
 # Acknowledgements {.unnumbered}
 

@@ -1,4 +1,4 @@
-\documentclass[final,5p,times,twocolumn,authoryear]{elsarticle} %review=doublespace preprint=single 5p=2 column
+\documentclass[authoryear,preprint,review,12pt]{elsarticle} %review=doublespace preprint=single 5p=2 column
 %%% Begin My package additions %%%%%%%%%%%%%%%%%%%
 \usepackage[hyphens]{url}
 
@@ -6,11 +6,8 @@
 
 
 \usepackage{lineno} % add
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 
 \usepackage{graphicx}
-\usepackage{booktabs} % book-quality tables
 %%%%%%%%%%%%%%%% end my additions to header
 
 \usepackage[T1]{fontenc}
@@ -33,7 +30,6 @@
 % use microtype if available
 \IfFileExists{microtype.sty}{\usepackage{microtype}}{}
 \bibliographystyle{elsarticle-harv}
-\usepackage{longtable}
 \usepackage{graphicx}
 \ifxetex
   \usepackage[setpagesize=false, % page size defined by xetex
@@ -55,9 +51,24 @@
 \setcounter{secnumdepth}{5}
 % Pandoc toggle for numbering sections (defaults to be off)
 
-% Pandoc citation processing
 
-% Pandoc header
+% tightlist command for lists without linebreak
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% From pandoc table feature
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+
+
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -76,6 +87,8 @@
 
 
 \begin{document}
+
+
 \begin{frontmatter}
 
   \title{Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a Mesoscale Convective System Case During RELAMPAGO campaign}
@@ -344,7 +357,7 @@ Ensemble forecasts initialized from the different analysis experiments at 00 and
 
 
 \begin{figure}
-\includegraphics[width=1\linewidth]{/home/paola.corrales/mesoda/analysis/figures/analysis_cycle} \caption{Figure 4. Diagram of the analysis cycles between 18 UTC Nov 20, and 12 UTC Nov 23 plus spin up period of 6 hours. The zoomed section shows the hourly assimilation that is performed within a one-hour centered window and new boundary conditions from GFS every 6 hours. The two IOP missions from the RELAMPAGO field campaign and the ensemble forecast initialized at 00 and 06 UTC Nov 22 are shown.}\label{fig:cycle}
+\includegraphics[width=1\linewidth]{../figures/analysis_cycle} \caption{Figure 4. Diagram of the analysis cycles between 18 UTC Nov 20, and 12 UTC Nov 23 plus spin up period of 6 hours. The zoomed section shows the hourly assimilation that is performed within a one-hour centered window and new boundary conditions from GFS every 6 hours. The two IOP missions from the RELAMPAGO field campaign and the ensemble forecast initialized at 00 and 06 UTC Nov 22 are shown.}\label{fig:cycle}
 \end{figure}
 
 \hypertarget{verification-methods}{%
@@ -379,7 +392,7 @@ For the comparison of the first-guess precipitation with the IMERG precipitation
 
 \[\mathit{FSS} = 1-\frac{\sum_{i=1}^{N} ({P_x}_i-{P_o}_i)^{2}}{\sum_{i=1}^{N} ({P_x}_i)^{2}+\sum_{i=1}^{N} ({P_o}_i)^{2}} \]
 
-Where \(P_{oi}\) is the fraction of grid points in the \(i-th\) sampling area in which the observed accumulated precipitation is greater than a specified threshold. Following Maldonado et al. (2021), \(P_{xi}\) is calculated from the ensemble probability precipitation over the same threshold in each grid point by averaging over the \(i-th\) sampling area.
+Where \(P_{oi}\) is the fraction of grid points in the \(i-th\) sampling area in which the observed accumulated precipitation is greater than a specified threshold. Following Roberts et al. (2020), \(P_{xi}\) is calculated from the ensemble probability precipitation over the same threshold in each grid point by averaging over the \(i-th\) sampling area.
 The FSS was computed from the accumulated precipitation over 6 hr periods by adding the 1-hr accumulated precipitation forecasts over 6 consecutive assimilation cycles.
 
 \hypertarget{computation-procedures}{%
@@ -539,7 +552,7 @@ To summarize, in this study we conclude that the assimilation of surface observa
 \hypertarget{code-and-data-availability}{%
 \section{Code and data availability}\label{code-and-data-availability}}
 
-A version-controlled repository of the code used to create this analysis, including the code used to download the data can be found at \url{https://github.com/paocorrales/mesoda}. The derived data that support the findings of this study are also openly available in Zenodo at http://doi.org/{[}doi{]}, reference number {[}reference number{]}.
+A version-controlled repository of the code used to create this analysis, including the code used to download the data can be found at \url{https://github.com/paocorrales/mesoda}. The derived data that support the findings of this study are also openly available in Zenodo at http://doi.org/10.5072/zenodo.1060834, version 0.9.0.
 
 \hypertarget{acknowledgements}{%
 \section*{Acknowledgements}\label{acknowledgements}}
@@ -702,6 +715,9 @@ Rasmussen, K.L., Zuluaga, M.D., Houze, R.A., 2014. Severe convection and lightni
 \leavevmode\hypertarget{ref-rcoreteam2020}{}%
 R Core Team, 2020. R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria.
 
+\leavevmode\hypertarget{ref-roberts2020}{}%
+Roberts, B., Gallo, B.T., Jirak, I.L., Clark, A.J., Dowell, D.C., Wang, X., Wang, Y., 2020. What Does a Convection-Allowing Ensemble of Opportunity Buy Us in Forecasting Thunderstorms? Weather and Forecasting 35, 2293--2316. doi:\href{https://doi.org/10.1175/WAF-D-20-0069.1}{10.1175/WAF-D-20-0069.1}
+
 \leavevmode\hypertarget{ref-roberts2008}{}%
 Roberts, N., 2008. Assessing the spatial and temporal variation in the skill of precipitation forecasts from an NWP model. Meteorological Applications 15, 163--169. doi:\href{https://doi.org/10.1002/met.57}{10.1002/met.57}
 
@@ -764,5 +780,4 @@ Zhu, Y., Liu, E., Mahajan, R., Thomas, C., Groff, D., Van Delst, P., Collard, A.
 
 
 \end{document}
-
 
