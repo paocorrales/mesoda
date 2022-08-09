@@ -268,7 +268,24 @@ For radiance observations, the Community Radiative Transfer Model version 2.3 (C
 
 We use a 60-member ensemble where the ensemble mean at the beginning of the DA cycle is initialized using the GFS deterministic analysis with random perturbations to generate the initial ensemble perturbations. The perturbations are generated as scaled differences between two random atmospheric states obtained from the Climate Forecast System Reanalysis (CFSR) data with 0.5$^{\circ}$ horizontal grid spacing with a smooth time evolution as in @necker2020 and @maldonado2021. In this way, we preserved the nearly hydrostatic and geostrophic equilibrium of larger scales. This method helps to prevent an underestimation of the ensemble spread [@ouaraini2015]. All experiments presented here uses the same boundary conditions from GFS, generated using the same method as for the inicial conditions to maintain proper levels of ensemble spread within the domain. 
 
-We used multi-physics scheme to better represent the uncertainty in the model formulation within the DA system. We generated 9 different model configurations consisting of the combination of 3 moist convection schemes (Kain–Fritsch [@kain2004], Grell–Freitas [@grell2013], and Betts–Miller–Janjic [@janjic1994]) and 3 planetary boundary layer schemes (Yonsei University Scheme [@hong2006], Mellor–Yamada–Janjic Scheme [@janjic1994], and Mellor–Yamada Nakanishi Niino [@nakanishi2009]). All ensemble members use the same land-surface model (Noah-MP, @chen2001), microphysics (WRF single-moment 6–class scheme [@hong2006a]), and radiation processes (RRTMG shortwave and longwave scheme [@iacono2008]) parameterizations.
+We used multi-physics scheme to better represent the uncertainty in the model formulation within the DA system. We generated 9 different model configurations consisting of the combination of 3 moist convection schemes (Kain–Fritsch [@kain2004], Grell–Freitas [@grell2013], and Betts–Miller–Janjic [@janjic1994]) and 3 planetary boundary layer schemes (Yonsei University Scheme [@hong2006], Mellor–Yamada–Janjic Scheme [@janjic1994], and Mellor–Yamada Nakanishi Niino [@nakanishi2009]). The distribution of these schemes among the 60 ensemble members is outlined in Table \@ref(tab:miembros-desc). The multi-physics approach is also introduced in order to represent the uncertainty associated with the more relevamnt physical processes that are not resolved by the model. All ensemble members use the same land-surface model (Noah-MP, @chen2001), microphysics (WRF single-moment 6–class scheme [@hong2006a]), and radiation processes (RRTMG shortwave and longwave scheme [@iacono2008]) parameterizations.
+
+
+```{r miembros-desc}
+fisica %>% 
+  copy() %>% 
+  .[, c("Cumulus", "PBL") := tstrsplit(fisica, split = "-")] %>% 
+  .[, .(mem = paste(mem, collapse = ", ")), by = .(PBL, Cumulus)] %>% 
+  dcast(Cumulus ~ PBL, value.var  = "mem") %>% 
+  kable(booktabs = TRUE, caption = "Generation of the 60-member RRR multi-physics ensemble as a combination of Cumulus and PBL parameterizations, and GEFS members for boundary conditions.", 
+        align = "cccc") %>% 
+  add_header_above(c(" " = 1, PBL = 3)) %>% 
+  kable_classic_2(full_width = FALSE) %>% 
+  kable_styling(font_size = 6,
+                position = "center") %>% 
+  column_spec(1, )
+```
+
 
 To reduce the effect of spurious correlations in the estimation of error covariances, we use a horizontal localization radius of 180 km and a vertical localization radius of 0.4 (in log pressure coordinates) as in @dillon2021 for all types of observations. 
 A relaxation-to-prior spread inflation [@whitaker2012] is applied with an inflation parameter $\alpha=0.9$ to mitigate the impact of sampling errors and to consider model errors not accounted for by the multi-model ensemble approach.
