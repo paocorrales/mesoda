@@ -1,63 +1,64 @@
 ---
 title: "Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO campaign"
 author:
-- name: Paola Belén Corrales
-  email: paola.corrales@cima.fcen.uba.ar
-  affiliation: UBA,CIMA,CNRS
-  footnote: 1
-- name: Victoria Galligani
-  affiliation: UBA,CIMA,CNRS
-- name: Juan Ruiz
-  affiliation: UBA,CIMA,CNRS
-- name: Luiz Sapucci
-  affiliation: INPE
-- name: María Eugenia Dillon
-  affiliation: SMN,CONICET
-- name: Yanina García Skabar
-  affiliation: SMN,CONICET,CNRS
-- name: Maximiliano Sacco
-  affiliation: SMN
-- name: Craig S. Schwartz
-  affiliation: NCAR
-- name: Stephen W. Nesbitt
-  affiliation: Illinois
+  - name: Paola Belén Corrales
+    email: paola.corrales@cima.fcen.uba.ar
+    affiliation: UBA,CIMA,CNRS
+    footnote: 1
+  - name: Victoria Galligani
+    affiliation: UBA,CIMA,CNRS
+  - name: Juan Ruiz
+    affiliation: UBA,CIMA,CNRS
+  - name: Luiz Sapucci
+    affiliation: INPE
+  - name: María Eugenia Dillon
+    affiliation: SMN,CONICET
+  - name: Yanina García Skabar
+    affiliation: SMN,CONICET,CNRS
+  - name: Maximiliano Sacco
+    affiliation: SMN
+  - name: Craig S. Schwartz
+    affiliation: NCAR
+  - name: Stephen W. Nesbitt
+    affiliation: Illinois
 date: "`r Sys.Date()`"
 output: 
   # bookdown::word_document2: default
   bookdown::pdf_book: 
-      base_format: rticles::elsevier_article
-      citation_package: natbib
+    base_format: rticles::elsevier_article
+    citation_package: natbib
 # always_allow_html: true      
 abstract: |
   In this paper, we evaluate the impact of assimilating high-resolution surface networks and satellite observations using the WRF-GSI-LETKF over central and north eastern Argentina where the surface and upper air observing networks are relatively coarse. We conducted a case study corresponding to a huge mesoscale convective system (MCS) that developed during November 22, 2018. The accumulated precipitation associated with this MCS was quite high, exceeding 200 mm over northern Argentina and Paraguay. The MCS developed during the Intense Observing Period (IOP) of the Remote sensing of Electrification, Lightning, And Mesoscale/microscale Processes with Adaptive Ground Observations (RELAMPAGO) field campaign. We used the GSI-4DLETKF data assimilation package to produce analyses by assimilating observations every hour with 10-km horizontal grid spacing and a 60-member multiphysics ensemble. We conducted four assimilation experiments using different sets of observations: CONV, consisting of conventional observations from NCEP’s prepBUFR files; AWS, combining CONV and dense automatic surface weather station networks, SATWND, combining AWS with satellite-derived winds, and RAD, including SATWND; and satellite radiances from different microwave and infrared sensors. We found that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed in this case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation. We also ran ensemble forecasts initialized from each experiment and evaluated their skill to predict precipitation. We found that the hourly assimilation of the observations in AWS, SATWND, and RAD helped to improve the precipitation forecast.
 journal: Atmospheric Research
-# layout: authoryear,preprint,review,12pt
-layout: final,5p,times,twocolumn,authoryear
+#layout: authoryear,preprint,review,12pt
+# layout: final,5p,times,twocolumn,authoryear
+classoption: preprint, 3p, authoryear
 address:
-- code: UBA
-  address: Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Departamento de Ciencias de la Atmósfera y los Océanos. Buenos Aires, Argentina.
-- code: CIMA
-  address: CONICET – Universidad de Buenos Aires. Centro de Investigaciones del Mar y la Atmósfera (CIMA). Buenos Aires, Argentina.
-- code: CNRS
-  address: CNRS – IRD – CONICET – UBA. Instituto Franco-Argentino para el Estudio del Clima y sus Impactos (IRL 3351 IFAECI). Buenos Aires, Argentina.
-- code: SMN
-  address: Servicio Meteorológico Nacional de Argentina.
-- code: CONICET
-  address: CONICET (Consejo Nacional de Investigaciones Científicas y Técnicas).
-- code: INPE
-  address: National Institute for Space Research, Brazil, Center for Weather Forecasting and Climate Studies.
-- code: NCAR
-  address: National Center for Atmospheric Research, Boulder, Colorado.
-- code: Illinois
-  address: Department of Atmospheric Sciences, University of Illinois Urbana–Champaign, Urbana, Illinois.
-bibliography: [paperANA.bib, packages.bib, era.bib]
-csl: elsevier-harvard.csl
+  - code: UBA
+    address: Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Departamento de Ciencias de la Atmósfera y los Océanos. Buenos Aires, Argentina.
+  - code: CIMA
+    address: CONICET – Universidad de Buenos Aires. Centro de Investigaciones del Mar y la Atmósfera (CIMA). Buenos Aires, Argentina.
+  - code: CNRS
+    address: CNRS – IRD – CONICET – UBA. Instituto Franco-Argentino para el Estudio del Clima y sus Impactos (IRL 3351 IFAECI). Buenos Aires, Argentina.
+  - code: SMN
+    address: Servicio Meteorológico Nacional de Argentina.
+  - code: CONICET
+    address: CONICET (Consejo Nacional de Investigaciones Científicas y Técnicas).
+  - code: INPE
+    address: National Institute for Space Research, Brazil, Center for Weather Forecasting and Climate Studies.
+  - code: NCAR
+    address: National Center for Atmospheric Research, Boulder, Colorado.
+  - code: Illinois
+    address: Department of Atmospheric Sciences, University of Illinois Urbana–Champaign, Urbana, Illinois.
+bibliography: "paperANA.bib,packages.bib,era.bib"
+# csl: elsevier-harvard.csl
 footnote:
-- code: 1
-  text: Corresponding Author
+  - code: 1
+    text: Corresponding Author
 keywords: Regional Data Assimilation, Surface Observations, Satellite Observations 
 numbersections: true
-header-includes: 
+# header-includes: 
 #  - \usepackage{gensymb}
 #  - \usepackage{subfig}
 #  - \usepackage[inline]{showlabels}
@@ -462,18 +463,18 @@ In the GSI system, the $\beta_i$ coefficients are trained using a variational es
 In our experiments, only clear-sky observations are used. For microwave radiances, observations potentially contaminated by clouds are detected using the scattering and Liquid Water Path (LWP) indexes [@weston2019; @zhu2016]. For the infrared channels, cloud contaminated observations are detected using the transmittance profile calculated within the CRTM algorithms. Moreover, GSI checks the difference between the observations and simulated brightness temperature with height to detect cloudy pixels. Additionally, the GSI quality control for infrared sensors looks for observations over water with a large zenith angle (over 60°) to reject channels near the visible range that can be contaminated with reflection. It also performs an emissivity check for observations over land for both infrared and microwave radiances. 
 
 ```{r table-rad}
-fread(here("analysis/data/derived_data/tables/tabla_radianzas.csv")) %>% 
+fread(here("analysis/data/derived_data/tables/tabla_radianzas.csv")) %>%
   .[, ":="(sensor = toupper(sensor),
            plataforma = toupper(plataforma),
-           prop = paste0(prop, " \\", "%"))] %>% 
-  .[order(.[,'sensor']), ] %>% 
-  .[] %>% 
+           prop = paste0(prop, " ", "%"))] %>%
+  .[order(.[,'sensor']), ] %>%
+  .[] %>%
   kbl(booktabs = TRUE,
-      escape = FALSE,
-      col.names = linebreak(c("Sensor", "Platform", "Assimilated\nchannels", "Percentage\nover total")),
-      caption = "List of the available sensors over several platforms, the number of accepted channels for the assimilation, and the percentage of assimilated observations calculated over all radiance observations and all cycles.") %>% 
-  kable_styling(font_size = 7) %>% 
-  collapse_rows(1, valign = "top") %>% 
+      escape = TRUE,
+      col.names = linebreak(c("Sensor", "Platform", "Assimilated channels", "Percentage over total")),
+      caption = "List of the available sensors over several platforms, the number of accepted channels for the assimilation, and the percentage of assimilated observations calculated over all radiance observations and all cycles.") %>%
+  kable_styling(font_size = 7) %>%
+  collapse_rows(1, valign = "top") %>%
   kable_classic_2(full_width = TRUE)
 ```
 
@@ -1475,7 +1476,7 @@ To complement the analysis, Figure \@ref(fig:dbz-mean) shows the observed maximu
 
 Finally, Figure \@ref(fig:soundings) shows the RMSE and bias calculated by comparing the experiments with radiosonde data from the RELAMPAGO missions, IOP 7 from 15 to 21 UTC Nov 21 (including 30 radiosondes), and IOP 8 from 14 to 20 UTC Nov 22 (including 22 radiosondes). 
 
-IOP 7 (Figures \@ref(fig:soundings)a-d) provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. In general, the experiments show a similar RMSE and bias for all the variables. AWS observations were able to reduce the RMSE for temperature and dew point temperature in the PBL and reduce a small dry bias. However, in this region (Figure \@ref(fig:domain)b) and for this period, AWS increments (Figure \@ref(fig:UV-diff)d) degradated the zonal wind between 7 and 12 km increasing the bias and RMSE (Figure \@ref(fig:soundings)c).
+IOP 7 (Figures \@ref(fig:soundings)a-d) provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. In general, the experiments show a similar RMSE and bias for all the variables. AWS observations were able to reduce the RMSE for temperature and dew point temperature in the PBL and reduce a small dry bias. However, in this region (Figure \@ref(fig:dominio)b) and for this period, AWS increments (Figure \@ref(fig:UV-diff)d) degradated the zonal wind between 7 and 12 km increasing the bias and RMSE (Figure \@ref(fig:soundings)c).
 
 
 (ref:dbz-mean) Maximum reflectivity in the column (COLMAX in $dBZ$), observed (upper row) and 1-hr forecast probability matched mean column maximum reflectivity for CONV (second row) and RAD (third row) at 10 UTC (first column), 13 UTC (second column), 16 UTC (third column), and 19 UTC (fourth column) Nov 22, 2018. Black circles in first row show the observation range of each radar. 
