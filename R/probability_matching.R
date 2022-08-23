@@ -141,7 +141,7 @@ calculate_probability_marching_dbz <- function(exp, run, dates,
                                               out_path = "/home/paola.corrales/datosmunin3/EXP/derived_data/dbz/") {
 
   library(reticulate)
-  use_condaenv("/home/jruiz/share/anaconda3/envs/wrfpy")
+  use_condaenv("/home/paola.corrales/.local/share/r-miniconda/envs/r-reticulate")
   py_run_string("import os")
   py_run_string("os.environ['PROJ_LIB'] = '/home/jruiz/share/anaconda3/share/proj'")
   wrf <- import("wrf")
