@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "3.6.3",
+    "Version": "4.2.1",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -76,7 +76,7 @@
       "Package": "R6",
       "Version": "2.5.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "470851b6d5d0ac559e9d01bb352b4021"
     },
     "RColorBrewer": {
@@ -88,10 +88,10 @@
     },
     "RCurl": {
       "Package": "RCurl",
-      "Version": "1.98-1.2",
+      "Version": "1.98-1.7",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "cf29e1b71f8736960e0e851123a83e6f"
+      "Hash": "b70bf7bef94b2a3fa09795b0594f3695"
     },
     "Rcpp": {
       "Package": "Rcpp",
@@ -160,7 +160,7 @@
       "Package": "askpass",
       "Version": "1.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "e8a22846fff485f0be3770c2da758713"
     },
     "assertthat": {
@@ -230,8 +230,8 @@
       "Package": "bookdown",
       "Version": "0.24.9",
       "Source": "GitHub",
-      "Remotes": "rstudio/rmarkdown",
       "RemoteType": "github",
+      "Remotes": "rstudio/rmarkdown",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "bookdown",
       "RemoteUsername": "rstudio",
@@ -423,7 +423,7 @@
       "Package": "deldir",
       "Version": "1.0-6",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "65a3d4e2a1619bb85ae0fb64628da972"
     },
     "desc": {
@@ -451,7 +451,7 @@
       "Package": "digest",
       "Version": "0.6.29",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "cf6b206a045a684728c3267ef7596190"
     },
     "distillery": {
@@ -507,7 +507,7 @@
       "Package": "ellipsis",
       "Version": "0.3.2",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "bb0eec2fe32e88d9e2836c2f73ea2077"
     },
     "evaluate": {
@@ -577,7 +577,7 @@
       "Package": "fs",
       "Version": "1.5.2",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "7c89603d81793f0d5486d91ab1fc6f1d"
     },
     "furrr": {
@@ -708,7 +708,7 @@
       "Package": "gtable",
       "Version": "0.3.0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "ac5c6baf7822ce8732b343f14c072c4d"
     },
     "haven": {
@@ -771,7 +771,7 @@
       "Package": "ini",
       "Version": "0.3.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "6154ec2223172bce8162d4153cda21f7"
     },
     "interp": {
@@ -785,7 +785,7 @@
       "Package": "isoband",
       "Version": "0.2.5",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "7ab57a6de7f48a8dc84910d1eca42883"
     },
     "iterators": {
@@ -839,7 +839,7 @@
       "Package": "labeling",
       "Version": "0.4.2",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "3d5108641f47470611a32d0bdf357a72"
     },
     "later": {
@@ -874,7 +874,7 @@
       "Package": "lifecycle",
       "Version": "1.0.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "a6b6d352e3ed897373ab19d8395c98d0"
     },
     "listenv": {
@@ -891,6 +891,13 @@
       "Repository": "CRAN",
       "Hash": "2ff5eedb6ee38fb1b81205c73be1be5a"
     },
+    "magick": {
+      "Package": "magick",
+      "Version": "2.7.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "56fbad418aa50939ed8c3028126af8d7"
+    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "2.0.2",
@@ -900,16 +907,16 @@
     },
     "maps": {
       "Package": "maps",
-      "Version": "3.3.0",
+      "Version": "3.4.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "392212982257ea03c37b63547dc871b4"
+      "Hash": "b3d98a967ec17c80f795719529812fa0"
     },
     "markdown": {
       "Package": "markdown",
       "Version": "1.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "61e4a10781dd00d7d81dd06ca9b94e95"
     },
     "matrixStats": {
@@ -958,7 +965,7 @@
       "Package": "munsell",
       "Version": "0.5.0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "6dfe8bf774944bd5595785e3229d8771"
     },
     "ncdf4": {
@@ -1007,7 +1014,7 @@
       "Package": "pillar",
       "Version": "1.7.0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "51dfc97e1b7069e9f7e6f83f3589c22e"
     },
     "pkgbuild": {
@@ -1021,7 +1028,7 @@
       "Package": "pkgconfig",
       "Version": "2.0.3",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "01f28d4278f15c76cddbea05899c5d6f"
     },
     "pkgload": {
@@ -1049,7 +1056,7 @@
       "Package": "polyclip",
       "Version": "1.10-0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "cb167f328b3ada4ec5cf67a7df4c900a"
     },
     "praise": {
@@ -1112,7 +1119,7 @@
       "Package": "purrr",
       "Version": "0.3.4",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "97def703420c8ab10d8f0e6c72101e02"
     },
     "quantreg": {
@@ -1126,7 +1133,7 @@
       "Package": "rappdirs",
       "Version": "0.3.3",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "5e3c5dc0b071b21fa128676560dbe94d"
     },
     "raster": {
@@ -1302,20 +1309,15 @@
       "Package": "rstudioapi",
       "Version": "0.13",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "06c85365a03fdaf699966cc1d3cf53ea"
     },
     "rticles": {
       "Package": "rticles",
-      "Version": "0.22",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "rticles",
-      "RemoteUsername": "rstudio",
-      "RemoteRef": "v0.22",
-      "RemoteSha": "9da49046aed4475a5042ce4cb0ae421c3570d6fa",
-      "Hash": "ad2cb2d571db49bcc954f19f6e24f716"
+      "Version": "0.23",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "4cab3463b39137d4dd113b751cb2805d"
     },
     "rversions": {
       "Package": "rversions",
@@ -1461,7 +1463,7 @@
       "Package": "sys",
       "Version": "3.4",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "b227d13e29222b4574486cfcbde077fa"
     },
     "tagger": {
@@ -1571,7 +1573,7 @@
       "Package": "utf8",
       "Version": "1.2.2",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "c9c462b759a5cc844ae25b5942654d13"
     },
     "uuid": {
@@ -1599,7 +1601,7 @@
       "Package": "viridisLite",
       "Version": "0.4.0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "55e157e2aa88161bdb0754218470d204"
     },
     "vroom": {
@@ -1634,7 +1636,7 @@
       "Package": "whisker",
       "Version": "0.4",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "RSPM",
       "Hash": "ca970b96d894e90397ed20637a0c1bbe"
     },
     "withr": {
