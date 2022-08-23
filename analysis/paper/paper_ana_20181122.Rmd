@@ -50,10 +50,7 @@ address:
   address: National Center for Atmospheric Research, Boulder, Colorado.
 - code: Illinois
   address: Department of Atmospheric Sciences, University of Illinois Urbana–Champaign, Urbana, Illinois.
-bibliography: 
-  - paperANA.bib 
-  - packages.bib
-  - era.bib
+bibliography: [paperANA.bib, packages.bib, era.bib]
 csl: elsevier-harvard.csl
 footnote:
 - code: 1
@@ -66,7 +63,7 @@ header-includes:
 #  - \usepackage[inline]{showlabels}
 #  - \usepackage{chngcntr}
 #  - \usepackage{natbib}
-  - \usepackage{lineno}
+#  - \usepackage{lineno}
 #  - \linenumbers 
 ---
 
@@ -606,6 +603,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
        color = NULL, shape = NULL) +
   theme_minimal(base_size = 10) +
   theme(legend.position = "bottom", 
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         plot.margin = unit(c(0, 0, 0, 0), "cm")) +
   
   rbind(conv, aut, satwnd, rad_conv) %>%
@@ -637,6 +635,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
   theme(plot.tag = element_text(size = 8), 
         legend.position = "bottom",
         legend.margin = unit(c(0, 0, 0, 0), "cm"),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 
@@ -833,8 +832,8 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
          linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
   theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
-        # legend.spacing.y = unit(0.1, 'mm'),
         legend.title = element_text(size = 6),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   
@@ -862,6 +861,7 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
         legend.title = element_text(size = 6),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   purrr::map(Sys.glob(here("analysis/data/derived_data/RCRV/rcrv_*_perfil.csv"))[1:6], function(f) {
@@ -900,6 +900,7 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
         legend.title = element_text(size = 6),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         tagger.panel.tag.text = element_text(size = 8))
 
 
@@ -1099,7 +1100,7 @@ We also compared ensemble mean analyses to ERA5 reanalyses [@era5pressure], whic
 
 (ref:era5-cap) Difference between analysis ensemble mean experiments and ERA5 for the spatially averaged vertical profiles of air temperature (K, a--d), specific humidity ($g\ Kg^{-1}$, e--h) and meridional wind ($m\ s^{-1}$, i--l) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
 
-```{r era5, fig.cap="(ref:era5-cap)", fig.env="figure*", fig.width=7, fig.height=6, fig.align="center"}
+```{r era5, fig.cap="(ref:era5-cap)", fig.env="figure*", fig.width=7.2, fig.height=5, fig.align="center"}
 era <- fread(here("analysis/data/derived_data/reanalysis/perfiles_ana_era5.csv"))
 
 era[perfiles, on = c("lev", "date")] %>% 
@@ -1121,14 +1122,15 @@ era[perfiles, on = c("lev", "date")] %>%
   labs(fill = "Temperature (K)",
        x = NULL,
        y = "Pressure (hPa)") +
-  tag_facets(position = list(x = 0.1, y = 0.96)) +
+  tag_facets(position = list(x = 0.1, y = 0.95)) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
         tagger.panel.tag.text = element_text(size = 8),
+        plot.margin = margin(0, 0, 0, 0, "cm"),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) +
 
-era[exp, on = c("lev", "date")] %>% 
+era[perfiles, on = c("lev", "date")] %>% 
   .[lev != 1000] %>%
   ggplot(aes(date, lev)) +
   geom_contour_fill(aes(z = QVAPOR - i.QVAPOR, fill = stat(level)), 
@@ -1147,14 +1149,15 @@ era[exp, on = c("lev", "date")] %>%
   labs(fill = latex2exp::TeX("Specific \nhumidity ($g$ $Kg^{-1}$)"),
        x = NULL,
        y = "Pressure (hPa)") +
-  tag_facets(position = list(x = 0.1, y = 0.96), tag_pool = c("e", "f", "g", "h")) +
+  tag_facets(position = list(x = 0.1, y = 0.95), tag_pool = c("e", "f", "g", "h")) +
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
         tagger.panel.tag.text = element_text(size = 8),
+        plot.margin = margin(0, 0, 0, 0, "cm"),
         panel.ontop = TRUE,
         panel.grid = element_line(linetype = 3)) +
 
-  era[exp, on = c("lev", "date")] %>% 
+  era[perfiles, on = c("lev", "date")] %>% 
     .[lev != 1000] %>%
     ggplot(aes(date, lev)) +
     geom_contour_fill(aes(z = V - i.V, fill = stat(level)), 
@@ -1173,10 +1176,11 @@ era[exp, on = c("lev", "date")] %>%
     labs(fill = latex2exp::TeX("V ($m$ $s^{-1}$)"),
          x = NULL,
          y = "Pressure (hPa)") +
-    tag_facets(position = list(x = 0.1, y = 0.96), tag_pool = c("i", "j", "k", "l")) +
+    tag_facets(position = list(x = 0.1, y = 0.95), tag_pool = c("i", "j", "k", "l")) +
     theme_minimal(base_size = 8) +
     theme(legend.position = "bottom",
           tagger.panel.tag.text = element_text(size = 8),
+          plot.margin = margin(0, 0, 0, 0, "cm"),
           panel.ontop = TRUE,
           panel.grid = element_line(linetype = 3)) +
   
@@ -1463,7 +1467,8 @@ fss %>%
   tagger::tag_facets(position = list(x = 0.05, y = 0.90)) +
   labs(color = NULL, x = NULL, y = "FSS") +
   theme_minimal(base_size = 8) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#fbfbfb", color = NA))
 ```
 
 To complement the analysis, Figure \@ref(fig:dbz-mean) shows the observed maximum reflectivity in the vertical column (COLMAX) and the ensemble mean COLMAX for the CONV and RAD experiments at different times between 10 and 19 UTC Nov 22. These experiments were chosen because they represent the analysis with the minimum (CONV) and maximum (RAD) number of assimilated observations. In addition, they are the worst (CONV) and best (RAD) performing experiments in terms of the 1-hour precipitation forecast skill (Figure \@ref(fig:fss)). Overall, none of the short-range forecasts capture the mesoscale details in the reflectivity distribution. This is partially expected considering the coarse horizontal grid spacing (10 km), which is not enough to appropriately represent the strength of the convective band associated with the MCS. Also, the ensemble mean produces a smoothing effect that reduces the amplitude of local maxima in the forecast reflectivity field. RAD better represents the observed features of the system showing a  stronger and more organized MCS than CONV, over the domain center at 10 and 13 UTC (first and second columns in Figure \@ref(fig:dbz-mean)). The convective cells that initiate after 16 UTC along the warm front in the northeast part of the domain are well captured by both experiments but are better represented in terms of strength in RAD. In addition, CONV captures the location of the MCS, but the convection seems to be less organized and much weaker than in RAD. Before and after the times shown in Figure \@ref(fig:dbz-mean), the agreement between location of the observed convective cells and the simulated in the experiment is quite good in the regions where radar data are available, especially for RAD. 
@@ -1610,7 +1615,8 @@ sondeos %>%
    tagger::tag_facets(position = list(x = 0.05, y = 0.95)) +
   labs(y = "Bias/RMSE", x = "Height (Km)", color = NULL, linetype = NULL) +
   theme_minimal(base_size = 9) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#fbfbfb", color = NA))
 ```
 ## Ensemble forescast validation 
 
@@ -1653,7 +1659,8 @@ fss %>%
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
         legend.box = "vertical", 
-        legend.margin = margin())
+        legend.margin = margin(0, 0, 0, 0),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA))
 
 ```
 
