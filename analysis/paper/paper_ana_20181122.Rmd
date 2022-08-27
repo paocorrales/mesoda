@@ -1,69 +1,71 @@
 ---
-title: "Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO campaign"
+title: "Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a Mesoscale Convective System Case During RELAMPAGO campaign"
 author:
-- name: Paola Belén Corrales
-  email: paola.corrales@cima.fcen.uba.ar
-  affiliation: UBA,CIMA,CNRS
-  footnote: 1
-- name: Victoria Galligani
-  affiliation: UBA,CIMA,CNRS
-- name: Juan Ruiz
-  affiliation: UBA,CIMA,CNRS
-- name: Luiz Sapucci
-  affiliation: INPE
-- name: María Eugenia Dillon
-  affiliation: SMN,CONICET
-- name: Yanina García Skabar
-  affiliation: SMN,CONICET,CNRS
-- name: Maximiliano Sacco
-  affiliation: SMN
-- name: Craig S. Schwartz
-  affiliation: NCAR
-- name: Stephen W. Nesbitt
-  affiliation: Illinois
+  - name: Paola Belén Corrales
+    email: paola.corrales@cima.fcen.uba.ar
+    affiliation: UBA,CIMA,CNRS
+    footnote: 1
+  - name: V. Galligani
+    affiliation: UBA,CIMA,CNRS
+  - name: Juan Ruiz
+    affiliation: UBA,CIMA,CNRS
+  - name: Luiz Sapucci
+    affiliation: INPE
+  - name: María Eugenia Dillon
+    affiliation: SMN,CONICET
+  - name: Yanina García Skabar
+    affiliation: SMN,CONICET,CNRS
+  - name: Maximiliano Sacco
+    affiliation: SMN
+  - name: Craig S. Schwartz
+    affiliation: NCAR
+  - name: Stephen W. Nesbitt
+    affiliation: Illinois
 date: "`r Sys.Date()`"
 output: 
-  bookdown::pdf_book: 
-      base_format: rticles::elsevier_article
+  bookdown::pdf_book:
+    base_format: rticles::elsevier_article
+    citation_package: natbib
+# always_allow_html: true      
 abstract: |
-  In this paper, we evaluate the impact of assimilating high-resolution surface networks and satellite observations using the WRF-GSI-LETKF over central and north eastern Argentina where the surface and upper air observing networks are relatively coarse. We conducted a case study corresponding to a huge mesoscale convective system (MCS) that developed during November 22, 2018. The accumulated precipitation associated with this MCS was quite high, exceeding 200 mm over northern Argentina and Paraguay. The MCS developed during the Intense Observing Period (IOP) of the RELAMPAGO field campaign. We used the GSI-4DLETKF data assimilation package to produce analyses assimilating observations every hour with 10-km horizontal grid spacing and a 60-member multiphysics ensemble. We conducted four assimilation experiments using different sets of observations: CONV, consisting of conventional observations from NCEP’s prepBUFR files; AWS combining CONV and dense automatic surface weather station networks, SATWND, combining AWS with satellite-derived winds and RAD, including SATWND; and satellite radiances from different microwave and infrared sensors. We found that the assimilation of observations with high temporal and spatial frequency generate an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed in this case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation. We also ran ensemble forecasts initialized from each experiment and evaluated their skill to predict precipitation. We found that the hourly assimilation of the observations in AWS, SATWND, and RAD helped to improve the precipitation forecast.
+  This paper evaluates the impact of assimilating high-resolution surface networks and satellite observations using the WRF-GSI-LETKF over central and north eastern Argentina where the surface and upper air observing networks are relatively coarse. A case study corresponding to a huge mesoscale convective system (MCS) that developed during November 22, 2018 was used. The accumulated precipitation associated with this MCS was quite high, exceeding 200 mm over northern Argentina and Paraguay. The MCS developed during the Intense Observing Period (IOP) of the Remote sensing of Electrification, Lightning, And Mesoscale/microscale Processes with Adaptive Ground Observations (RELAMPAGO) field campaign. The GSI-4DLETKF data assimilation package is used to produce analyses by assimilating observations every hour with 10-km horizontal grid spacing and a 60-member multiphysics ensemble. Four assimilation experiments are conducted using different sets of observations: CONV, consisting of conventional observations from NCEP’s prepBUFR files; AWS, combining CONV and dense automatic surface weather station networks (AWS), SATWND, combining AWS with satellite-derived winds, and RAD, including SATWND; and satellite radiances from different microwave and infrared sensors. The assimilation of observations with high temporal and spatial frequency generates an important impact on the PBL, primarily on the precipitable water content, that leads to the development of deep convection and heavy precipitation closer to the observed in this case study. The assimilation of radiance observations produces a better development of the convection mainly during the mature state of the MCS leading to an increase in the accumulated precipitation. Ensemble forecasts initialized from each experiment were also simulated to evaluate their skill to predict precipitation. The hourly assimilation of the observations in AWS, SATWND, and RAD helped to improve the precipitation forecast.
 journal: Atmospheric Research
-layout: authoryear,preprint,review,12pt
-#layout: final,5p,times,twocolumn,authoryear
-address:
-- code: UBA
-  address: Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Departamento de Ciencias de la Atmósfera y los Océanos. Buenos Aires, Argentina.
-- code: CIMA
-  address: CONICET – Universidad de Buenos Aires. Centro de Investigaciones del Mar y la Atmósfera (CIMA). Buenos Aires, Argentina.
-- code: CNRS
-  address: CNRS – IRD – CONICET – UBA. Instituto Franco-Argentino para el Estudio del Clima y sus Impactos (IRL 3351 IFAECI). Buenos Aires, Argentina.
-- code: SMN
-  address: Servicio Meteorológico Nacional de Argentina.
-- code: CONICET
-  address: CONICET (Consejo Nacional de Investigaciones Científicas y Técnicas).
-- code: INPE
-  address: National Institute for Space Research, Brazil, Center for Weather Forecasting and Climate Studies.
-- code: NCAR
-  address: National Center for Atmospheric Research, Boulder, Colorado.
-- code: Illinois
-  address: Department of Atmospheric Sciences, University of Illinois Urbana–Champaign, Urbana, Illinois.
-bibliography: 
-  - paper_ANA.bib 
-  - packages.bib
-csl: elsevier-harvard.csl
-footnote:
-- code: 1
-  text: Corresponding Author
-keywords: Regional Data Assimilation, Surface Observations, Satellite Observations 
+#layout: authoryear,preprint,review,12pt
+# layout: final,5p,times,twocolumn,authoryear
+classoption: preprint, 3p, authoryear,review, 12pt
+linenumbers: true
 numbersections: true
-header-includes: 
+address:
+  - code: UBA
+    address: Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Departamento de Ciencias de la Atmosfera y los Oceanos. Buenos Aires, Argentina.
+  - code: CIMA
+    address: CONICET – Universidad de Buenos Aires. Centro de Investigaciones del Mar y la Atmosfera (CIMA). Buenos Aires, Argentina.
+  - code: CNRS
+    address: CNRS – IRD – CONICET – UBA. Instituto Franco-Argentino para el Estudio del Clima y sus Impactos (IRL 3351 IFAECI). Buenos Aires, Argentina.
+  - code: SMN
+    address: Servicio Meteorologico Nacional de Argentina.
+  - code: CONICET
+    address: CONICET (Consejo Nacional de Investigaciones Cientificas y Tecnicas).
+  - code: INPE
+    address: National Institute for Space Research, Brazil, Center for Weather Forecasting and Climate Studies.
+  - code: NCAR
+    address: National Center for Atmospheric Research, Boulder, Colorado.
+  - code: Illinois
+    address: Department of Atmospheric Sciences, University of Illinois Urbana–Champaign, Urbana, Illinois.
+bibliography: "paperANA.bib,packages.bib,era.bib"
+# csl: elsevier-harvard.csl
+footnote:
+  - code: 1
+    text: Corresponding Author
+keywords: Regional Data Assimilation, Surface Observations, Satellite Observations 
+header-includes:
 #  - \usepackage{gensymb}
 #  - \usepackage{subfig}
 #  - \usepackage[inline]{showlabels}
 #  - \usepackage{chngcntr}
 #  - \usepackage{natbib}
-  - \usepackage{lineno}
-  - \linenumbers 
+#  - \usepackage{lineno}
+  - \usepackage[utf8]{inputenc}
 ---
 
 
@@ -124,8 +126,8 @@ cordillera <- list(
                       oob = scales::squish))
 
 scale_date <- function(ini = 20181120180000, end = 20181123120000,
-                       break_bin = "6 hour") {
-  scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin),
+                       break_bin = "6 hour", ...) {
+  scale_x_datetime(breaks = seq.POSIXt(ymd_hms(ini), ymd_hms(end), by = break_bin), ..., expand = c(0, 0),
                    labels = function(x) {
                      fifelse(hour(x) == 0, format(x, "%H UTC\n%b %d"), format(x, "%H"))
                    }) 
@@ -178,59 +180,146 @@ derived_data <- "/home/paola.corrales/datosmunin3/EXP/derived_data/"
 
 Severe weather events cause significant human and economic losses around the world. A large number of these phenomena are associated with the occurrence of deep moist convection, including tornadoes, intense wind gusts, extreme precipitation in short time periods, large hail, and lightning. 
 Southern South America has one of the highest frequencies in the world of favorable conditions for high-impact meteorological events [@brooks2003] and large hail events [@cecil2012], particularly during austral spring and summer. 
-This is also confirmed by observational evidence and high impact weather reports [@matsudo2015; @rasmussen2014]. Recently, the RELAMPAGO-CACTI field campaign [@nesbitt2021] has been conducted to investigate the mechanisms for convective initiation and the occurrence of high-impact weather events associated with deep convection in central Argentina.
+This is also confirmed by observational evidence and high impact weather reports [@matsudo2015; @rasmussen2014]. Recently, the Remote sensing of Electrification, Lightning, And Mesoscale/microscale Processes with Adaptive Ground Observations (RELAMPAGO) field campaign [@nesbitt2021] has been conducted to investigate the mechanisms for convective initiation and the occurrence of high-impact weather events associated with deep convection in central Argentina.
 
 Forecasting mesoscale meteorological phenomena and particularly deep moist convection is a scientific and technological challenge due to its limited predictability and the difficulties in diagnosing the state of the atmosphere at small spatial and short temporal scales (for example from 1 to 10 kilometers and on the order of minutes). Mesoscale data assimilation (DA) is an approach that can provide appropriate initial conditions for high-resolution numerical forecasts [@sun2014] and thus has received increasing attention in the last decades. 
 
-For DA methods to be successful, observing networks with sufficient temporal and spatial resolution capable of capturing mesoscale variability should be used. 
+For DA methods to be successful, observing networks with sufficient temporal and spatial resolution capable of capturing mesoscale variability should be used [@gustafsson2018]. Assimilating information on temperature, moisture, and wind in the planetary boundary layer (PBL) improves mesoscale model initialization, and several authors have reported the resultant beneficial impacts on the PBL structure and the location and timing of precipitating systems (e.g. @wheatley2010, @ha2014, @chang2017, @bae2022, @banos2021, @maejima2019, and @chen2016). 
 
-In that regard, several authors investigated the impact of assimilating surface weather data (e.g. @wheatley2010, @ha2014, @chang2017, @bae2022, @banos2021, @maejima2019, and @chen2016) using different assimilation methodologies. Most of these studies reported the beneficial impacts of assimilating temperature and dew point observations upon the planetary boundary layer structure and the location and timing of precipitating systems.  @sobash2015 showed using a mesoscale DA system, that the positive impact upon convection initiation and the short range precipitation forecast is achieved if data is assimilated frequently (in the order of minutes, rather than in the order of hours).  More recently, @gasperoni2018 evaluated the impact of assimilating observations produced by private weather station networks which are not incorporated in the operational analysis. They found a positive effect of these observations upon the initiation of deep moist convection. This result is particularly important for data sparse regions such as Southern South America, where operational networks are not dense enough to capture mesoscale details. 
- 
-The impact of other types of high spatial and temporal resolution observations, such as atmospheric motion vectors (AMVs), has also been investigated in the context of limited-area mesoscale DA. Many studies have focused on the impact of these observations on the prediction of tropical storms (e.g.,  @wu2014, @cherubini2006, and @sawada2019, among many others). Most of these studies reported an overall positive impact of the assimilation of AMVs for this type of storm. However, some works indicated mixed impacts (e.g. @sawada2019 reported an improvement in the forecast of the track of the storm but a degradation in the forecast intensity). As stated in @zhao2021 and @zhao2021a, the impact of assimilating these data on high impact weather events associated with mid-latitude deep convection over land has received relatively less attention. @zhao2021 and @zhao2021a assimilated GOES-16 AMVs into a storm-scale three-dimensional variational DA system during three high impact weather events. They reported positive impacts of AMVs on the characterization of the storm environment and improved short range precipitation forecasts. @otsuka2015 and @mallick2020 found a slight improvement in the short-range precipitation forecast due to the storm-scale assimilation of high frequency AMVs.
+Particularly relevant for regional mesoscale DA systems in the region of interest is that South America is characterized by a limited number of conventional observations (i.e., radiosondes, surface weather stations) and operational networks that are not dense enough to capture mesoscale details. In this context, analyzing the potential impact of non-conventional sources of observations is essential to improve mesoscale numerical weather prediction (NWP) over South America using DA. There have been only a few published efforts on regional mesoscale DA, but they have all shown promising results [e.g. @dillon2016; @dillon2021; @goncalvesdegoncalves2015]. In particular, @dillon2021 assimilated high resolution surface weather station networks, GOES-16 atmospheric motion vectors (AMVs), and satellite temperature and moisture retrievals over central Argentina with positive impacts. Similar to @gasperoni2018, @dillon2021 included private weather station networks which are not incorporated in the operational analysis. However, the impact of different observation types on the analysis quality has not been addressed.
 
-While the assimilation of radiance observations into global models is well established [@eyre2020], the direct assimilation of radiance data into regional models, however, still remains a challenge due to the sparse data coverage, bias correction, and the relatively low model tops used for this application. @bao2015 studied the impact of assimilating microwave and infrared radiance data on temperature and humidity forecasts over the western USA and found a reduction in the temperature bias at low and mid-levels as a result of the microwave observations but an opposite effect for infrared data. More recently, @zhu2019 studied the impact of assimilating satellite radiance data within a frequently updated regional system and showed an improvement for all variables, in particular for relative humidity at upper levels. @wang2021 studied the impact of assimilating radiances in the high-resolution Copernicus European Regional Reanalysis. They reported that satellite radiance observations had a neutral impact on the analyses of geopotential height in the lower troposphere, while a slightly negative impact on the upper troposphere and the stratosphere. They also observed similar results for 3-h forecasts initialized from the analysis but a positive impact on 12 and 24 -h forecasts. Given these mixed results, there is still room to analyze the utility of assimilating radiance observations in a limited-area DA system over land. Moreover, to the best of our knowledge, there are no studies related to the direct assimilation of radiance observations over South America. 
+The impact of non-conventional high spatial and temporal resolution observations, such as AMVs, has been investigated in the context of regional mesoscale DA. Many studies have focused on the impact of these observations on the prediction of tropical storms (e.g., @wu2014, @cherubini2006, and @sawada2019, and many others). Most of these studies reported an overall positive impact of the assimilation of AMVs for this type of storm. However, some works indicated mixed impacts (e.g. @sawada2019 reported an improvement in the forecast of the track of the storm but a degradation in the forecast intensity). As stated in \citet{zhao2021, zhao2021a}, the impact of assimilating these data on high impact weather events associated with mid-latitude deep convection over land has received relatively less attention. \citet{zhao2021, zhao2021a} assimilated GOES-16 AMVs into a storm-scale three-dimensional variational DA system during three high impact weather events. They reported positive impacts of AMVs on the characterization of the storm environment and improved short range precipitation forecasts. @otsuka2015 and @mallick2020 found a slight improvement in the short-range precipitation forecast due to the storm-scale assimilation of high frequency AMVs.
 
-In particular, in South America, the relatively scarcity of conventional observations such as radiosondes increases the potential impact of the observation sources previously discussed. Previous work has shown promising results of mesoscale DA in South America using some of the above mentioned data sources [e.g. @dillon2016; @dillon2021; @goncalvesdegoncalves2015]. In particular @dillon2021 assimilated high resolution surface weather station networks, GOES-16 AMVs, and satellite temperature and moisture retrievals with promising results. However, no work has been conducted yet over this region to investigate the potential contribution of the datasets discussed above. 
-The main objective of this work is to contribute to the quantification and comparison of the impact of high resolution surface weather stations, AMVs, and clear-sky satellite radiances, into a mesoscale, frequently-updated ensemble-based DA system. In particular, we will focus on the impact in the context of mid-latitude mesoscale convective system events. Another particular goal of this paper is to investigate the impact of these data sources in a region where the conventional observation network is rather sparse and where the potential contributions of these observing systems is larger. 
+While the assimilation of radiance observations into global models is well established [@eyre2020], the direct assimilation of radiance data into regional models, however, still remains a challenge due to the sparse data coverage (in the case of polar-orbiting satellite observations), bias correction, and the relatively low model tops used for this application. @bao2015 studied the impact of assimilating cloud-cleared microwave and infrared radiance data polar orbiting instruments on temperature and humidity forecasts over the western USA and found a reduction in the temperature bias at low and mid-levels as a result of the microwave observations but an opposite effect for infrared data. More recently, @zhu2019 studied the impact of assimilating clear sky polar orbiting satellite radiance data within a frequently updated regional system and showed an improvement for all variables, in particular for relative humidity at upper levels. @wang2021 studied the impact of assimilating clear sky radiances in the high-resolution Copernicus European Regional Reanalysis. They reported that satellite radiance observations had a neutral impact on the analyses of geopotential height in the lower troposphere, while a slightly negative impact on the upper troposphere and the stratosphere. They also observed similar results for 3-h forecasts initialized from the analysis but a positive impact on 12 and 24 -h forecasts. Given these mixed results, there is still room to analyze the utility of assimilating radiance observations in a limited-area DA system over land. Moreover, to the best of our knowledge, there are no studies related to the direct assimilation of radiance observations over South America. 
 
-To reach this goal, we conduct several DA experiments for a case study of a large Mesoscale Convective System (MCS) that developed over Southern South America during Nov 22-23, 2018 during the intense observation period (IOP) of the RELAMPAGO field campaign. 
+The main objective of this work is thus to contribute to the quantification and comparison of the impact of high resolution automatic weather stations, AMVs, and clear-sky satellite radiances, into a mesoscale, frequently-updated ensemble-based regional DA system. This is particularly important in the efforts to improve mesoscale numerical weather prediction (NWP) over South America where the conventional observation network is rather sparse and other sources of information could potentially fill certain gaps. In particular, this paper focuses on the impact in the context of a mid-latitude mesoscale convective system. To reach this goal, several DA experiments are conducted for a case study of a large Mesoscale Convective System (MCS) that developed over Southern South America during Nov 22-23, 2018 during the intense observation period (IOP) of the RELAMPAGO field campaign. 
 
 The paper is organized as follows. The DA system, the experimental design, and the observations used are presented in section 2. Results are discussed in section 3 and finally, conclusions are summarized in section 4.
 
+
 # Data and Methods
 
-## Case Study
+## Case overview
 
-On Nov 22, 2018 a cold front crossed the center of Argentina triggering isolated convective cells that rapidly grew upscale into an exceptionally large MCS. To the north of the region, a warm front contributed to the development of isolated multicells that ultimately grew and merged with the MCS. 
+Previously to the development of this case study, the center and north of Argentina was immersed in a warm and humid air mass with high values of convective available potential energy (CAPE), as shown by  ERA 5 Reanalysis [@era5pressure] in Figure \@ref(fig:case)a. On Nov 22, 2018 a cold front crossed the center of Argentina (Figure \@ref(fig:case)b). This cold front triggered isolated convective cells that rapidly grew upscale into an exceptionally large MCS (Figure \@ref(fig:case)d,e). During that day several surface stations reported lightning, strong wind gusts, and heavy rain. To the north of the region, a warm and humid environment contributed to the development of isolated convection that ultimately grew and merged with the MCS (Figure \@ref(fig:case)f). 
 The MCS traveled approximately 2500 km from south to north, dissipating over Paraguay and Southern Brazil after 42 hours. 
  
+(ref:case) ERA5 Reanalysis of sea level pressure (hPa, black contours), 1000-500 hPa thickness (red dashed contours) and convective available potential energy (shaded) and GOES-16 channel 13 brightness temperature for a,d) 00 and b,e) 12 UTC Nov 22 and c,f) 00 UTC Nov 23. 
+ 
+```{r case, fig.cap="(ref:case)", fig.width=6, fig.height=4, fig.align="center", fig.env = "figure*"}
+#fig.width=7, fig.height=3.5,
+campos <- ReadNetCDF(here("analysis/data/derived_data/reanalysis/geopotential.nc")) %>% 
+  dcast(time + longitude + latitude ~ level) %>% 
+  .[order(time, -latitude, longitude)] %>% 
+  .[, ":="(msl = ReadNetCDF(here("analysis/data/derived_data/reanalysis/pressure-pw.nc"), vars = "msl", out = "vector")[[1]],
+           cape = ReadNetCDF(here("analysis/data/derived_data/reanalysis/cape-pw.nc"), vars = "cape", out = "vector")[[1]])] %>% 
+  setnames(c("longitude", "latitude"), c("lon", "lat")) %>% 
+    .[time != ymd_h(2018112312)] 
+
+xlim <- c(2700, 3950)
+ylim <- c(3800, 4950)
+
+files <- Sys.glob(here("analysis/data/derived_data/goes16/*"))
+goes <- map(files, function(f) {
+  nc <- ncdf4::nc_open(f)
+  meta <- unglue::unglue(basename(f), "OR_ABI-L1b-RadF-M3{channel}_G16_s{sdate}_e{edate}_c{cdate}.nc")
+  ReadNetCDF(f, vars = c(rad = "Rad", time = "t"), 
+             subset = list(x = xlim, y = ylim)) %>% 
+  .[, rad := calculate_rad(rad, nc)] %>% 
+  .[, tb := rad_to_tb(rad, nc)] %>% 
+  .[, time := as_datetime(time, origin = "2000-01-01 12:00:00")] %>%
+  .[, c("lon", "lat") := goes_projection(x, y, nc)] %>% 
+  .[]
+}) %>% 
+  rbindlist() %>% 
+  .[, time := floor_date(time, "hour")]
+
+campos %>% 
+  .[, source := "era5"] %>%
+  .[, time := factor(time)] %>% 
+  .[, ":="(espesor = (`500`-`1000`)/100, time = factor(time))] %>%
+  ggplot(aes(lon, lat)) +
+  geom_contour_fill(aes(z = cape, fill = stat(level_d)), breaks = seq(500, 4000, 500)) +
+  scale_fill_distiller(super = ScaleDiscretised,
+                       name = "CAPE",
+                       # palette = "PRGn", direction = 1,
+                       palette = "YlOrRd", direction = 1,
+                       guide = guide_colorsteps(barwidth = 0.5, #mid = 25,
+                                                barheight = 8,
+                                                order = 2, 
+                                                # title.position = "left",
+                                                # title.vjust = 1,
+                                                frame.colour = "black")) +
+  geom_contour2(aes(z = espesor, label = ..level..),
+                size = 0.2, color = "darkred", linetype = 2,
+                label_size = 2, label.placer = label_placer_n(n = 3)) +
+  geom_contour2(aes(z = msl/100, label = ..level..),
+                size = 0.4, color = "black", linetype = 1,
+                label_size = 2) +
+  cordillera +
+  scattermore::geom_scattermore(data = goes[, source := "goes"], aes(color = tb)) +
+  scale_color_topes(guide = guide_colorbar(barwidth = 0.5,
+                                           barheight = 8,
+                                           order = 99,
+                                           frame.colour = "black")) +
+  # guides(fill = guide_legend(" CAPE", order = 0),
+  #        color = guide_legend("BT (ºC)", order = 2)) +
+  geom_mapa() +
+  coord_sf(ylim = c(-45, -22), xlim = c(-75, -52)) +
+  facet_grid(source ~ time, labeller = labeller(time = c("2018-11-22 00:00:00" = "00 UTC Nov 22",
+                                                         "2018-11-22 12:00:00" = "12 UTC Nov 22",
+                                                         "2018-11-23 00:00:00" = "00 UTC Nov 23"),
+                                                source = c("era5" = "ERA5",
+                                                           "goes" = "GOES-16 Channel 13"))) +
+  tag_facets() +
+  labs(x = NULL, y = NULL, fill = "CAPE", color = "BT (ºC)") +
+  theme_minimal(base_size = 9) +
+  theme(tagger.panel.tag.background = element_rect(color = "white"))
+
+```
 
 
 ## Data assimilation system configuration {#config}
 
-The model simulations for the case study are performed using version 3.9.1 of the non-hydrostatic Advanced Research version of the Weather Research and Forecasting (WRF-ARW, @skamarock2008) model. 
+The forecast model uses the non-hydrostatic Advanced Research version of Weather Research and Forecasting (WRF-ARW V3.9.1, @skamarock2008). 
 The horizontal grid spacing is 10 km (150 x 200 grid points) in the horizontal and 37 levels in the vertical with the top of the model at 50 hPa. 
-The initial and boundary conditions are provided by the Global Forecast System (GFS) analysis (0.25$^{\circ}$ horizontal grid spacing and 6-hour temporal resolution; @cisl_rda_ds084.1). 
-The domain covers the area indicated in Figure \@ref(fig:dominio) to capture the development of the MCS during the simulated period. 
+The initial and boundary conditions are provided by the Global Forecast System (GFS) analysis (0.25$^{\circ}$ horizontal grid spacing and 6-hour temporal resolution; @cisl_rda_ds084.1). In this case, a single nesting approach is used since the resolution gap between the driving model and the regional model is not too large (0.25$^{\circ}$ or 25 km approximately to 10 km). This approach is also based on recent studies which suggest that using multiple nested domains does not necessarily lead to improved precipitation forecasts in regional domains, particularly in areas of complex terrain (e.g. @liang2019, @beck2004). The domain covers the area indicated in Figure \@ref(fig:dominio) to capture the development of the MCS during the simulated period. 
 
-The analyses are generated using the LETKF implementation (V1.3, @hunt2007) part of the Gridpoint Statistical Interpolation analysis system (GSI V3.8; @shao2016). 
+The analyses are generated using the LETKF implementation (V1.3, @hunt2007) of the Gridpoint Statistical Interpolation analysis system (GSI V3.8; @shao2016). 
 A rapid update cycle approach is implemented with hourly analysis and a centered assimilation window, meaning that all the observations within $\pm$ 30 minutes of the analysis time are assimilated. 
 Observations are assimilated in a 4D approach by comparing them with the corresponding first guess state at 10-minute intervals. 
 For radiance observations, the Community Radiative Transfer Model version 2.3 (CRTM; @han2006) is used as an observation operator to calculate model-simulated brightness temperatures. 
 
+A 60-member ensemble is used where the initial ensemble mean and the mean boundary conditions are taken from the GFS deterministic analysis. A set of 60 perturbations are randomly generated to perturb the initial state as well as the boundary conditions during the length of the experiment. Perturbing the boundary conditions helps to reduce the impact of errors in the driving global model and helps to keep a larger ensemble spread throughout the domain and during the length of the experiment [@ouaraini2015]. The perturbations are generated as scaled differences between two random atmospheric states obtained from the Climate Forecast System Reanalysis (CFSR) data with 0.5$^{\circ}$ horizontal grid spacing with a smooth time evolution as in @necker2020 and @maldonado2021. In this way, the nearly hydrostatic and geostrophic equilibrium of larger scales is preserved. The random perturbations used are the same across experiments to ensure that the differences between experiments are only related to changes in the number and type of assimilated observations. 
 
-We use a 60-member ensemble where the ensemble mean at the beginning of the DA cycle is initialized using the GFS deterministic analysis with random perturbations to generate the initial ensemble perturbations. The perturbations are generated as scaled differences between two random atmospheric states obtained from the Climate Forecast System Reanalysis (CFSR) data with 0.5$^{\circ}$ horizontal grid spacing with a smooth time evolution as in @necker2020 and @maldonado2021. In this way, we preserved the nearly hydrostatic and geostrophic equilibrium of larger scales. This method helps to prevent an underestimation of the ensemble spread [@ouaraini2015], and the random perturbations are also applied at the boundaries to maintain proper levels of ensemble spread within the domain. 
+A multi-physics scheme is used to better represent the uncertainty in the model formulation within the DA system. 9 different model configurations are generated consisting of the combination of 3 moist convection schemes (Kain–Fritsch [@kain2004], Grell–Freitas [@grell2013], and Betts–Miller–Janjic [@janjic1994]) and 3 planetary boundary layer schemes (Yonsei University Scheme [@hong2006], Mellor–Yamada–Janjic Scheme [@janjic1994], and Mellor–Yamada Nakanishi Niino [@nakanishi2009]). The distribution of these schemes among the 60 ensemble members is outlined in Table \@ref(tab:miembros-desc). The multi-physics approach is also introduced in order to represent the uncertainty associated with the more relevant physical processes that are not resolved by the model. All ensemble members use the same land-surface model (Noah-MP, @chen2001), microphysics (WRF single-moment 6–class scheme [@hong2006a]), and radiation processes (RRTMG shortwave and longwave scheme [@iacono2008]) parameterizations.
 
-In addition to random perturbations at the lateral boundaries, a multi-physics scheme is used to better represent the uncertainty in model formulation within the DA system. We use 9 different model configurations consisting of the combination of 3 moist convection schemes (Kain–Fritsch [@kain2004], Grell–Freitas [@grell2013], and Betts–Miller–Janjic [@janjic1994]) and 3 planetary boundary layer schemes (Yonsei University Scheme [@hong2006], Mellor–Yamada–Janjic Scheme [@janjic1994], and Mellor–Yamada Nakanishi Niino [@nakanishi2009]). All ensemble members use the same land-surface model (Noah-MP, @chen2001), microphysics (WRF single-moment 6–class scheme [@hong2006a]), and radiation processes (RRTMG shortwave and longwave scheme [@iacono2008]) parameterizations.
 
-To reduce the effect of spurious correlations in the estimation of error covariances, we use a horizontal localization radius of 180 km and a vertical localization radius of 0.4 (in log pressure coordinates) as in @dillon2021 for all types of observations. 
-A relaxation-to-prior inflation [@whitaker2012] is applied with an inflation parameter $\alpha=0.9$ to mitigate the impact of sampling errors and to consider model errors not accounted for by the multi-model ensemble approach.
+```{r miembros-desc}
+fisica %>% 
+  copy() %>% 
+  .[, c("Cumulus", "PBL") := tstrsplit(fisica, split = "-")] %>% 
+  .[, .(mem = paste(as.numeric(mem), collapse = ", ")), by = .(PBL, Cumulus)] %>% 
+  dcast(Cumulus ~ PBL, value.var  = "mem") %>% 
+  kable(booktabs = TRUE, caption = "Generation of the 60-member multi-physics ensemble as a combination of Cumulus and PBL parameterizations.", 
+        align = "cccc") %>% 
+  add_header_above(c(" " = 1, PBL = 3)) %>% 
+  kable_classic_2(full_width = FALSE) %>% 
+  kable_styling(font_size = 6,
+                position = "center") %>% 
+  # column_spec(1, width = "1em") %>% 
+  column_spec(2:4, width = "7em")
+```
+
+
+To reduce the effect of spurious correlations in the estimation of error covariances, a horizontal localization radius of 180 km and a vertical localization radius of 0.4 (in log pressure coordinates) is used as in @dillon2021 for all types of observations. 
+A relaxation-to-prior spread inflation [@whitaker2012] is applied with an inflation parameter $\alpha=0.9$ following @maldonado2020 to mitigate the impact of sampling errors and to consider model errors not accounted for by the multi-model ensemble approach.
 
 
 (ref:dominio) a) The domain used for the simulations (black box), the inner domain used for the experiment comparison (red box), the region shown in b) (light blue box), and the locations of Automatic Weather Stations (AWS, green squares) and Conventional Surface Weather Stations (CSWS, orange triangles). b) Locations of radiosonde launches during RELAMPAGO. Green dots correspond to radiosondes launched during IOP 7, orange triangles are radiosondes launched during IOP 8, and purple squares are radiosondes launched outside the IOP missions. The topography in meters is also shown (shaded).
 
 
-```{r dominio, fig.cap="(ref:dominio)", out.width="100%"}
+```{r dominio, fig.cap="(ref:dominio)", out.width="98%", fig.width=5}
 
 oficiales <- fread(here("analysis/data/derived_data/sample_obs/E2_asim_conv_20181121120000.ensmean"), 
                    na.strings = c("0.100E+11", "-0.100E+06", "-99999.90", "-100000.00")) %>% 
@@ -290,7 +379,7 @@ g1 <- dominio %>%
   geom_point(data = square2, aes(lon, lat), size = 0.2, color = "#CC3311") +
   theme_minimal(base_size = 10) +
   theme(legend.box = "horizontal",
-        legend.position = c(0.1, 0.95),
+        legend.position = c(0.15, 0.95),
         legend.background = element_rect(fill = "white", color = "white")) 
 
 
@@ -301,7 +390,7 @@ temp <- dominio %>%
   scale_fill_gradient(low = "#f2f2f2", high = "#333333",
                       name = "Altitude (m)",
                       breaks = seq(0, 6000, 1000),
-                      guide = guide_colorstrip(barwidth = 20,
+                      guide = guide_colorstrip(barwidth = 18,
                                                barheight = 0.5)) +
   geom_mapa() +
   coord_sf(ylim = c(-35.5, -29), xlim = c(-66.5, -61.5)) +
@@ -330,7 +419,7 @@ g2 <- dominio %>%
   labs(color = NULL, shape = NULL) +
   theme_minimal(base_size = 11) +
   theme(legend.box = "horizontal",
-        legend.position = c(0.16, 0.92),
+        legend.position = c(0, 1),
         legend.background = element_rect(fill = "white", color = "white")) 
 
 ggdraw(plot_grid(plot_grid(g1, g2, ncol = 2, rel_widths = c(1, 0.5), 
@@ -345,20 +434,20 @@ ggdraw(plot_grid(plot_grid(g1, g2, ncol = 2, rel_widths = c(1, 0.5),
 
 ### Conventional 
 
-The conventional observations used are part of the Global Data Assimilation System (GDAS) data stream. We assimilated conventional observations included in the Binary Universal Form for Representation of Meteorological Data (PREPBUFR) files generated at the National Centers for Environmental Prediction (NCEP). These consist of surface observations from 117 Conventional Surface Weather Stations (CSWS), ships, and upper-air observations from 13 radiosondes sites and aircraft. The orange triangles in Figure \@ref(fig:dominio)a indicate the location of the surface stations included in this experiment. The frequency of these observations varied between 1 hour for surface stations and 12/24 hours for radiosondes. Wind surface observations over oceans (ASCATW) come from scatterometers and are also included in the PREPBUFR files.
+The conventional observations used are part of the Global Data Assimilation System (GDAS) data stream. Conventional observations included in the Binary Universal Form for Representation of Meteorological Data (PREPBUFR) files generated at the National Centers for Environmental Prediction (NCEP) are assimilated. These consist of surface observations from 117 Conventional Surface Weather Stations (CSWS), ships, and upper-air observations from 13 radiosondes sites and aircraft. The orange triangles in Figure \@ref(fig:dominio)a indicate the location of the surface stations included in this experiment. The frequency of these observations varied between 1 hour for surface stations and 12/24 hours for radiosondes. Wind surface observations over oceans (ASCATW) come from scatterometers and are also included in the PREPBUFR files.
 
 Table \@ref(tab:table-obs) lists all the observation types (i.e., surface pressure, temperature, specific humidity, and wind) available for each source, together with their associated errors. The observation errors were specified following the GSI default configuration. In some cases, the error varies with height and depends on the specific platform (aircraft and satellite-derived wind). In terms of quality control, a gross check was performed by the observation operator by comparing the innovation (the difference between the observation and the model-simulated observation based on the first-guess) with a predefined threshold that depends on the observation error (also included in Table \@ref(tab:table-obs)). 
  
 
 ### AWS networks 
 
-We also assimilate data from 866 Automatic Weather Stations (AWS) that are part of 17 public and private surface networks over Southern South America. The dataset used in this study has been obtained from the RELAMPAGO Data Set repository [@garcia2019]. These stations are indicated as green squares in Figure \@ref(fig:dominio)a. They have higher spatial coverage than the CSWS and a sampling frequency of 10 minutes in most cases. All stations measure temperature, but only 395 stations provide humidity, 422 provide pressure, and 605 provide wind information. 
+Data from 866 Automatic Weather Stations (AWS) that are part of 17 public and private surface networks over Southern South America are also assimilated. The dataset used in this study has been obtained from the RELAMPAGO Data Set repository [@garcia2019]. These stations are indicated as green squares in Figure \@ref(fig:dominio)a. They have higher spatial coverage than the CSWS and a sampling frequency of 10 minutes in most cases. All stations measure temperature, but only 395 stations provide humidity, 422 provide pressure, and 605 provide wind information. 
 Observation errors used to assimilate these observations are the same as for the CSWS (see Table \@ref(tab:table-obs)).
 
 
-### Satellite derived winds
+### Satellite-derived winds
 
-Satellite-derived wind observations are also included in the PREPBUFR files available every 6 h,  and consist of estimations from GOES-16 (using the visible, infrared, and water vapor channels) and METEOSAT 8 and 11 (using the visible and water vapor channels). Due to the domain covered by each of these satellites, GOES-16 is the primary source of satellite-derived winds (99 % of the observations). Observation errors used to assimilate these observations are indicated in Table \@ref(tab:table-obs).  
+Satellite-derived wind observations are also included in the PREPBUFR files available every 6 h, and consist of estimations from GOES-16 (using the visible, infrared, and water vapor channels) and METEOSAT 8 and 11 (using the visible and water vapor channels). Due to the domain covered by each of these satellites, GOES-16 is the primary source of satellite-derived winds (99 % of the observations). Observation errors used to assimilate these observations follow the GSI default configuration and are indicated in Table \@ref(tab:table-obs). 
 
 
 ```{r table-obs}
@@ -386,31 +475,34 @@ fread(here("analysis/data/derived_data/tables/table1.csv")) %>%
 
 Satellite radiances available through the GDAS data stream, consisting of infrared and microwave observations, are used in this study. This includes the Advanced Microwave Sounding Unit - A (AMSU-A), Microwave Humidity Sounder (MHS), and 2 multispectral sensors; the Atmospheric Infrared Sounder (AIRS) and the Infrared Atmospheric Sounding Interferometer (IASI) over several satellite platforms (see Table \@ref(tab:table-rad)). Since the regional domain is located in the mid-latitudes and the satellite platforms of interest are on polar orbits, each sensor scans the area only twice a day with a spatial coverage depending on the satellite swath. For this reason, the number of satellite observations varied significantly among cycles. In particular, the multispectral sensors provided between 100 and 1000 observations for every scan every 12 hours, contributing 88 % of the total amount of assimilated radiances in our experiment. The vertical location of each radiance observation was estimated as the model level at which its weighting function was maximized as calculated by CRTM. The multispectral sensors have good vertical coverage and are able to sense from the lower troposphere up to the lower stratosphere. 
 
-The channels accepted for assimilation and their associated errors were defined taking into account the low model top (50 hPa). The data preprocessing, which is an essential step in the assimilation of radiances, was performed within the GSI system for each sensor specifically. First, a spatial data thinning is applied using a 60 km grid following @singh2016, @jones2013, and @lin2017a, where the observations to be assimilated are chosen based on their distance to the model grid points, the observation quality (based on available data quality information), and the number of available channels (from the same pixel and sensor) that passed the quality control. Also, observations over the sea are preferred to those over land or snow [@hu2018]. 
+The channels adopted for assimilation and their associated errors were defined taking into account the low model top (50 hPa). The data preprocessing, which is an essential step in the assimilation of radiances, was performed within the GSI system for each sensor specifically. First, a spatial data thinning is applied using a 60 km grid following @singh2016, @jones2013, and @lin2017a, where the observations to be assimilated are chosen based on their distance to the model grid points, the observation quality (based on available data quality information), and the number of available channels (from the same pixel and sensor) that passed the quality control. Also, observations over the sea are preferred to those over land or snow [@hu2018]. 
 
 The thinned observations were then bias corrected. The bias correction (BC) has an air-mass dependent and an angle-dependent component [@zhu2014] and it is calculated as a multi-linear function of N predictors $p_i(x)$, with associated coefficients $\beta_i$. Then, the bias corrected brightness temperature ($BT_{bc}$) can be obtained as:
 
-$$\mathit{BT_{bc}} =\mathit{ BT} + \sum_{i = 0}^{N} \beta_i p_i (x)$$
+\begin{equation}
+  \mathrm{\mathit{BT_{bc}} =\mathit{ BT} + \sum_{i = 0}^{N} \beta_i p_i (x)}
+  (\#eq:eq1)
+\end{equation}
 
 GSI has a constant offset bias correction term ($p_0 = 1$) and the remaining predictors are the cloud liquid water content (CLW), the temperature lapse rate at the pressure of maximum weight, the square of the temperature lapse rate at the pressure of maximum weight, and the emissivity sensitivity. Scan angle-dependent bias is modeled as a 4th-order polynomial [@zhu2014]. 
 
 In the GSI system, the $\beta_i$ coefficients are trained using a variational estimation method which solves the $\beta_i$ that provides the best fit between the simulation and the observations. The coefficients were initialized at 18 UTC Nov 18, 2018 with the GFS system coefficients. The assimilation system was configured to use a constant background error variance of 0.01 to avoid large adjustments in the estimated coefficients at each time. 
 
-In our experiments, only clear-sky observations are used. For microwave radiances, observations potentially contaminated by clouds are detected using the scattering and Liquid Water Path (LWP) indexes [@weston2019; @zhu2016]. For the infrared channels, cloud contaminated observations are detected using the transmittance profile calculated within the CRTM algorithms. Additionally, the GSI quality control for infrared sensors looks for observations over water with a large zenith angle (over 60°) to reject channels near the visible range that can be contaminated with reflection. It also performs an emissivity check for observations over land for both infrared and microwave radiances. 
+In our experiments, only clear-sky observations are used. For microwave radiances, observations potentially contaminated by clouds are detected using the scattering and Liquid Water Path (LWP) indexes [@weston2019; @zhu2016]. For the infrared channels, cloud contaminated observations are detected using the transmittance profile calculated within the CRTM algorithms. Moreover, GSI checks the difference between the observations and simulated brightness temperature with height to detect cloudy pixels. Additionally, the GSI quality control for infrared sensors looks for observations over water with a large zenith angle (over 60°) to reject channels near the visible range that can be contaminated with reflection. It also performs an emissivity check for observations over land for both infrared and microwave radiances. 
 
 ```{r table-rad}
-fread(here("analysis/data/derived_data/tables/tabla_radianzas.csv")) %>% 
+fread(here("analysis/data/derived_data/tables/tabla_radianzas.csv")) %>%
   .[, ":="(sensor = toupper(sensor),
            plataforma = toupper(plataforma),
-           prop = paste0(prop, " \\", "%"))] %>% 
-  .[order(.[,'sensor']), ] %>% 
-  .[] %>% 
+           prop = paste0(prop, " ", "%"))] %>%
+  .[order(.[,'sensor']), ] %>%
+  .[] %>%
   kbl(booktabs = TRUE,
-      escape = FALSE,
-      col.names = linebreak(c("Sensor", "Platform", "Assimilated\nchannels", "Percentage\nover total")),
-      caption = "List of the available sensors over several platforms, the number of accepted channels for the assimilation, and the percentage of assimilated observations calculated over all radiance observations and all cycles.") %>% 
-  kable_styling(font_size = 7) %>% 
-  collapse_rows(1, valign = "top") %>% 
+      escape = TRUE,
+      col.names = linebreak(c("Sensor", "Platform", "Assimilated channels", "Percentage over total")),
+      caption = "List of the available sensors over several platforms, the number of accepted channels for the assimilation, and the percentage of assimilated observations calculated over all radiance observations and all cycles.") %>%
+  kable_styling(font_size = 7) %>%
+  collapse_rows(1, valign = "top") %>%
   kable_classic_2(full_width = TRUE)
 ```
 
@@ -540,6 +632,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
        color = NULL, shape = NULL) +
   theme_minimal(base_size = 10) +
   theme(legend.position = "bottom", 
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         plot.margin = unit(c(0, 0, 0, 0), "cm")) +
   
   rbind(conv, aut, satwnd, rad_conv) %>%
@@ -571,6 +664,7 @@ rbind(conv, aut, satwnd, rad_conv) %>%
   theme(plot.tag = element_text(size = 8), 
         legend.position = "bottom",
         legend.margin = unit(c(0, 0, 0, 0), "cm"),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         plot.margin = unit(c(0, 0, 0, 0), "cm"))
 
 
@@ -578,7 +672,9 @@ rbind(conv, aut, satwnd, rad_conv) %>%
 
 ### Validation dataset 
 
-To evaluate the performance of the ensemble-based DA system presented in this article, we use the following observational datasets: 
+To evaluate the performance of the ensemble-based DA system presented in this article, the following observational datasets were used: 
+
+* ERA5 hourly data on pressure levels from 1959 to present [@era5pressure]. The variables of interest (air temperature, humidity and wind) were interpolated to the model grid to compare them with the analysis of each experiment. 
 
 * The Multi-Network Composite Highest Resolution Radiosonde Data [@sondeos] from the RELAMPAGO field campaign database consisting of high-resolution radiosondes launched from several locations during the IOPs along with the operational radiosondes. Only the soundings that did not enter the assimilation system were used for validation. The experiment period covers IOP missions 7 and 8, during which 74 radiosondes were launched in a small area near the center of the experimental domain (Figure \@ref(fig:dominio)b). 
 
@@ -589,7 +685,7 @@ To evaluate the performance of the ensemble-based DA system presented in this ar
 
 ## Experimental design {#exp}
 
-To investigate the impact of different observations upon the analysis, four DA experiments were performed using different observation sets (Table \@ref(tab:table-exp)). The CONV experiment uses only conventional observations from PREPBUFR. In a second experiment, referred to as AWS, we assimilate all the observations included in CONV plus the 10-minute frequency surface observations from AWS. In the third experiment, referred to as SATWND, we assimilate all the observations of the AWS experiment and the satellite-derived winds. Finally, a fourth experiment referred to as RAD assimilates all available clear-sky radiances from sensors onboard polar orbiting satellites as described in section \@ref(sat).
+To investigate the impact of different observations upon the analysis, four DA experiments were performed using different observation sets (Table \@ref(tab:table-exp)). The CONV experiment uses only conventional observations from PREPBUFR. In a second experiment, referred to as AWS, all the observations included in CONV are assimilated plus the 10-minute frequency surface observations from AWS. In the third experiment, referred to as SATWND, the observations from the AWS experiment along with the satellite-derived winds are assimilated. Finally, a fourth experiment referred to as RAD assimilates all available clear-sky radiances from sensors onboard polar orbiting satellites as described in section \@ref(sat).
 
 ```{r table-exp}
 tribble(
@@ -616,7 +712,7 @@ All the assimilation experiments start at 18 UTC Nov 20, 2018 and continue until
 Ensemble forecasts initialized from the different analysis experiments at 00 and 06 UTC Nov 22 were performed to evaluate the impact of the different observing networks on short range precipitation forecasts. Both forecasts are integrated until 12 UTC Nov 23. All forecasts use the same domain and ensemble configuration as the analysis. The boundary conditions for the ensemble members are generated by adding random perturbations to the GFS deterministic forecast (0.25$^{\circ}$ horizontal grid spacing and 6-hour temporal resolution; @cisl_rda_ds084.1).
 
 
-(ref:cycle) Figure 4. Diagram of the analysis cycles between 18 UTC Nov 20, and 12 UTC Nov 23 plus spin up period of 6 hours. The zoomed section shows the hourly assimilation that is performed within a one-hour centered window and new boundary conditions from GFS every 6 hours. The two IOP missions from the RELAMPAGO field campaign and the ensemble forecast initialized at 00 and 06 UTC Nov 22 are shown.
+(ref:cycle) Diagram of the analysis cycles between 18 UTC Nov 20, and 12 UTC Nov 23 plus spin up period of 6 hours. The zoomed section shows the hourly assimilation that is performed within a one-hour centered window and new boundary conditions from GFS every 6 hours. The two IOP missions from the RELAMPAGO field campaign and the ensemble forecast initialized at 00 and 06 UTC Nov 22 are shown.
 
 ```{r cycle, fig.cap="(ref:cycle)", out.width="100%"}
 
@@ -629,53 +725,73 @@ knitr::include_graphics(here("analysis", "figures", "analysis_cycle.png"))
 
 A set of metrics are selected to evaluate different aspects of the analysis obtained in the experiments conducted in this paper. These aspects include a validation of how the uncertainty is quantified in the first-guess and in the analysis, and how different experiments fit an independent set of observations that are not assimilated. 
 
-To evaluate the consistency of the uncertainty quantification in the first-guess and in the analysis we use the Reduced Centered Random Variable (RCRV, @candille2007) which is defined as:
+To evaluate the statistical consistency of the uncertainty quantification in the ensemble system the Reduced Centered Random Variable (RCRV, @candille2007) is used which is defined as:
 
-$$RCRV = \frac{x_o - m}{\sqrt{\sigma_o^2 + \sigma^2}}$$
+\begin{equation}
+  \mathrm{RCRV = \frac{m - x_o}{\sqrt{\sigma_o^2 + \sigma^2}}}
+  (\#eq:eq2)
+\end{equation}
 
-where $x_o$ is the assimilated observation and its error $\sigma_o$, the ensemble mean of the analysis in observational space $m$, and the standard deviation $\sigma$ of the ensemble. 
-The average of $RCRV$ computed over all the realizations represents the bias of the ensemble mean with respect to the observations normalized by the estimated uncertainty:
+where $x_o$ is the assimilated observation and its error $\sigma_o$, the ensemble mean of the analysis in observational space $m$, and the standard deviation $\sigma$ of the ensemble. The $RCRV$ is the ratio of the distance between the observations and the forecast and its expected standard deviation assuming the statistical independence between the forecast error (estimated from the ensemble spread) and the observation error. The average of $RCRV$ computed over all the analysis cycles represents the bias of the ensemble mean with respect to the observations normalized by the estimated uncertainty:
 
-$$\mathit{mean RCRV} = E[RCRV]$$
 
-The standard deviation of the $RCRV$ or $sd RCRV$ measures the agreement of the ensemble spread and the observational error with respect to the distance between the ensemble mean and the observations, and then the systematic over- or under- dispersion of the ensemble:
+\begin{equation}
+  \mathrm{\mathit{mean RCRV} = E[RCRV]}
+  (\#eq:eq3)
+\end{equation}
 
-$$\mathit{sd RCRV} = \sqrt{\frac{M}{M -1}E[(\mathit{RCRV} - \mathit{mean RCRV})^2]}$$
-where $M$ is the ensemble size. A consistent system will have no bias ($mean RCRV = 0$) and a standard deviation equal to 1 ($sd RCRV = 1$). If the ensemble has a positive bias, $mean RCRV$ will be positive, on the opposite, if the ensemble has a negative bias, $mean RCRV$ will be negative. A $sd RCRV > 1$ () indicates that the ensemble is underdispersive and an $sd RCRV < 1$ indicates that the ensemble is overdispersive. 
+If the ensemble has a positive bias, $mean RCRV$ will be positive, on the opposite, if the ensemble has a negative bias, $mean RCRV$ will be negative. The standard deviation of the $RCRV$ or $sd RCRV$ is defined as:
 
-The fit of the first-guess and analysis to a set of independent observations, the high-resolution radiosondes from RELAMPAGO,  is computed based on the Root Mean Square Error (RMSE) and the BIAS:
+\begin{equation}
+  \mathrm{\mathit{sd RCRV} = \sqrt{\frac{1}{M -1}\sum_{i=1}^{M}(\mathit{RCRV_i} - \mathit{mean RCRV})^2}}
+  (\#eq:eq4)
+\end{equation}
 
-$$\mathit{RMSE} = \sqrt{\frac{1}{N}\sum_{i = 1}^{N} (X_i - O_i)^{2}}$$ 
 
-$$\mathit{BIAS} = \frac{1}{N}\sum_{i = 1}^{N} (X_i - O_i)$$
+where $M$ is the ensemble size. The $sd RCRV$ measures how large is the distance between the forecast and the observations with respect to the expected distance (given by the combination of the ensemble spread and the observation error). Assuming that the observation error is accurately estimated, an $sd RCRV > 1$ indicates that the ensemble is underdispersive (i.e. the distance between the observations and the forecasts is larger than expected), and an $sd RCRV < 1$ indicates that the ensemble is overdispersive (i.e. the distance between the observations and the forecasts is lower than expected). A consistent system will have no bias ($mean RCRV = 0$) and a standard deviation equal to 1 ($sd RCRV = 1$). 
+
+The fit of the first-guess and analysis to a set of independent observations, the high-resolution radiosondes from RELAMPAGO, is computed based on the Root Mean Square Error (RMSE) and the BIAS:
+
+\begin{equation}
+  \mathrm{\mathit{RMSE} = \sqrt{\frac{1}{N}\sum_{i = 1}^{N} (X_i - O_i)^{2}}}
+  (\#eq:eq5)
+\end{equation}
+
+\begin{equation}
+  \mathrm{\mathit{BIAS} = \frac{1}{N}\sum_{i = 1}^{N} (X_i - O_i)}
+  (\#eq:eq6)
+\end{equation}
+
 where $O$ and $X$ stand for independent observations and the simulations respectively, and N is the sample size. 
 
-For the comparison of the first-guess precipitation with the IMERG precipitation estimates, we compute the Fractions Skill Score (FSS, @roberts2008) for different neighborhood length scales and thresholds: 
+For the comparison of the first-guess precipitation with the IMERG precipitation estimates, the Fractions Skill Score (FSS, @roberts2008) is computed for different neighborhood length scales and thresholds: 
 
-$$\mathit{FSS} = 1-\frac{\sum_{i=1}^{N} ({P_x}_i-{P_o}_i)^{2}}{\sum_{i=1}^{N} ({P_x}_i)^{2}+\sum_{i=1}^{N} ({P_o}_i)^{2}} $$
+\begin{equation}
+  \mathrm{\mathit{FSS} = 1-\frac{\sum_{i=1}^{N} ({P_x}_i-{P_o}_i)^{2}}{\sum_{i=1}^{N} ({P_x}_i)^{2}+\sum_{i=1}^{N} ({P_o}_i)^{2}}}
+  (\#eq:eq7)
+\end{equation}
+
 where $P_{oi}$ is the fraction of grid points in the $i-th$ sampling area in which the observed accumulated precipitation is greater than a specified threshold. Following @roberts2020, $P_{xi}$ is calculated from the ensemble probability precipitation over the same threshold in each grid point by averaging over the $i-th$ sampling area. 
-The FSS was computed from the accumulated precipitation over 6 hr periods by adding the 1-hr accumulated precipitation forecasts over 6 consecutive assimilation cycles.
-
-
+The FSS was computed from the accumulated precipitation over 6 hr rolling windows by adding the 1-hr accumulated precipitation forecasts over 6 consecutive assimilation cycles.
 
 ## Computation procedures
 
-We performed all the experiments at the National Center for Atmospheric Research (NCAR) supercomputer Cheyenne [@Cheyenne2019]. All the analyses in this paper were performed using the R programming language [@rcoreteam2020], using data.table [@dowle2020] and metR [@campitelli2020] packages.
+All the experiments were performed at the National Center for Atmospheric Research (NCAR) supercomputer Cheyenne [@Cheyenne2019]. All the analyses in this paper were conducted using the R programming language [@rcoreteam2020], using data.table [@dowle2020] and metR [@campitelli2020] packages.
 All graphics are made using ggplot2 [@wickham2009] and the paper was rendered using knitr and rmarkdown [@xie2015; @allaire2019].
 
 # Results
 
 ## Ensemble consistency 
 
-To investigate the ability of the first-guess ensemble mean to fit the observations taking into account the uncertainties of the forecast and the observations, we calculated the $mean RCRV$ and the $sd RCRV$ for the RAD experiment. As this experiment assimilates all types of observations used in this work, it is possible to analyze the consistency of the ensemble by comparing it with each type of observation. Figure \@ref(fig:rcrv-sfc) shows the $sd RCRV$ for surface observations box-averaged to a 2.5° grid. The $sd RCRV$ for wind observations (Figure \@ref(fig:rcrv-sfc)a) is close to 1 suggesting a good agreement between the ensemble spread, the forecast error, and the observation error. For the temperature (Figure \@ref(fig:rcrv-sfc)b), the results are similar except that for some areas in the west of the domain the $sd RCRV$ can be as high as 4.5. In this region, the mean innovation was overly large due to the complex terrain leading to large differences between the model topography and the station height. 
+To investigate the ability of the first-guess ensemble mean to fit the observations taking into account the uncertainties of the forecast and the observations, the $mean RCRV$ and the $sd RCRV$ is calculated for the RAD experiment. As this experiment assimilates all types of observations used in this work, it is possible to analyze the consistency of the ensemble by comparing it with each type of observation. Figure \@ref(fig:rcrv-sfc) shows the $sd RCRV$ for surface observations box-averaged to a 2.5° grid. The $sd RCRV$ for wind observations (Figure \@ref(fig:rcrv-sfc)a) is close to 1 suggesting a good agreement between the ensemble spread, the forecast error, and the observation error. For the temperature (Figure \@ref(fig:rcrv-sfc)b), the results are similar except that for some areas in the west of the domain the $sd RCRV$ can be as high as 4.5. These higher values of $sdRCRV$ can be associated with systematic errors arising from high differences between the model surface and the observations. Small scale circulations associated with the complex terrain and not well resolved by the model can also contribute to increase the distance between the forecast and the observations. These aspects are usually not captured by the ensemble spread unless a well tuned space dependent inflation scheme is used thus leading to greater sdRCRV values.
  
-Figure \@ref(fig:rcrv-profile) shows the mean and standard deviation of the RCRV for the upper-air observations. Figures \@ref(fig:rcrv-profile)a-b show the RCRV statistics for soundings (ADPUPA) and aircraft (AIRCAR and AIRCFT). Both ADPUPA and AIRCFT show a generally good agreement between the ensemble spread and the observation error. As sounding observations and their associated errors are known to be reliable, this result indicates that the ensemble has an appropriate spread. AIRCAR presents an irregular profile with $sd RCRV$ values that suggest that the error for this type of observation is overestimated. ADPUPA and AIRCAR present a $mean RCRV$ profile near zero at middle and upper levels but ADPUPA observations show a cold bias with respect to the model at low levels, a characteristic already studied in @ruiz2010 and @dillon2021.
+Figure \@ref(fig:rcrv-profile) shows the mean and standard deviation of the RCRV for the upper-air observations. Figures \@ref(fig:rcrv-profile)a-b show the RCRV statistics for soundings (ADPUPA) and aircraft (AIRCAR and AIRCFT). Both ADPUPA and AIRCFT show a generally good agreement between the ensemble spread and the observation error. As sounding observations and their associated errors are known to be reliable, this result indicates that the ensemble has an appropriate spread. AIRCAR presents an irregular profile with $sd RCRV$ values that suggest that the error for this type of observation is overestimated. ADPUPA and AIRCAR present a $mean RCRV$ profile near zero at middle and upper levels. At low levels, the meanRCRV profile is positive, showing a cold bias present in the model, a characteristic already studied in @ruiz2010  and @dillon2021.
 
-For satellite-derived winds (Figure \@ref(fig:rcrv-profile)c) at low levels, where there are not many observations available, the profiles of $mean RCRV$ and $sd RCRV$ show a larger departure from the expected behavior with a negative bias, and a possible overestimation of the observation error. Wind estimations derived from water vapor channels are abundant above 500 hPa where their bias is close to zero. The only exception are the EUMETSAT observations which contribute very little in the region. 
+Satellite-derived winds observations vary in number depending on the satellite and the level. In Figure \@ref(fig:rcrv-profile)c only the $RCRV$ calculated with at least 100 observations for each satellite and level is included. At low levels, where there are not many observations available, the profiles of $mean RCRV$ and $sd RCRV$ show a larger departure from the expected behavior with a negative bias, and a possible overestimation of the observation error. Wind estimations derived from water vapor channels are abundant above 500 hPa where their bias is close to zero. The only exception are the EUMETSAT observations which contribute very little in the region. 
 
 The mean RCRV profiles calculated from the radiance observations (Figure \@ref(fig:rcrv-profile)d) show almost no bias and the same happens if the $mean RCRV$ is calculated over each channel of each sensor (not shown). This indicates that the bias correction algorithm works as expected. The $sd RCRV$ values are less than 1 for all sensors possibly due to an overestimation of the observation errors to reduce the influence of potentially erroneous observations. 
 
-Overall, these results indicate that the ensemble spread is consistent with the short-range forecast error and that systematic errors are relatively small for most of the observation types used in this work. Moreover, these results suggest the inflation parameter $\alpha = 0.9$ is adequate for the system. 
+Overall, these results indicate that the ensemble spread is consistent with the short-range forecast error and that systematic errors are relatively small for most of the observation types used in this work. Moreover, these results suggest the relaxation-to-prior spread inflation parameter $\alpha = 0.9$ is adequate for the system. 
 
 
 (ref:rcrv-sfc) First guess $sd RCRV$ calculated for surface observations (from PREPBUFR and AWS) of a) wind, and b) temperature averaged over 2.5º boxes for the RAD experiment. Observations were aggregated every hourly cycle for the entire experiment period. 
@@ -744,8 +860,8 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
          linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
   theme_minimal(base_size = 8) +
   theme(legend.box = "vertical",
-        # legend.spacing.y = unit(0.1, 'mm'),
         legend.title = element_text(size = 6),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   
@@ -765,7 +881,7 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
   facet_wrap(~ var, scales = "free_x", labeller = labeller(var = c("u" = "U wind",
                                                                    "v" = "Satellite-derived\nwind"))) +
   tag_facets(tag_pool = c("c")) +
-  labs(x = NULL, y = "mean RCRV / sd RCRV",
+  labs(x = NULL, y = latex2exp::TeX("mean RCRV (----) / sd RCRV (――)"),
        linetype = NULL, color = "Satellite-derived\nwind") +
   guides(color = guide_legend(keyheight = 0.4, default.unit = "cm"),
          linetype = guide_legend(keyheight = 0.4, default.unit = "cm")) +
@@ -773,6 +889,7 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
         legend.title = element_text(size = 6),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         tagger.panel.tag.text = element_text(size = 8)) +
   
   purrr::map(Sys.glob(here("analysis/data/derived_data/RCRV/rcrv_*_perfil.csv"))[1:6], function(f) {
@@ -811,6 +928,7 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
   theme(legend.box = "vertical",
         legend.spacing.y = unit(0.1, 'mm'),
         legend.title = element_text(size = 6),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA),
         tagger.panel.tag.text = element_text(size = 8))
 
 
@@ -818,15 +936,15 @@ rbind(fread(here("analysis/data/derived_data/RCRV/rcrv_V_perfil.csv")),
 
 ## Impacts of assimilated observations 
 
-In this section, we present the impact of assimilating different observation types on variables which are particularly relevant for the occurrence of deep moist convection. The analysis is performed over a smaller domain (red box in Figure \@ref(fig:dominio)a) to focus on the region most directly affected by the MCS. Figures \@ref(fig:TQ-diff)a-c show the analysis difference between experiments in the spatially averaged vertical profile of temperature. By averaging the differences between two experiments we can isolate the systematic impact produced by different observing systems on the analyzed state. During the first day, the assimilation of AWS observations results in a colder PBL. This cooling effect has a clear diurnal cycle, being stronger during nighttime (Figure \@ref(fig:TQ-diff)a). During the second day of the experiment, the impact of AWS observations extends into the middle and upper troposphere coinciding with the mature stage of the MCS. The warm difference shown in AWS-CONV between 500 and 200 hPa is produced by the development of stronger convection in AWS compared to CONV. This is a good example of how low-level information provided by surface weather stations can rapidly spread into the troposphere in the presence of deep moist convection. Although the mid-to-upper circulation can have an important impact on the organization and evolution of the MCS over the region, the satellite-derived winds did not have an appreciable impact on the mean temperature and humidity (Figure \@ref(fig:TQ-diff)b-e), possibly due to the large observation errors used for the assimilation.
+This section presents the impact of assimilating different observation types on variables which are particularly relevant for the occurrence of deep moist convection. The analysis is performed over a smaller domain (red box in Figure \@ref(fig:dominio)a) to focus on the region most directly affected by the MCS. Figures \@ref(fig:TQ-diff)a-c show the analysis difference between experiments in the spatially averaged vertical profile of temperature. By averaging the differences between two experiments the systematic impact produced by different observing systems on the analyzed state can be isolated. During the first day, the assimilation of AWS observations results in a colder PBL. This cooling effect has a clear diurnal cycle, being stronger during nighttime (Figure \@ref(fig:TQ-diff)a). During the second day of the experiment, the impact of AWS observations extends into the middle and upper troposphere coinciding with the mature stage of the MCS. The warm difference shown in AWS-CONV between 500 and 200 hPa is produced by the development of stronger convection in AWS compared to CONV. This is a good example of how low-level information provided by surface weather stations can rapidly spread into the troposphere in the presence of deep moist convection. Although the mid-to-upper circulation can have an important impact on the organization and evolution of the MCS over the region, the satellite-derived winds did not have an appreciable impact on the mean temperature and humidity (Figure \@ref(fig:TQ-diff)b-e), possibly due to the large observation errors used for the assimilation.
 During the first day of the experiment, the assimilation of radiances produces a warming effect in the PBL which partially compensates for the cooling effect of AWS observations (Figure \@ref(fig:TQ-diff)c). No clear systematic impact is found above the PBL during this period. During the second day, the impact of radiance observations is found through the troposphere with a distribution that is similar to the impact found in the AWS experiment but with the opposite sign. 
 
-Comparing the specific humidity in the experiments (Figures \@ref(fig:TQ-diff)d-f), the impact of assimilating AWS with fine spatial and temporal resolution is most substantial at low levels (Figure \@ref(fig:TQ-diff)d). The PBL in the AWS experiment is consistently moister than in the CONV experiment particularly at nighttime. The increase in low-level moisture by a denser surface network is consistent with previously reported dry biases in the WRF model over the region [@ruiz2010]. We found that the moistening of the PBL is mainly driven by the covariance between temperature and specific humidity within the PBL. In our experiment and over the center of the domain, this covariance remains negative, increasing low-level moisture as the observations introduce negative temperature corrections. As for the temperature, the systematic impact of satellite-derived winds on moisture is small (Figure \@ref(fig:TQ-diff)e). Figure \@ref(fig:TQ-diff)f shows that radiances reduce low-middle level moisture during the first day of the experiment. The drying effect extends to lower-middle levels during the second day of the experiment coinciding with the development of the MCS between 00 and 12 UTC Nov 22.
+Comparing the specific humidity in the experiments (Figures \@ref(fig:TQ-diff)d-f), the impact of assimilating AWS with fine spatial and temporal resolution is most substantial at low levels (Figure \@ref(fig:TQ-diff)d). The PBL in the AWS experiment is consistently moister than in the CONV experiment, particularly at nighttime. The increase in low-level moisture by a denser surface network is consistent with previously reported dry biases in the WRF model over the region [@casaretto2022, @matsudo2021, @ruiz2010]. The moistening of the PBL is mainly driven by the covariance between temperature and specific humidity within the PBL. In the experiment and over the center of the domain, this covariance remains negative, increasing low-level moisture as the observations introduce negative temperature corrections. As for the temperature, the systematic impact of satellite-derived winds on moisture is small (Figure \@ref(fig:TQ-diff)e). Figure \@ref(fig:TQ-diff)f shows that radiances reduce low-middle level moisture during the first day of the experiment. The drying effect extends to lower-middle levels during the second day of the experiment coinciding with the development of the MCS between 00 and 12 UTC Nov 22.
 
 
-(ref:TQ-diff) Difference between analysis ensemble mean experiments a) and d) AWS-CONV, b) and e) SATWND-AWS, and c) and f) RAD-SATWND for the spatially averaged vertical profiles of temperature (a, b, and c, in $K$) and specific humidity (d, e, and f in $gkg^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
+(ref:TQ-diff) Difference between analysis ensemble mean experiments a) and d) AWS-CONV, b) and e) SATWND-AWS, and c) and f) RAD-SATWND for the spatially averaged vertical profiles of temperature (a, b, and c, in $K$) and specific humidity (d, e, and f in $g\ kg^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
 
-```{r TQ-diff, fig.cap="(ref:TQ-diff)", fig.env="figure*", fig.height=5.5, fig.align="center",fig.pos="th"}
+```{r TQ-diff, fig.cap="(ref:TQ-diff)", fig.env="figure*", fig.height=5.5, fig.width=6, fig.align="center",fig.pos="ht"}
 files <- Sys.glob(here("analysis/data/derived_data/analysis_variables/perfiles_ana_E[2569].csv"))
 
 perfiles <- purrr::map(files, function(f) {
@@ -893,7 +1011,7 @@ perfiles %>%
   
   scale_y_level(name = "Pressure (hPa)", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
   scale_date(ini = 20181121000000, break_bin = "12 hours") +
-  labs(fill = latex2exp::TeX("Specific \nhumidity ($gKg^{-1}$)"),
+  labs(fill = latex2exp::TeX("Specific \nhumidity ($g$ $Kg^{-1}$)"),
        y = "Pressure (hPa)",
        x = NULL) +
   facet_wrap(~variable, ncol = 3,
@@ -911,14 +1029,14 @@ perfiles %>%
 
 ```
 
-The impacts on the wind components are shown in Figure \@ref(fig:UV-diff), along with the corresponding averaged wind component in the experiment with the largest number of assimilated observations (for example, Figure \@ref(fig:UV-diff)a shows the zonal wind difference between AWS and CONV and the zonal wind for AWS). The assimilation of AWS produces a more easterly wind and a less northerly wind at low levels during the first two days of analysis (Figures \@ref(fig:UV-diff)a,b). There is a diurnal cycle in the impact of surface weather stations on the meridional velocity  (Figure  \@ref(fig:UV-diff)d) with a stronger reduction of the northerly wind during night hours. This indicates that surface observations are reducing the intensity of the low level jet present in the pre-convective environment. After 18 UTC Nov 22, the opposite effect is observed when the MCS is moving through the domain. After the initiation of the convective cells, the systematic impact on the wind field is larger at mid and upper levels (Figures  \@ref(fig:UV-diff)d, f). During Nov 22 and 23 the impact of assimilating AWS observations produces an increase of northerly wind in upper levels. This could be a consequence of a stronger MCS with an increased polar side upper level outflow. Although satellite-derived wind observations produce the largest impact in mid-to-upper levels where the number of observations is largest; the systematic impact is overall smaller than the one produced by assimilating data from AWS  (Figures  \@ref(fig:UV-diff)b, e).
+The impacts on the wind components are shown in Figure \@ref(fig:UV-diff), along with the corresponding averaged wind component in the experiment with the largest number of assimilated observations (for example, Figure \@ref(fig:UV-diff)a shows the zonal wind difference between AWS and CONV and the zonal wind for AWS). The assimilation of AWS produces a more easterly wind and a less northerly wind at low levels during the first two days of analysis (Figures \@ref(fig:UV-diff)a,b). There is a diurnal cycle in the impact of surface weather stations on the meridional velocity (Figure \@ref(fig:UV-diff)d) with a stronger reduction of the northerly wind during night hours. This indicates that surface observations are reducing the intensity of the low level jet present in the pre-convective environment. After 18 UTC Nov 22, the opposite effect is observed when the MCS is moving through the domain to the northeast. After the initiation of the convective cells, the systematic impact on the wind field is larger at mid and upper levels (Figures \@ref(fig:UV-diff)d, f). During Nov 22 and 23 the impact of assimilating AWS observations produces an increase of northerly wind in upper levels. This could be a consequence of a stronger MCS with an increased polar side upper level outflow. Although satellite-derived wind observations produce the largest impact in mid-to-upper levels where the number of observations is largest; the systematic impact is overall smaller than the one produced by assimilating data from AWS (Figures \@ref(fig:UV-diff)b, e). The reason of the small impact observed in SATWND could be associated to the large observation error used for satellite-derived wind observations.
  
-The assimilation of radiances produces a reduction in the westerly wind compared with respect to SATWIND in low and upper levels (Figure \@ref(fig:UV-diff)c). For the meridional wind, these observations produce an enhancement on average of the northerly low-level flow of $1 ms^{-1}$, opposite to what is generated by the assimilation of AWS observations during the nights, between 03 and 12 UTC, previous to the development of the MCS  (Figure \@ref(fig:UV-diff)f). At upper levels and during Nov 22 and 23 the average impact of assimilating radiances is a decrease in the wind speed. The meridional wind field at 200 hPa at different times shows that the outflow from the MCS is even more intense than in the other experiments, while the southerly wind ahead of the MCS also increases producing an average reduction of the northerly wind (Figure \@ref(fig:UV-diff)f). 
+The assimilation of radiances produces a reduction in the westerly wind compared with respect to SATWIND in low and upper levels (Figure \@ref(fig:UV-diff)c). For the meridional wind, these observations produce an enhancement on average of the northerly low-level flow of $1 ms^{-1}$, opposite to what is generated by the assimilation of AWS observations during the nights, between 03 and 12 UTC, previous to the development of the MCS (Figure \@ref(fig:UV-diff)f). At upper levels and during Nov 22 and 23 the average impact of assimilating radiances is a decrease in the wind speed. The meridional wind field at 200 hPa at different times shows that the outflow from the MCS is even more intense than in the other experiments, while the southerly wind ahead of the MCS also increases producing an average reduction of the northerly wind (Figure \@ref(fig:UV-diff)f). 
 
 
-(ref:UV-diff) Difference between analysis ensemble mean experiments a) and d) AWS-CONV, b) and e) SATWND-AWS, and c) and f) RAD-SATWND for the spatially averaged vertical profiles of u wind (a, b, and c, in $ms^{-1}$) and v wind (d, e, and f in $ms^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle. Black contours correspond to negative u wind for (a) AWS, (b) SATWND, and (c) RAD and v wind for (d) AWS, (e) SATWND, and (f) RAD. Dashed contours correspond to negative v wind.
+(ref:UV-diff) Difference between analysis ensemble mean experiments a) and d) AWS-CONV, b) and e) SATWND-AWS, and c) and f) RAD-SATWND for the spatially averaged vertical profiles of u wind (a, b, and c, in $m\ s^{-1}$) and v wind (d, e, and f in $m\ s^{-1}$) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle. Black contours correspond to u wind and dashed contours to negative v wind for (a) AWS, (b) SATWND, and (c) RAD and v wind for (d) AWS, (e) SATWND, and (f) RAD since those experiments are the ones with more assimilated observations in each panel.
 
-```{r UV-diff, fig.cap="(ref:UV-diff)", fig.env="figure*", fig.height=5.5, fig.align="center", fig.pos="ht"}
+```{r UV-diff, fig.cap="(ref:UV-diff)", fig.env="figure*", fig.height=5.5, fig.width=6, fig.align="center", fig.pos="ht"}
 perfiles %>% 
   dcast(lev + date ~ exp, value.var = "U") %>% 
   .[, ":="(E5_E2 = E5 - E2,
@@ -942,7 +1060,7 @@ perfiles %>%
                       melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value),
                     breaks = seq(0, 30, 3), color = "grey30", skip = 1,
                     size = 2, stroke = 0.1) +
-  labs(fill = latex2exp::TeX("U ($ms^{-1}$)"),
+  labs(fill = latex2exp::TeX("U ($m$ $s^{-1}$)"),
        x = NULL,
        y = NULL) +
   scale_y_level(name = "Pressure (hPa)", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
@@ -984,7 +1102,7 @@ perfiles %>%
                       melt(id.vars = c("lev", "date")) %>% unique(), aes(z = value), 
                     breaks = seq(-10, 4, 2), color = "grey30", skip = 1, 
                     size = 2, stroke = 0.1) +
-  labs(fill = latex2exp::TeX("V ($ms^{-1}$)"),
+  labs(fill = latex2exp::TeX("V ($m$ $s^{-1}$)"),
        x = NULL,
        y = NULL) +
   scale_linetype(guide = NULL) +
@@ -1006,12 +1124,103 @@ perfiles %>%
 
 ```
 
-To investigate how changes in the PBL can modify the pre-convective environment, we compare the horizontal distribution of the low level northerly flow (for the first 7 sigma levels), precipitable water, low level temperature, and CAPE for the analysis at 00 UTC Nov 22 (after 30 assimilation cycles). At that moment the first convective cells were developing over the southern region of the domain along the cold front. Figure \@ref(fig:summary-fields)a shows the precipitable water (shaded) and the vertically averaged low-level meridional wind component (contours). We found that the moist tongue extending over the northern part of the domain is enhanced by the assimilation of denser surface observations. The moisture increase is particularly strong at the southern tip of this tongue, just ahead of the cold front where convection initiation was taking place. AWS and SATWND experiments are very similar, with values of precipitable water over 55 $kgm^{-2}$ north of 30$^{\circ}$S and a similar vertical distribution of specific humidity (not shown). RAD has lower precipitable water content than AWS and SATWND, but higher than CONV. The distribution of moisture at low levels in RAD seems to be the result of the combination of the moistening effect of assimilating AWS  -- partially compensated by the assimilation of radiance observations -- and a reduced meridional moisture transport due to the weaker northerly flow over the center of the domain compared to CONV. 
+The difference between ERA5 reanalyses [@era5pressure`] and the ensemble mean analyses are also compared in Figure \@ref(fig:era5), which supports Figures \@ref(fig:TQ-diff) and \@ref(fig:UV-diff). Specifically, Figure \@ref(fig:era5)a shows a warm bias in low levels (i.e. CONV is warmer than ERA5) that decreases in Figure \@ref(fig:era5)b when the AWS observations are assimilated. In the same direction, Figure \@ref(fig:TQ-diff)a shows a negative difference between AWS and CONV meaning that the AWS observations are cooling the low levels. Comparing ERA5-RAD (Figure \@ref(fig:era5)d), there is a small increase in the warm bias, associated with the warming produced by the radiance observations as shown in Figure \@ref(fig:TQ-diff)c. A similar effect can be observed for specific humidity, AWS observations partially correct the dry bias present in Figure \@ref(fig:era5)e and the assimilation of radiance observations reduces the positive impact of AWS. The impact on the wind components is minor so only the meridional wind is included in Figures \@ref(fig:era5)i-l, which show that the radiance observations are mainly responsible for the positive impact observed in the analysis by reducing the distance ERA5-RAD, particularly during the mature stage of the MCS. Overall, the adjustments due to assimilating radiance and AWS observations lead to an ensemble mean analyses closer to ERA5 reanalyses.
 
-The analyzed distribution of temperature and moisture in the PBL (Figure \@ref(fig:summary-fields)b) resembles the characteristics observed in the temperature profiles (Figure \@ref(fig:TQ-diff)a-c) where AWS produces a colder PBL than CONV while the PBL in RAD is warmer than in SATWND. On average the PBL in AWS and SATWND is colder than in CONV, while RAD shows a warmer PBL than AWS due to the assimilation of radiance observations. Figure \@ref(fig:summary-fields)c shows the most unstable convective available potential energy (MCAPE, shaded) and the 0 to 6 $km$ wind shear. The values of MCAPE in CONV do not exceed 2000 $JKg^{-1}$ while the rest of the experiments show maximum MCAPE over 4000 $JKg^{-1}$. MCAPE in the RAD experiment is lower compared to AWS or SATWND. This is consistent with less humidity in the PBL with respect to these experiments but may be partially compensated by a slightly warmer PBL in the RAD experiment. The 0-6 km wind shear is more intense in AWS, SATWND, and RAD reaching values over 15 $ms^{-1}$ at the southern tip of the region with positive MCAPE values. Moreover, in this same region, these experiments show larger MCAPE values than CONV. Note that wind shear over 15 $ms^{-1}$ is associated with the development of more intense and organized MCSs [@chen2015] and also with conditions favorable for supercells [@markowski2010]. 
+(ref:era5-cap) Difference between ERA5 and the analysis ensemble mean experiments for the spatially averaged vertical profiles of air temperature (K, a--d), specific humidity ($g\ Kg^{-1}$, e--h) and meridional wind ($m\ s^{-1}$, i--l) calculated over the inner domain (red box in Figure \@ref(fig:dominio)a) for each analysis cycle.
+
+```{r era5, fig.cap="(ref:era5-cap)", fig.env="figure*", fig.width=7.2, fig.height=6, fig.align="center", fig.pos="ht"}
+era <- fread(here("analysis/data/derived_data/reanalysis/perfiles_ana_era5.csv"))
+
+era[perfiles, on = c("lev", "date")] %>% 
+  .[lev != 1000] %>%
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = T - i.T, fill = stat(level)), 
+                    breaks = seq(-3, 3, 0.5)) +
+  geom_contour2(aes(z = T - i.T), color = "white", size = 0.1,
+                breaks = seq(-3, 3, 0.5)) +
+  scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
+                                                            barheight = 0.3,
+                                                            title.position = "left", 
+                                                            title.vjust = 1,
+                                                            frame.colour = "black")) +
+  scale_y_level(name = "Pressure (hPa)", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  facet_wrap(vars(exp), ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AWS", 
+                                                              E6 = "SATWND", E9 = "RAD"))) +
+  labs(fill = "Temperature (K)",
+       x = NULL,
+       y = "Pressure (hPa)") +
+  tag_facets(position = list(x = 0.1, y = 0.95)) +
+  theme_minimal(base_size = 8) +
+  theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 8),
+        plot.margin = margin(0, 0, 0, 0, "cm"),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) +
+
+era[perfiles, on = c("lev", "date")] %>% 
+  .[lev != 1000] %>%
+  ggplot(aes(date, lev)) +
+  geom_contour_fill(aes(z = QVAPOR - i.QVAPOR, fill = stat(level)), 
+                    breaks = seq(-0.0015, 0.0025, 0.0004)) +
+  geom_contour2(aes(z = QVAPOR - i.QVAPOR), color = "white", size = 0.1,
+                breaks = seq(-0.0015, 0.0025, 0.0004)) +
+  scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
+                                                            barheight = 0.3,
+                                                            title.position = "left", 
+                                                            title.vjust = 1,
+                                                            frame.colour = "black")) +
+  scale_y_level(name = "Pressure (hPa)", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+  scale_date(ini = 20181121000000, break_bin = "12 hours") +
+  facet_wrap(vars(exp), ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AWS", 
+                                                              E6 = "SATWND", E9 = "RAD"))) +
+  labs(fill = latex2exp::TeX("Specific \nhumidity ($g$ $Kg^{-1}$)"),
+       x = NULL,
+       y = "Pressure (hPa)") +
+  tag_facets(position = list(x = 0.1, y = 0.95), tag_pool = c("e", "f", "g", "h")) +
+  theme_minimal(base_size = 8) +
+  theme(legend.position = "bottom",
+        tagger.panel.tag.text = element_text(size = 8),
+        plot.margin = margin(0, 0, 0, 0, "cm"),
+        panel.ontop = TRUE,
+        panel.grid = element_line(linetype = 3)) +
+
+  era[perfiles, on = c("lev", "date")] %>% 
+    .[lev != 1000] %>%
+    ggplot(aes(date, lev)) +
+    geom_contour_fill(aes(z = V - i.V, fill = stat(level)), 
+                      breaks = seq(-7, 4, 1)) +
+    geom_contour2(aes(z = V - i.V), color = "white", size = 0.1,
+                  breaks = seq(-7, 4, 1)) +
+    scale_fill_divergent_discretised(guide = guide_colorsteps(barwidth = 25,
+                                                              barheight = 0.3,
+                                                              title.position = "left", 
+                                                              title.vjust = 1,
+                                                              frame.colour = "black")) +
+    scale_y_level(name = "Pressure (hPa)", breaks = c(1000, 850, 750, 500, 300, 200, 100)) +
+    scale_date(ini = 20181121000000, break_bin = "12 hours") +
+    facet_wrap(vars(exp), ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AWS", 
+                                                                E6 = "SATWND", E9 = "RAD"))) +
+    labs(fill = latex2exp::TeX("V ($m$ $s^{-1}$)"),
+         x = NULL,
+         y = "Pressure (hPa)") +
+    tag_facets(position = list(x = 0.1, y = 0.95), tag_pool = c("i", "j", "k", "l")) +
+    theme_minimal(base_size = 8) +
+    theme(legend.position = "bottom",
+          tagger.panel.tag.text = element_text(size = 8),
+          plot.margin = margin(0, 0, 0, 0, "cm"),
+          panel.ontop = TRUE,
+          panel.grid = element_line(linetype = 3)) +
+  
+  plot_layout(ncol = 1, heights = c(1, 1, 1)) 
+```
+
+To investigate how changes in the PBL can modify the pre-convective environment, the analysis mean horizontal distribution of the low level northerly flow (for the first 7 sigma levels), precipitable water, low level temperature, and CAPE are compared. At 00 UTC Nov 22 (after 30 assimilation cycles) the first convective cells were developing over the southern region of the domain along the cold front. Figure \@ref(fig:summary-fields)a shows the precipitable water (shaded) and the vertically averaged low-level meridional wind component (contours). It shows that the moist tongue extending over the northern part of the domain is enhanced by the assimilation of denser surface observations. The moisture increase is particularly strong at the southern tip of this tongue, just ahead of the cold front where convection initiation was taking place. AWS and SATWND experiments are very similar, with values of precipitable water over 55 $kgm^{-2}$ north of 30$^{\circ}$S and a similar vertical distribution of specific humidity (not shown). RAD has lower precipitable water content than AWS and SATWND, but higher than CONV. The distribution of moisture at low levels in RAD seems to be the result of the combination of the moistening effect of assimilating AWS -- partially compensated by the assimilation of radiance observations -- and a reduced meridional moisture transport due to the weaker northerly flow over the center of the domain compared to CONV.
+
+The analyzed distribution of temperature and moisture in the PBL (Figure \@ref(fig:summary-fields)b) resembles the characteristics observed in the temperature profiles (Figure \@ref(fig:TQ-diff)a-c) where AWS produces a colder PBL than CONV while the PBL in RAD is warmer than in SATWND. On average the PBL in AWS and SATWND is colder than in CONV, while RAD shows a warmer PBL than AWS due to the assimilation of radiance observations. A warmer PBL increases the potential instability and helps to generate a suitable environment for the development of deep convection. Figure \@ref(fig:summary-fields)c shows the most unstable convective available potential energy (MCAPE, shaded) and the 0 to 6 $km$ wind shear. The values of MCAPE in CONV do not exceed 2000 $J\ Kg^{-1}$ while the rest of the experiments show maximum MCAPE over 4000 $J\ Kg^{-1}$. MCAPE in the RAD experiment is lower compared to AWS or SATWND. This is consistent with less humidity in the PBL with respect to these experiments but may be partially compensated by a slightly warmer PBL in the RAD experiment. The 0-6 km wind shear is more intense in AWS, SATWND, and RAD reaching values over 15 $m\ s^{-1}$ at the southern tip of the region with positive MCAPE values. Moreover, in this same region, these experiments show larger MCAPE values than CONV. Note that wind shear over 15 $m\ s^{-1}$ is associated with the development of more intense and organized MCSs [@chen2015] and also with conditions favorable for supercells [@markowski2010]. 
 
 
-(ref:summary-fields) a) Precipitable water (shaded, $kgm^{-2}$) and average northerly wind over the first 7 sigma levels (from the surface up to approximately 800 hPa, contours, $ms^{-1}$), b) Average potential temperature for the PBL (first 10 sigma levels), and c) Maximum CAPE and ~0-6 km wind shear over 15 and 30 $ms^{-1}$ for each experiment. All fields correspond to the analysis ensemble mean for 00 UTC Nov 22. Grey filled contours correspond to  topography over 1500 meters above sea level.
+(ref:summary-fields) a) Precipitable water (shaded, $kg\ m^{-2}$) and average northerly wind over the first 7 sigma levels (from the surface up to approximately 800 hPa, contours, $m\ s^{-1}$), b) Average potential temperature for the PBL (first 10 sigma levels), and c) Maximum CAPE and ~0-6 km wind shear over 15 and 30 $m\ s^{-1}$ for each experiment. All fields correspond to the analysis ensemble mean for 00 UTC Nov 22. Grey filled contours correspond to topography over 1500 meters above sea level.
 
 
 ```{r summary-fields, fig.cap="(ref:summary-fields)", out.width="100%", fig.height=12, fig.width=10.5, fig.env="figure*"}
@@ -1078,6 +1287,7 @@ cor <- ana[bottom_top %in% c(1, 16)] %>%
 ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)), 
     by = .(south_north, west_east, date, exp)] %>% 
   .[pw, on = .NATURAL] %>% 
+  .[, v_mean_suave := metR:::smooth2d(x, y, v_mean, kx = 0.2, ky = 0.2), by = .(exp)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = value, fill = stat(level_d)),
                     proj = norargentina_lambert) +
@@ -1088,12 +1298,12 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
                                                                         title.position = "left", 
                                                                         title.vjust = 1,
                                                                         frame.colour = "black")) +
-  geom_contour2(aes(z = v_mean, size = stat(level)),
+  geom_contour2(data = ~.[x %between% c(-950000, 950000)], aes(z = v_mean_suave, size = stat(level)),
                 proj = norargentina_lambert, color = "black", 
                 breaks = c(-10, -5)) +
-  scale_size_continuous(breaks = c(-10, -5), range = c(0.8, 0.4),
+  scale_size_continuous(breaks = c(-10, -5), range = c(0.6, 0.4),
                         labels = c("-10", "-5")) +
-  labs(fill = latex2exp::TeX("Precipitable\nwater ($Kgm^{-2}$)"), size = latex2exp::TeX("V ($ms^{-1})")) +
+  labs(fill = latex2exp::TeX("Precipitable\nwater ($Kg$ $m^{-2}$)"), size = latex2exp::TeX("V ($m$ $s^{-1})")) +
   cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
@@ -1137,6 +1347,7 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
   .[variable == "mcape"] %>% 
   .[, c("x", "y") := wrf_project(lon, lat)] %>% 
   .[cor, on = .NATURAL] %>% 
+  .[, cortante_suave := metR:::smooth2d(x, y, cortante, kx = 0.2, ky = 0.2), by = .(exp)] %>% 
   ggplot(aes(x, y)) +
   geom_contour_fill(aes(z = value, fill = stat(level_d)), 
                     proj = norargentina_lambert, limits = c(500, 6000)) +
@@ -1147,12 +1358,13 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
                                                 title.position = "left", 
                                                 title.vjust = 1,
                                                 frame.colour = "black")) +
-  geom_contour2(aes(z = cortante, size = stat(level)),
+  geom_contour2(data = ~.[x %between% c(-950000, 950000) &
+                           y %between% c(-1170000, 1170000)], aes(z = cortante_suave, size = stat(level)),
                 proj = norargentina_lambert, color = "black", 
                 breaks = c(15, 30)) +
-  scale_size_continuous(breaks = c(15, 30), range = c(0.8, 0.4),
+  scale_size_continuous(breaks = c(15, 30), range = c(0.6, 0.4),
                         labels = c("15", "30")) +
-  labs(fill = latex2exp::TeX("MCAPE ($JKg^{-1}$)"), size = latex2exp::TeX("Wind\nshear ($ms^{-1}$)")) +
+  labs(fill = latex2exp::TeX("MCAPE ($J$ $Kg^{-1}$)"), size = latex2exp::TeX("Wind\nshear ($m$ $s^{-1}$)")) +
   cordillera +
   geom_mapa() +
   facet_grid(. ~ exp, 
@@ -1173,12 +1385,12 @@ ana[bottom_top %between% c(1, 7), .(v_mean = mean(v)),
 
 ## Validation against independent observations
 
-First, we analyze the impact of assimilating different observation types in terms of the representation of the MCS and its associated precipitation. Figure \@ref(fig:pp-hov)a shows the hourly accumulated precipitation as estimated by IMERG, and the probability matched mean (PM) [@clark2017] for the first-guess hourly accumulated precipitation as averaged between 67$^{\circ}$W and 54.5$^{\circ}$W as a function of time and latitude in the different experiments. The heaviest precipitation (over 12 $mmh^{-1}$) starts during the afternoon of Nov 22 and continues during Nov 23 after the end of the simulated period (Figure \@ref(fig:pp-hov)a). In all the experiments, the accumulated precipitation in the short-range forecasts is underestimated. This is particularly evident in CONV (Figure \@ref(fig:pp-hov)b), where the convection initiation is delayed and occurs further north with respect to the observed initiation. AWS, SATWND, and RAD better capture the timing and location of convective initiation (Figures \@ref(fig:pp-hov)c-e). AWS and RAD show a more fragmented distribution compared with SATWND, possibly due to the development of less organized convection during Nov 22. After 18 UTC Nov 22, RAD shows improvements in the precipitation rate and its distribution compared to the other experiments as a result of enhanced development of the convection.
+First, the impact of assimilating different observation types in terms of the representation of the MCS and its associated precipitation is analyzed. Figure \@ref(fig:pp-hov)a shows the hourly accumulated precipitation as estimated by IMERG, and the probability matched mean (PM) [@clark2017] for the first-guess hourly accumulated precipitation as averaged between 67$^{\circ}$W and 54.5$^{\circ}$W as a function of time and latitude in the different experiments. The heaviest precipitation (over 12 $mmh^{-1}$) starts during the afternoon of Nov 22 and continues during Nov 23 after the end of the simulated period (Figure \@ref(fig:pp-hov)a). In all the experiments, the accumulated precipitation in the short-range forecasts is underestimated. This is particularly evident in CONV (Figure \@ref(fig:pp-hov)b), where the convection initiation is delayed and occurs further north with respect to the observed initiation. AWS, SATWND, and RAD better capture the timing and location of convective initiation (Figures \@ref(fig:pp-hov)c-e). AWS and RAD show a more fragmented distribution compared with SATWND, possibly due to the development of less organized convection during Nov 22. After 18 UTC Nov 22, RAD shows improvements in the precipitation rate and its distribution compared to the other experiments as a result of enhanced development of the convection.
 
 
-(ref:pphov) Hövmoller diagram of probability matched mean hourly accumulated 1-h forecast precipitation for each latitude band estimated by IMERG (left) and simulated (right), for the ensemble mean of each experiment, averaged over a longitude range between 67$^{\circ}$W and 54.5$^{\circ}$W. Contours drawn every 0.5 $mmh^{-1}$, starting at 0.5 $mmh^{-1}$.
+(ref:pphov) Hövmoller diagram of probability matched mean hourly accumulated 1-h forecast precipitation for each latitude band estimated by IMERG (left) and simulated (right), for the ensemble mean of each experiment, averaged over a longitude range between 67$^{\circ}$W and 54.5$^{\circ}$W. Contours drawn every 0.5 $mm\ h^{-1}$, starting at 0.5 $mm\ h^{-1}$.
 
-```{r pp-hov, fig.cap="(ref:pphov)", fig.height=4, fig.env="figure*", fig.pos="h"}
+```{r pp-hov, fig.cap="(ref:pphov)", fig.height=4, fig.width=6, fig.env="figure*", fig.pos="h", fig.align="center"}
 
 files <- Sys.glob(here("analysis/data/derived_data/analysis_variables/pp_pmm/E[2569]_ana*_pp_pmm.rds"))
 
@@ -1217,7 +1429,7 @@ readRDS(here("analysis/data/derived_data/observations/IMERG_1h.rds")) %>%
   scale_y_latitude(breaks = seq(-40, -20, 5)) +
   facet_wrap(~ exp) +
   tag_facets(position = list(x = 0.1, y = 0.96)) +
-  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Accumulated\nprecipitation ($mmh^{-1}$)")) +
+  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Accumulated\nprecipitation ($mm$ $h^{-1}$)")) +
   theme_minimal(base_size = 9) +
   theme(legend.position = "bottom",
         tagger.panel.tag.text = element_text(size = 9)) +
@@ -1245,7 +1457,7 @@ readRDS(here("analysis/data/derived_data/observations/IMERG_1h.rds")) %>%
   facet_wrap(~ exp, ncol = 4, labeller = labeller(exp = c(E2 = "CONV", E5 = "AWS", 
                                                           E6 = "SATWND", E9 = "RAD"))) +
   tag_facets(tag_pool = c("b", "c", "d", "e"), position = list(x = 0.1, y = 0.96)) +
-  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Accumulated\nprecipitation ($mmh^{-1}$)")) +
+  labs(x = NULL, y = NULL, fill = latex2exp::TeX("Accumulated\nprecipitation ($mm$ $h^{-1}$)")) +
   theme_minimal(base_size = 9) +
   theme(legend.position = "bottom",
         panel.spacing = unit(1, "lines"),
@@ -1255,7 +1467,7 @@ readRDS(here("analysis/data/derived_data/observations/IMERG_1h.rds")) %>%
 ```
 
 
-To quantify the spatial match between the observed precipitation and the first-guess hourly accumulated precipitation for the different experiments, we compute the FSS in 6-hour moving windows for different thresholds and spatial scales (Figure \@ref(fig:fss)). All experiments show similar values of FSS during the initiation of the convection before 06 UTC Nov 22 except for RAD which performs better than the rest of the experiments during this period. This indicates that radiance observations have a positive impact on the analysis. The FSS for CONV is the lowest compared to the rest of the experiments and the differences are larger during the mature stage of the MCS. AWS and SATWND show similar FSSs indicating that satellite-derived wind assimilation has little impact on the precipitation for this case study. The assimilation of radiances led to an overall improvement of the 1-hour forecast precipitation, particularly for the 25 mm threshold during the period of heaviest precipitation on Nov 22 (Figure \@ref(fig:fss)b,d). The enhancement is also important at the developing stage of the MCS (between 00 and 12 UTC Nov, 22 and also for spatial scales above 500 km, not shown).  
+The FSS is computed to quantify the spatial match between the observed precipitation and the first-guess hourly accumulated precipitation for the different experiments (Figure \@ref(fig:fss)). For each threshold and spatial scale, Equation \@red(eq:eq7) is applied in 6-hours rolling windows throughout the experiment period. All experiments show similar values of FSS during the initiation of the convection before 06 UTC Nov 22 except for RAD which performs better than the rest of the experiments during this period. This indicates that radiance observations have a positive impact on the analysis. The FSS for CONV is the lowest compared to the rest of the experiments and the differences are larger during the mature stage of the MCS. AWS and SATWND show similar FSSs indicating that satellite-derived wind assimilation has little impact on the precipitation for this case study. The assimilation of radiances led to an overall improvement of the 1-hour forecast precipitation, particularly for the 25 mm threshold during the period of heaviest precipitation on Nov 22 (Figure \@ref(fig:fss)b,d). The enhancement is also important at the developing stage of the MCS (between 00 and 12 UTC Nov, 22 and also for spatial scales above 500 km, not shown). 
 
 (ref:fss) FSS calculated over 1-h forecast precipitation accumulated in a 6-hour moving window for 1 mm (a and c) and 25 mm (b and d) thresholds, on 10 km (a and b) and 100 km (c and d) scales, for the first-guess of CONV (blue line), AWS (light blue line), SATWND (orange line) and RAD (red line) experiments.
 
@@ -1271,7 +1483,7 @@ fss <- purrr::map(files, function(f) {
 
 fss %>% 
   .[w %in% c(1, 11) & q %in% c(1, 25) & exp %in% c("E2", "E5", "E6", "E9")] %>% 
-  .[, ":="(q_label = factor(q, labels = c("1~mmh^{-1}", "25~mmh^{-1}")),
+  .[, ":="(q_label = factor(q, labels = c("1~mm~h^{-1}", "25~mm~h^{-1}")),
            w_label = factor(w, labels = c("10~km", "100~km")))] %>% 
   ggplot(aes(date, fss)) +
   geom_hline(yintercept = 1, color = "darkgray") +
@@ -1284,19 +1496,20 @@ fss %>%
   tagger::tag_facets(position = list(x = 0.05, y = 0.90)) +
   labs(color = NULL, x = NULL, y = "FSS") +
   theme_minimal(base_size = 8) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#fbfbfb", color = NA))
 ```
 
-To complement the analysis, Figure \@ref(fig:dbz-mean) shows the observed maximum reflectivity in the vertical column (COLMAX) and the ensemble mean COLMAX for the CONV and RAD experiments at different times between 10 and 19 UTC Nov 22. These experiments were chosen because they represent the analysis with the minimum (CONV) and maximum (RAD) number of assimilated observations. In addition, they are the worst (CONV) and best (RAD) performing experiments in terms of the 1-hour precipitation forecast skill (Figure \@ref(fig:fss)). Overall, none of the short-range forecasts capture the mesoscale details in the reflectivity distribution. This is partially expected considering the coarse horizontal grid spacing (10 km), which is not enough to appropriately represent the strength of the convective band associated with the MCS. Also, the ensemble mean produces a smoothing effect that reduces the amplitude of local maxima in the forecast reflectivity field. RAD better represents the observed features of the system showing a  stronger and more organized MCS than CONV, over the domain center at 10 and 13 UTC (first and second columns in Figure \@ref(fig:dbz-mean)). The convective cells that initiate after 16 UTC along the warm front in the northeast part of the domain are well captured by both experiments but are better represented in terms of strength in RAD. In addition, CONV captures the location of the MCS, but the convection seems to be less organized and much weaker than in RAD. Before and after the times shown in Figure \@ref(fig:dbz-mean), the agreement between experiment and observations is quite good in the regions where radar data are available, especially for RAD. 
+To complement the analysis, Figure \@ref(fig:dbz-mean) shows the observed maximum reflectivity in the vertical column (COLMAX) and the ensemble mean COLMAX for the CONV and RAD experiments at different times between 10 and 19 UTC Nov 22. These experiments were chosen because they represent the analysis with the minimum (CONV) and maximum (RAD) number of assimilated observations. In addition, they are the worst (CONV) and best (RAD) performing experiments in terms of the 1-hour precipitation forecast skill (Figure \@ref(fig:fss)). Overall, none of the short-range forecasts capture the mesoscale details in the reflectivity distribution. This is partially expected considering the coarse horizontal grid spacing (10 km), which is not enough to appropriately represent the strength of the convective band associated with the MCS. RAD better represents the observed features of the system showing a stronger and more organized MCS than CONV, over the domain center at 10 and 13 UTC (first and second columns in Figure \@ref(fig:dbz-mean)). The convective cells that initiate after 16 UTC along the warm front in the northeast part of the domain are well captured by both experiments but are better represented in terms of strength in RAD. In addition, CONV captures the location of the MCS, but the convection seems to be less organized and much weaker than in RAD. Before and after the times shown in Figure \@ref(fig:dbz-mean), the agreement between location of the observed convective cells and the simulated in the experiment is quite good in the regions where radar data are available, especially for RAD. 
 
 Finally, Figure \@ref(fig:soundings) shows the RMSE and bias calculated by comparing the experiments with radiosonde data from the RELAMPAGO missions, IOP 7 from 15 to 21 UTC Nov 21 (including 30 radiosondes), and IOP 8 from 14 to 20 UTC Nov 22 (including 22 radiosondes). 
 
-IOP 7 (Figures \@ref(fig:soundings)a-d) provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. In general, the experiments show a similar RMSE and bias for all the variables. AWS observations were able to reduce the RMSE for temperature and dew point temperature in the PBL and reduce a small dry bias. However, AWS degradated the zonal wind between 7 and 12 km increasing the bias and RMSE (Figure \@ref(fig:soundings)c).
+IOP 7 (Figures \@ref(fig:soundings)a-d) provides a good characterization of the pre-convective environment during the first day of our experiments. The area where the observations were taken was characterized by mostly clear skies and a low-level northerly flow associated with warm and moist advection. In general, the experiments show a similar RMSE and bias for all the variables. AWS observations were able to reduce the RMSE for temperature and dew point temperature in the PBL and reduce a small dry bias. However, in this region (Figure \@ref(fig:dominio)b) and for this period, AWS increments (Figure \@ref(fig:UV-diff)d) degrades the zonal wind between 7 and 12 km increasing the bias and RMSE (Figure \@ref(fig:soundings)c).
 
 
 (ref:dbz-mean) Maximum reflectivity in the column (COLMAX in $dBZ$), observed (upper row) and 1-hr forecast probability matched mean column maximum reflectivity for CONV (second row) and RAD (third row) at 10 UTC (first column), 13 UTC (second column), 16 UTC (third column), and 19 UTC (fourth column) Nov 22, 2018. Black circles in first row show the observation range of each radar. 
 
-```{r dbz-mean, fig.cap="(ref:dbz-mean)", out.width="100%", fig.height=6.5, fig.width=8, fig.env="figure*", fig.pos="h"}
+```{r dbz-mean, fig.cap="(ref:dbz-mean)", out.width="100%", fig.height=6.5, fig.width=8, fig.env="figure*", fig.pos="ht"}
 proj_radar <- "+proj=tmerc +lon_0=-61.5 +lat_0=-32 +k_0=1 +ellps=WGS84"
 
 rad_loc <- fread(here("analysis/data/derived_data/sample_obs/radar_loc.csv")) %>% 
@@ -1384,11 +1597,11 @@ rbind(dbz_obs, dbz_ana) %>%
 ```
 
 
-For IOP 8 (Figures \@ref(fig:soundings)e-h), the densely observed area was behind the MCS, but far enough from it to not be directly affected by its mesoscale circulation. This area was also behind the cold front and affected by low-level cold advection. The assimilation of AWS, SATWND, and RAD reduces the cold bias and RMSE for temperature between 5 and 12 km and the RMSE in the PBL compared with CONV (Figure \@ref(fig:soundings)e). The reduction of bias and RMSE is also important for dew point temperature (Figure \@ref(fig:soundings)f) with SATWND showing the biggest impact followed by AWS and RAD. The zonal wind is overestimated in the analyses and only RAD shows an improvement with respect to CONV in the upper troposphere (Figure \@ref(fig:soundings)g). At low levels the meridional wind (Figure \@ref(fig:soundings)g) presents a negative bias, indicating an underestimation of the southerly wind behind the cold front principally in AWS, SATWND, and RAD. In fact, low level biases in these experiments are higher than in the CONV experiment, indicating a detrimental effect of the additional observations (possibly associated with the effect of AWS).  
+For IOP 8 (Figures \@ref(fig:soundings)e-h), the densely observed area was behind the MCS, but far enough from it to not be directly affected by its mesoscale circulation. This area was also behind the cold front and affected by low-level cold advection. The assimilation of AWS, SATWND, and RAD reduces the cold bias and RMSE for temperature between 5 and 12 km and the RMSE in the PBL compared with CONV (Figure \@ref(fig:soundings)e). The reduction of bias and RMSE is also important for dew point temperature (Figure \@ref(fig:soundings)f) with SATWND showing the biggest impact followed by AWS and RAD. The zonal wind is overestimated in the analyses and only RAD shows an improvement with respect to CONV in the upper troposphere (Figure \@ref(fig:soundings)g). At low levels the meridional wind (Figure \@ref(fig:soundings)g) presents a negative bias, indicating an underestimation of the southerly wind behind the cold front principally in AWS, SATWND, and RAD. In fact, low level biases in these experiments are higher than in the CONV experiment, indicating a detrimental effect of the additional observations (possibly associated with the effect of AWS). 
 
-(ref:soundings) RMSE (solid line) and Bias (dashed line) of a) temperature ($K$), b) dew point temperature ($K$), c) u wind ($ms^{-1}$) and d) v wind ($ms^{-1}$) calculated by comparing the analysis of each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8. The blue line corresponds to CONV, the light blue line to AWS, SATWND is represented with an orange line, and RAD with a red line.
+(ref:soundings) RMSE (solid line) and Bias (dashed line) of a) temperature ($K$), b) dew point temperature ($K$), c) u wind ($m\ s^{-1}$) and d) v wind ($m\ s^{-1}$) calculated by comparing the analysis of each experiment with the RELAMPAGO soundings during IOP 7 and IOP 8. The blue line corresponds to CONV, the light blue line to AWS, SATWND is represented with an orange line, and RAD with a red line.
 
-```{r soundings, fig.cap="(ref:soundings)", fig.env="figure*", fig.pos="t", fig.align="center"}
+```{r soundings, fig.cap="(ref:soundings)", fig.width=6, fig.height=4, fig.env="figure*", fig.pos="ht", fig.align="center"}
 files <- Sys.glob(here("analysis/data/derived_data/soundings/sondeo_E[2569]_ana*"))
 
 sondeos <- purrr::map(files, function(f){
@@ -1419,7 +1632,7 @@ sondeos %>%
   .[lev <= 15000] %>% 
   .[, ":="(iop_labels = factor(iop, labels = c("IOP~7", "IOP~8")),
            variable_labels = factor(variable, labels = c("Temperature~(K)", "Dew~point~temperature~(K)", 
-                                                         "U~wind~(ms^{-1})", "V~wind~(ms^{-1})")))] %>% 
+                                                         "U~wind~(m~s^{-1})", "V~wind~(m~s^{-1})")))] %>% 
   ggplot(aes(lev/1000, value.est)) +
   geom_hline(yintercept = 0, color = "grey30") +
   geom_line(aes(color = exp, linetype = estadistico)) +
@@ -1431,13 +1644,14 @@ sondeos %>%
    tagger::tag_facets(position = list(x = 0.05, y = 0.95)) +
   labs(y = "Bias/RMSE", x = "Height (Km)", color = NULL, linetype = NULL) +
   theme_minimal(base_size = 9) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        panel.background = element_rect(fill = "#fbfbfb", color = NA))
 ```
 ## Ensemble forescast validation 
 
-In this section, we analyze the 60-member ensemble forecast initialized at 00 and 06 UTC Nov 22 from each experiment that runs for 36 and 30 h respectively, until 12 UTC Nov 23. We calculated the FSS for the ensemble forecasts in 6-hour moving windows for the same thresholds and spatial scales as for the first-guess hourly accumulated precipitation to quantify the skill of the forecasts to predict precipitation (Figure \@ref(fig:fssfcst)). CONV forecasts perform very poorly in terms of the FSS compared with the experiments that include other sources of observations. AWS, SATWND, and RAD show improvements in the FSS values, particularly for the higher threshold (Figure \@ref(fig:fssfcst)b, d). Moreover, the late initialization at 06 UTC performs better for AWS, SATWND, and RAD than the forecast initialized at 00 UTC, highlighting the positive impact of the observations assimilated between 00 and 06 UTC.  
+This section analyzes the 60-member ensemble forecast initialized at 00 and 06 UTC Nov 22 from each experiment that runs for 36 and 30 h respectively, until 12 UTC Nov 23. The FSS is again calculated for the ensemble forecasts in 6-hour rolling windows for the same thresholds and spatial scales as for the first-guess hourly accumulated precipitation to quantify the skill of the forecasts to predict precipitation (Figure \@ref(fig:fssfcst)). CONV forecasts perform very poorly in terms of the FSS compared with the experiments that include other sources of observations. AWS, SATWND, and RAD show improvements in the FSS values, particularly for the higher threshold (Figure \@ref(fig:fssfcst)b, d). Moreover, the late initialization at 06 UTC performs better for AWS, SATWND, and RAD than the forecast initialized at 00 UTC, highlighting the positive impact of the observations assimilated between 00 and 06 UTC. 
 
-The satellite-derived wind observations show a clearly positive impact on the forecast, in contrast to what was seen when comparing the 1-h forecast with independent observations in terms of precipitation. Conversely, the radiance observations resulted in a neutral to a slightly negative impact on the forecast as opposed to what was seen when comparing the 1-h forecast to IMERG estimations. 
+The satellite-derived wind observations show a clearly positive impact on the forecast, in contrast to what was seen when comparing the 1-h forecast with independent observations in terms of precipitation. Conversely, the radiance observations resulted in a neutral to a slightly negative impact on the forecast as opposed to what was seen when comparing the 1-h forecast to IMERG estimations. The reason why the forecasts initialized from RAD degrade over time needs to be further study. However, it is possible that the assimilation of observations associated with channels affected by the surface is contributing to the degradation of the PBL in the analysis and subsequently in the forecasts. @lim2014 observed limited impact when assimilating AIRS observations and attribute this result to the use of surface channels where the uncertainties associated with emissivity are large. 
 
 (ref:fssfcst) FSS calculated over a 6-hour moving window for 1 mm (a and c) and 25 mm (b and d) thresholds, on 10 km (a and b) and 100 km (c and d) scales, for the forecasts initialized from CONV (blue line), AWS (light blue line), SATWND (orange line), and RAD (red line) experiments at 00 UTC (solid line) and 06 UTC (dashed line), Nov 22.
 
@@ -1457,7 +1671,7 @@ fss <- purrr::map(files, function(f) {
 
 fss %>% 
   .[q %in% c(1, 25) & w %in% c(1, 11)] %>% 
-  .[, ":="(q_label = factor(q, labels = c("1~mmh^{-1}", "25~mmh^{-1}")),
+  .[, ":="(q_label = factor(q, labels = c("1~mm~h^{-1}", "25~mm~h^{-1}")),
            w_label = factor(w, labels = c("10~km", "100~km")))] %>% 
   ggplot(aes(date, fss)) +
   geom_hline(yintercept = 1, color = "darkgray") +
@@ -1465,7 +1679,7 @@ fss %>%
   # geom_point(aes(color = exp)) +
   scale_color_manual(values = colores_exp, labels = c(E2 = "CONV", E5 = "AWS",
                                                       E6 = "SATWND", E9 = "RAD")) +
-  scale_linetype_manual(values = c(1, 2), labels = c("2018-11-22 00:00:00" = "OO UTC", 
+  scale_linetype_manual(values = c(1, 2), labels = c("2018-11-22 00:00:00" = "00 UTC", 
                                    "2018-11-22 06:00:00" = "06 UTC")) +
   scale_date(20181122000000, 20181123000000, "12 hours") +
   facet_grid(w_label ~ q_label, labeller = label_parsed) +
@@ -1474,29 +1688,32 @@ fss %>%
   theme_minimal(base_size = 8) +
   theme(legend.position = "bottom",
         legend.box = "vertical", 
-        legend.margin = margin())
+        legend.margin = margin(0, 0, 0, 0),
+        panel.background = element_rect(fill = "#fbfbfb", color = NA))
 
 ```
 
 # Conclusions
 
-In this paper, we investigate for the first time in South America the impact of different observation systems on the performance of an ensemble-based mesoscale regional DA system. In particular, we explore the impact upon the analysis quality of assimilating frequent and relatively dense surface observations, satellite derived winds, and satellite clear-sky radiances from multiple sensors. Southern South America is a particularly interesting region due to the heterogeneity and sometimes coarse resolution of the operational observing network (considering both surface based and upper air observations). This combined with a climatology characterized by frequent organized convective events makes mesoscale DA particularly challenging.  To consider these issues, we used a case study approach of a massive mesoscale convective system that developed over Southern South America, particularly in a region where the surface and upper-air observing networks are too coarse to capture variability at the mesoscale and that took place on Nov 22, 2018. 
+Southern South America is a particularly interesting region due to the heterogeneity in topography and coarse resolution of the operational observing network (considering both surface based and upper air observations). This, combined with a climatology characterized by frequent organized convective events makes mesoscale DA particularly challenging. This paper investigates, for the first time in South America, using a case-study approach, the impact of different observation systems on the performance of an ensemble-based mesoscale regional DA system. This case study corresponds to a massive MCS that developed over Southern South America on Nov 22, 2018 during the RELAMPAGO field campaign. In particular, the impact on the analysis quality of assimilating frequent and relatively dense surface observations, satellite-derived winds, and satellite clear-sky radiances from multiple sensors is explored.
 
-We evaluated the consistency of the ensemble using the RCRV calculated for each type of observation used in RAD. Conventional observations including surface data and upper air observations from soundings and aircraft, show a $sd RCRV$ near 1 indicating a good agreement between the ensemble spread and the observational errors with respect to the distance between the ensemble mean and the observations. For satellite-derived winds and radiance observations, the $sd RCRV$ is lower than 1, which could be the result of an underdispersive ensemble or an overestimation of the observation errors. However, taking into account that the observation error for satellite-derived wind is overestimated (to avoid strong impacts on the analysis for poor quality estimations) and that the results obtained for more reliable observations (such as soundings) were good, we conclude that the ensemble has a reasonable spread. 
+Firstly, the consistency of the ensemble was evaluated to ensure a good agreement between the ensemble spread and the observational errors with respect to the distance between the ensemble mean and the observations. While conventional observations departures are consistent with the ensemble spread and assumed observation errors, satellite-derived winds and radiance observations departures are lower than expected. The latter could be the result of an overestimation of the observation errors which is usually introduced to avoid the detrimental impact on the analysis of poor quality observations. 
+In this case study, all the observation types considered (i.e. automatic weather stations, satellite derived winds and clear-sky radiances from polar orbiting satellites) improves the quality of the analysis and of the short range forecast with respect to the conventional observation network. In terms of the analysis, automatic weather station observations, which have high spatial and temporal resolution, produced impacts mainly within the PBL but which occasionally extends throughout the troposphere during the periods where moist convection is stronger within the domain. These observations also helped to reduce the warm and dry bias present in the model, producing an analysis closer to the ERA5 reanalysis. During the pre-convective environment, assimilating surface temperature, dew point temperature, and meridional wind improved the analysis at low levels when compared with observed soundings. In particular, when these observations are assimilated, precipitable water content and low level meridional circulation led to the enhancement of deep convection and heavy precipitation which is closer to observations. 
 
-In terms of the analysis, we found that AWS observations, which have high spatial and temporal resolution, produce impacts throughout the troposphere, especially in the PBL. In particular, the precipitable water content and the low level meridional circulation in the AWS experiment lead to the development of deep convection and heavy precipitation closer to the observed in this case study. We also found positive results when assimilating radiance observations that produce an adequate development of the convection, mainly during the mature stage of the MCS, leading to an increase in the accumulated precipitation compared with the other experiments. However, all experiments underestimated the 1-hour accumulated precipitation when compared to IMERG estimates. While the assimilation of satellite-derived wind does not produce a noticeable impact on the analysis with respect to the AWS experiment, this is possibly due to the small number of observations in low levels available for this case study and its large observation error. However, there are substantial improvements for the accumulated precipitation distribution. A more comprehensive analysis is necessary to assess the possible impacts on middle and upper levels.
+Positive results were also found when assimilating radiance observations, which produced a better development of the convection and its associated outflow circulation, mainly during the mature stage of the MCS, leading to increased accumulated precipitation compared to the case in which these observations are not assimilated. However, these observations weakened the impact of automatic weather station observations within the PBL, slightly increasing the warm and dry bias with respect to ERA5. While this needs to be further studied, it could be related to the assimilation of channels affected by the surface or sub-optimal bias correction. Comparing the experiment with independet soundings, the assimilation of radiances improved mid and upper level wind.
 
-Taking advantage of the observations taken during the RELAMPAGO field campaign, we compared the experiments with the soundings launched during IOPs 7 and 8. For the pre-convective environment (IOP 7), we observed an improvement at low levels when assimilating AWS observations for the temperature, dew point temperature, and meridional wind. In particular, AWS observations correct a dry bias already observed by @ruiz2010. For IOP 8, after the MCS crossed the center of the domain, we found a positive impact in low levels when assimilating more observations for the temperature but the opposite effect for the dew point temperature. In this case, the analyses have a moist bias that increases with the assimilation of AWS and radiance observations. We noted a negative covariance between temperature and moisture content over this region that could lead to a moistening of the PBL. It is not clear what produces these negative covariances but it is evident that the corrections introduced by the observations are degrading the estimation of the moisture content during this period, which requires further analysis. 
+The assimilation of satellite-derived wind did not produce a noticeable impact on the analysis. This is possibly due to the relatively small number of observations in low levels available for this case study and their large observation error. However, there are improvements in the 1-h forecast accumulated precipitation distribution. A more comprehensive analysis is necessary to understand the mechanisms behind the impact of these observations on longer range forecasts.
 
-We also analyzed the performance of independent ensemble forecasts intialized from the analyses to forecast the precipitation during Nov 22. The forecast initialized from AWS, SATWND, and RAD are able to forecast the precipitation substantially better than CONV. In particular, the continuous assimilation of satellite-derived wind and radiance observations helps to improve the latest initialization but only the satellite-derived wind observations produces a positive impact that persists throughout the forecast.   
+The evaluation of the performance of independent ensemble precipitation forecasts initialized from the analyses during Nov 22 showed that the forecasts initialized from AWS, SATWND, and RAD were able to forecast the precipitation substantially better than CONV. In particular, continuous assimilation of satellite-derived wind and radiance observations improved the latest initialization but only satellite-derived wind observations produced a positive impact that persisted throughout the forecast. Why the forecast initialized from RAD did not perform better than SATWND needs to be further study.
 
-To summarize, in this study we conclude that the assimilation of surface observations with high spatial and temporal resolution, satellite-derived winds, and clear-sky radiances from polar orbiting satellites had an overall positive impact on the development of the studied MCS and its associated precipitation. Moreover, the ensemble forecasts initialized from the analysis show promising results to predict the precipitation of severe events. In the future, we will further analyze the impacts in the independent forecasts and evaluate the implementation of other sources of observations like  GPS radio occultation data and radiances from geostationary orbiting satellites. 
+To summarize, in this case study we found that the assimilation of surface observations with high spatial and temporal resolution, satellite-derived winds, and clear-sky radiances from polar orbiting satellites had an overall positive impact on the development of the studied MCS and its associated precipitation. Moreover, ensemble forecasts initialized from the analysis showed promising results for predicting extreme severe precipitation events. In the future, we will further analyze the impact of these observations upon short-range forecasts over longer periods and evaluate the assimilation of other sources of observations such as GPS radio occultation data and radiances from geostationary orbiting satellites like GOES-16.
+
  
 # Code and data availability
 
-A version-controlled repository of the code used to create this analysis, including the code used to download the data can be found at <https://github.com/paocorrales/mesoda>. The derived data that support the findings of this study are also openly available in Zenodo at http://doi.org/10.5072/zenodo.1060834, version 0.9.0. 
+A version-controlled repository of the code used to create this analysis, including the code used to download the data can be found at <https://github.com/paocorrales/mesoda>. The derived data that support the findings of this study are also openly available in Zenodo at http://doi.org/10.5281/zenodo.7015913, version 0.9.2. 
 
-# Acknowledgements {.unnumbered}
+# Acknowledgments {.unnumbered}
 
 We are very thankful to the Atmospheric and Sea Research Center (CIMA), the University of Buenos Aires (UBA), and the National Scientific and Technical Research Council (CONICET) who support this study. We acknowledge the Sistema Nacional de Radares Meteorológicos supported by the Secretaría de Infraestructura y Política Hídrica for kindly providing the radar observations used for validation and the National Meteorological Service for facilitating the access to the data. We also acknowledge the Cheyenne HPC resources (doi:10.5065/D6RX99HX) from NCAR's Computational and Information Systems Laboratory, National Science Foundation (project code UIUC0012). Also, PICT 2017-2233 and PICT 2018-3202 projects of the National Agency for the Promotion of Research, Technological Development and Innovation from Argentina partially funded this project.
 

@@ -28,17 +28,42 @@ The **analysis** directory contains:
   - [:file\_folder: figures](/analysis/figures): Plots and other
     illustrations
 
-## How to run the project locally
+## Running the code
 
-This research compendium has been developed using the statistical
-programming language R. To work with the compendium, you will need
-installed on your computer the [R
-software](https://cloud.r-project.org/) itself and optionally [RStudio
-Desktop](https://rstudio.com/products/rstudio/download/).
+Clone this repo. If using RStudio, open the project. 
 
-You can clone the repository to your computer and explore the content. 
-To run the code, if the data is present, first run `devtools::install()` to ensure you have the
-packages this analysis depends on (also listed in the
-[DESCRIPTION](/DESCRIPTION) file). - finally, open
-`analysis/paper/paper_ana_20181122.Rmd` and knit to produce the `paper_ana_20181122.pdf`, or run
-`rmarkdown::render("analysis/paper/paper.Rmd")` in the R console.
+### Installing system dependencies
+
+System dependencies (on ubuntu) are listd in system-deps.txt. 
+To install them you can use 
+
+``` bash
+xargs sudo apt-get install -y < system-deps.txt
+```
+
+### Installing R packages
+
+This project uses the [renv](https://rstudio.github.io/renv/) package to manage a reproducible environment. If opening this project with RStudio or starting R from the command line from the root directory, renv should automagically install and load itself. 
+
+To recreate the environment then run
+
+```r
+renv::restore()
+```
+
+This should install all the package dependencies needed to install the package and compile the document. Depending on your operating system, this could take a while. 
+
+Then install this package with
+
+```r
+if (!require("devtools")) {
+   install.packages("devtools")
+}
+devtools::install()
+```
+
+### Getting the data
+
+To get the data needed to reproduce this paper is openly available in Zenodo at http://doi.org/10.5281/zenodo.7015913, version 0.9.1. You can download it running the `analysis/paper/download_derived-data.R`. The data will be stored in `analysis/data/derived_data`. 
+
+Finally, knit the main manuscript located at `analysis/paper/paper_ana_20181122.Rmd`. 
