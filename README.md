@@ -64,6 +64,6 @@ devtools::install()
 
 ### Getting the data
 
-To get the data needed to reproduce this paper is openly available in Zenodo at http://doi.org/10.5281/zenodo.7015913, version 0.9.1. You can download it running the `analysis/paper/download_derived-data.R`. The data will be stored in `analysis/data/derived_data`. 
+To get the data needed to reproduce this paper is openly available in Zenodo at http://doi.org/10.5281/zenodo.7015913, version 0.9.2. You can download it running the `analysis/paper/download_derived-data.R`. The data will be stored in `analysis/data/derived_data`. 
 
 Finally, knit the main manuscript located at `analysis/paper/paper_ana_20181122.Rmd`. 
