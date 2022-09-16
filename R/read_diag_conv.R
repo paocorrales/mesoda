@@ -23,7 +23,7 @@ read_diag_conv <- function(file_list, exp, member = "000", variable = c("uv", "p
       # .[V10 == 1] %>%
       .[, exp := exp] %>%
       .[, mem := member] %>%
-      .[, date := ymd_hms(str_extract(basename(f), "\\d{14}"))] %>%
+      .[, date := ymd_hms(stringr::str_extract(basename(f), "\\d{14}"))] %>%
       .[, c("V2", "V4") := NULL]
 
     # cat("Archivo ", basename(files[f]))
@@ -35,8 +35,8 @@ read_diag_conv <- function(file_list, exp, member = "000", variable = c("uv", "p
 
       diag <- diag[var == "uv"] %>%
         melt(measure.vars = c("obs", "obs2", "obs.guess", "obs.guess2")) %>%
-        .[, var := if_else(str_detect(variable, "2"), "v", "u")] %>%
-        .[, variable := str_remove(variable, "2")]
+        .[, var := if_else(stringr::str_detect(variable, "2"), "v", "u")] %>%
+        .[, variable := stringr::str_remove(variable, "2")]
 
       vars <- rlang::syms(setdiff(names(diag), "value"))
       diag <- diag %>%
@@ -51,8 +51,8 @@ read_diag_conv <- function(file_list, exp, member = "000", variable = c("uv", "p
 
       uv <- diag[var == "uv"] %>%
         melt(measure.vars = c("obs", "obs2", "obs.guess", "obs.guess2")) %>%
-        .[, var := if_else(str_detect(variable, "2"), "v", "u")] %>%
-        .[, variable := str_remove(variable, "2")]
+        .[, var := if_else(stringr::str_detect(variable, "2"), "v", "u")] %>%
+        .[, variable := stringr::str_remove(variable, "2")]
 
       vars <- rlang::syms(setdiff(names(uv), "value"))
       uv <- uv %>%
