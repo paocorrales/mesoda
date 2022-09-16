@@ -41,7 +41,7 @@ read_diag_conv <- function(file_list, exp, member = "000", variable = c("uv", "p
       vars <- rlang::syms(setdiff(names(diag), "value"))
       diag <- diag %>%
         distinct(!!!vars, .keep_all = TRUE) %>%
-        pivot_wider(names_from = variable, values_from = value) %>%
+        tidyr::pivot_wider(names_from = variable, values_from = value) %>%
         setDT %>%
         .[, id := 1:.N, by = mem]
 
@@ -57,7 +57,7 @@ read_diag_conv <- function(file_list, exp, member = "000", variable = c("uv", "p
       vars <- rlang::syms(setdiff(names(uv), "value"))
       uv <- uv %>%
         distinct(!!!vars, .keep_all = TRUE) %>%
-        pivot_wider(names_from = variable, values_from = value) %>%
+        tidyr::pivot_wider(names_from = variable, values_from = value) %>%
         setDT
 
       variable <- c(variable, "u", "v")
