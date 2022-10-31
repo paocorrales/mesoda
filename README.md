@@ -5,15 +5,14 @@
 
 This repository contains the data and code for our paper:
 
-> Corrales et. at., (YYYY). *Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO campaign*. In review
-> <https://doi.org/xxx/xxx>
+> Corrales et. at., (2023). *Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO campaign*. Atmospheric Research, 281, 106456.
+> https://doi.org/10.1016/j.atmosres.2022.106456
 
 ### How to cite
 
 Please cite this compendium as:
 
-> Corrales, P., et. al., (2022). *Compendium of R code for Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO campaign*. Accessed 06 Oct 2020. Online at
-> <https://doi.org/xxx/xxx>
+> Corrales, P., et. al., (2022). *Compendium of R code for Hourly Assimilation of Different Sources of Observations Including Satellite Radiances in a  Mesoscale Convective System Case During RELAMPAGO campaign*. 
 
 ## Contents
 
