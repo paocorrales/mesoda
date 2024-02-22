@@ -28,7 +28,7 @@ df[lat %between% c(-41.5, -20) & lon %between% c(-75, -54)] %>%
   dcast(stationID + variable ~ is_na) %>%
   .[!is.na(OBS), .N, by = variable]
 
-SMN <- %>%
+SMN <-
   df[lat %between% c(-41.5, -20) & lon %between% c(-75, -54)] %>%
   # unique(by = c("stationID")) %>%
   .[str_detect(stationID, "SMN")] %>%
